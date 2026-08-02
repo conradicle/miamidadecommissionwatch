@@ -113,6 +113,7 @@ p { margin: 0 0 1em; }
 .btn-secondary { background: transparent; color: var(--ink-900); border-color: var(--ink-900); }
 .btn-secondary:hover { background: var(--ink-900); color: #fff; }
 .btn-row { display: flex; gap: 12px; flex-wrap: wrap; margin-top: 24px; }
+.btn-large { padding: 18px 34px; font-size: 18px; }
 
 /* ---------- skip link ---------- */
 .skip-link {
