@@ -3,6 +3,13 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
+<script>
+(function () {
+  if (/type=recovery|type=invite/.test(window.location.hash)) {
+    window.location.replace('set-password.html' + window.location.hash);
+  }
+})();
+</script>
 <title>Miami-Dade Commission Watch</title>
 <meta name="description" content="Independent, nonpartisan tracking of the Miami-Dade County Board of County Commissioners: meeting summaries, a commissioner directory, and ways to get involved.">
 <link rel="stylesheet" href="css/style.css">
