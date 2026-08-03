@@ -5,6 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Get Involved - Miami-Dade Commission Watch</title>
 <meta name="description" content="How to find your Miami-Dade commissioner, follow meetings, and speak at public comment.">
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css">
 <link rel="stylesheet" href="css/style.css">
 </head>
 <body>
@@ -28,12 +29,9 @@
   <nav class="site-nav" id="site-nav" aria-label="Primary">
     <a href="index.html">Home</a>
     <a href="meetings.html">Meetings</a>
-    <a href="commissioners.html">Commissioners</a>
-    <a href="constitutional-offices.html">Constitutional Offices</a>
-    <a href="find-my-district.html">My District</a>
+    <a href="officials.html">Officials</a>
     <a href="get-involved.html" aria-current="page">Get Involved</a>
-    <a href="news.html">News</a>
-    <a href="editorials.html">Editorials</a>
+    <a href="news.html">News &amp; Editorials</a>
     <a href="about.html">About</a>
   </nav>
 </header>
@@ -48,15 +46,48 @@
     </div>
   </section>
 
-  <section class="section">
+  <section class="section" id="find-district">
+    <div class="wrap">
+      <div class="section-head">
+        <span class="eyebrow">Step 1</span>
+        <h2>Find your district</h2>
+      </div>
+      <p class="mt-0" style="max-width:60ch; color:var(--ink-600);">Type your address for an instant answer, or explore the map below to see how the county is divided and who represents each area.</p>
+
+      <form class="district-search-form" id="district-search-form" style="margin-top:20px;">
+        <label for="district-search-input" class="mt-0" style="display:block; font-weight:600; margin-bottom:6px; width:100%;">Enter your address</label>
+        <input type="text" id="district-search-input" name="address" placeholder="e.g. 111 NW 1st St, Miami, FL 33128" autocomplete="off">
+        <button type="submit" class="btn btn-primary">Find my district</button>
+      </form>
+      <div id="district-search-status" class="district-status"></div>
+
+      <div id="district-map"></div>
+
+      <div class="district-legend">
+        <div class="district-legend-item"><span class="district-legend-swatch" style="background:#146652;"></span>D1 &middot; Gilbert</div>
+        <div class="district-legend-item"><span class="district-legend-swatch" style="background:#1d3557;"></span>D2 &middot; Bastien</div>
+        <div class="district-legend-item"><span class="district-legend-swatch" style="background:#c08a2e;"></span>D3 &middot; Hardemon</div>
+        <div class="district-legend-item"><span class="district-legend-swatch" style="background:#7a2d5e;"></span>D4 &middot; Steinberg</div>
+        <div class="district-legend-item"><span class="district-legend-swatch" style="background:#2c4d7a;"></span>D5 &middot; Lopez</div>
+        <div class="district-legend-item"><span class="district-legend-swatch" style="background:#b3452c;"></span>D6 &middot; Milian Orbis</div>
+        <div class="district-legend-item"><span class="district-legend-swatch" style="background:#1a7d64;"></span>D7 &middot; Regalado</div>
+        <div class="district-legend-item"><span class="district-legend-swatch" style="background:#8a5a1e;"></span>D8 &middot; Cohen Higgins</div>
+        <div class="district-legend-item"><span class="district-legend-swatch" style="background:#4b5563;"></span>D9 &middot; McGhee</div>
+        <div class="district-legend-item"><span class="district-legend-swatch" style="background:#0e4a3c;"></span>D10 &middot; Rodriguez</div>
+        <div class="district-legend-item"><span class="district-legend-swatch" style="background:#a5673f;"></span>D11 &middot; Gonzalez</div>
+        <div class="district-legend-item"><span class="district-legend-swatch" style="background:#3d6b8a;"></span>D12 &middot; Bermudez</div>
+        <div class="district-legend-item"><span class="district-legend-swatch" style="background:#6b4226;"></span>D13 &middot; Garcia</div>
+      </div>
+
+      <div class="notice" style="margin-top:24px;">
+        District boundaries come from Miami-Dade County's official GIS open data (Commission District layer). Address lookup uses the U.S. Census Bureau's public geocoding service. Boundaries are redrawn roughly once a decade after redistricting; if this ever looks out of date, <a href="contact.html">let us know</a>.
+      </div>
+    </div>
+  </section>
+
+  <section class="section section-alt">
     <div class="wrap">
       <div class="card-grid">
-
-        <div class="card">
-          <h3>1. Find your district</h3>
-          <p>Type your address into our district finder to see which of the 13 districts you live in and who represents you.</p>
-          <p><a href="find-my-district.html">Find my district &#8599;</a></p>
-        </div>
 
         <div class="card">
           <h3>2. Read the agenda before the meeting</h3>
@@ -77,8 +108,8 @@
 
         <div class="card">
           <h3>5. Contact your commissioner's office</h3>
-          <p>Each commissioner's office can take calls, emails, and meeting requests from constituents in their district. Start from the directory below.</p>
-          <p><a href="commissioners.html">Commissioner directory</a></p>
+          <p>Each commissioner's office can take calls, emails, and meeting requests from constituents in their district. Start from the directory.</p>
+          <p><a href="officials.html#commission">Commissioner directory</a></p>
         </div>
 
         <div class="card">
@@ -104,12 +135,9 @@
         <h4>Site</h4>
         <ul>
           <li><a href="meetings.html">Meeting Tracker</a></li>
-          <li><a href="commissioners.html">Commissioners</a></li>
-          <li><a href="constitutional-offices.html">Constitutional Offices</a></li>
-          <li><a href="find-my-district.html">Find My District</a></li>
+          <li><a href="officials.html">Officials</a></li>
           <li><a href="get-involved.html">Get Involved</a></li>
-          <li><a href="news.html">News</a></li>
-          <li><a href="editorials.html">Editorials</a></li>
+          <li><a href="news.html">News &amp; Editorials</a></li>
         </ul>
       </div>
       <div>
@@ -138,6 +166,8 @@
 
 <div id="google_translate_element"></div>
 <script src="js/main.js"></script>
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+<script src="js/find-district.js"></script>
 <script src="js/translate.js"></script>
 <script src="https://translate.google.com/translate_a/element.js?cb=googleTranslateElementInit"></script>
 </body>
