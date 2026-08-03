@@ -1,4 +1,4 @@
 User-agent: *
 Allow: /
 
-Sitemap: https://miamidadecommissionwatch.com/sitemap.xml
+Sitemap: https://www.miamidadecommissionwatch.com/sitemap.xml
