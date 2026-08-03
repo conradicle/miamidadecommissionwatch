@@ -3,8 +3,8 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Admin - Editorial Submissions - Miami-Dade Commission Watch</title>
-<meta name="description" content="Administrator review queue for submitted student editorials.">
+<title>Staff Dashboard - Miami-Dade Commission Watch</title>
+<meta name="description" content="Administrator dashboard for editorial submissions, meeting reviews, news posts, and staff access.">
 <meta name="robots" content="noindex, nofollow">
 <link rel="stylesheet" href="css/style.css">
 <style>
@@ -19,6 +19,14 @@
   .btn-small { padding: 8px 16px; font-size: 14px; }
   .btn-danger { background: var(--red-600); color: #fff; }
   .btn-danger:hover { background: #8a341f; color: #fff; }
+
+  .admin-tabs { display: flex; gap: 4px; border-bottom: 1px solid var(--line); margin-bottom: 24px; flex-wrap: wrap; }
+  .admin-tab { padding: 10px 18px; font-size: 15px; font-weight: 600; background: none; border: none; border-bottom: 3px solid transparent; color: var(--ink-600); cursor: pointer; }
+  .admin-tab.active { color: var(--green-700); border-bottom-color: var(--green-700); }
+  .admin-form { background: var(--paper-raised); border: 1px solid var(--line); border-radius: var(--radius); padding: 24px; margin-bottom: 28px; }
+  .field-row { display: flex; gap: 16px; flex-wrap: wrap; }
+  .field-row .field { flex: 1; min-width: 180px; }
+  .meeting-item-row { border-top: 1px solid var(--line); padding-top: 16px; margin-top: 16px; }
 </style>
 </head>
 <body>
@@ -41,15 +49,73 @@
   <section class="hero" style="padding-bottom:24px;">
     <div class="wrap">
       <span class="eyebrow">Staff</span>
-      <h1 style="max-width:24ch;">Editorial submissions</h1>
-      <p class="lede">Review, approve, or reject student editorial submissions. Approving publishes immediately to the live <a href="news.html#editorials">News &amp; Editorials</a> page.</p>
+      <h1 style="max-width:28ch;">Staff dashboard</h1>
+      <p class="lede">Review editorials, publish meeting write-ups and news, and (for the site owner) manage staff access. Everything here publishes immediately to the live site.</p>
     </div>
   </section>
 
   <section class="section">
     <div class="wrap">
       <div id="admin-status" class="district-status"></div>
-      <div id="submissions-list"></div>
+
+      <div class="admin-tabs" id="admin-tabs" style="display:none;">
+        <button type="button" class="admin-tab active" data-tab="editorials">Editorials</button>
+        <button type="button" class="admin-tab" data-tab="meetings">Meetings</button>
+        <button type="button" class="admin-tab" data-tab="news">News</button>
+        <button type="button" class="admin-tab" data-tab="staff" id="staff-tab-btn" style="display:none;">Staff</button>
+      </div>
+
+      <div class="admin-panel" id="panel-editorials">
+        <div id="submissions-list"></div>
+      </div>
+
+      <div class="admin-panel" id="panel-meetings" style="display:none;">
+        <form id="meeting-form" class="admin-form">
+          <h3 style="margin-top:0;">Add a meeting</h3>
+          <div class="field-row">
+            <div class="field"><label for="m-date">Meeting date</label><input type="date" id="m-date" required></div>
+            <div class="field"><label for="m-type">Meeting type</label><input type="text" id="m-type" value="Regular Meeting" required></div>
+          </div>
+          <div class="field"><label for="m-title">Headline</label><input type="text" id="m-title" required></div>
+          <div class="field"><label for="m-summary">Summary</label><textarea id="m-summary" rows="3" required></textarea></div>
+
+          <h4 style="margin-top:24px; margin-bottom:0;">Agenda items</h4>
+          <div id="meeting-items"></div>
+          <button type="button" class="btn btn-secondary btn-small" id="add-item-btn" style="margin-top:12px;">+ Add agenda item</button>
+
+          <div style="margin-top:20px;">
+            <button type="submit" class="btn btn-primary">Publish meeting</button>
+          </div>
+          <div id="meeting-form-status" class="district-status" style="margin-top:12px;"></div>
+        </form>
+
+        <div id="meetings-admin-list"></div>
+      </div>
+
+      <div class="admin-panel" id="panel-news" style="display:none;">
+        <form id="news-form" class="admin-form">
+          <h3 style="margin-top:0;">Add a news item</h3>
+          <div class="field"><label for="n-title">Title</label><input type="text" id="n-title" required></div>
+          <div class="field"><label for="n-body">Body</label><textarea id="n-body" rows="6" required></textarea></div>
+          <button type="submit" class="btn btn-primary">Publish news item</button>
+          <div id="news-form-status" class="district-status" style="margin-top:12px;"></div>
+        </form>
+
+        <div id="news-admin-list"></div>
+      </div>
+
+      <div class="admin-panel" id="panel-staff" style="display:none;">
+        <div class="notice" style="margin-bottom:24px;">Only the owner can see this tab. Role and access changes here take effect immediately.</div>
+
+        <form id="invite-form" class="admin-form" style="max-width:460px;">
+          <h3 style="margin-top:0;">Invite new staff</h3>
+          <div class="field"><label for="invite-email">Email</label><input type="email" id="invite-email" required></div>
+          <button type="submit" class="btn btn-primary">Send invite</button>
+          <div id="invite-status" class="district-status" style="margin-top:12px;"></div>
+        </form>
+
+        <div id="staff-list"></div>
+      </div>
     </div>
   </section>
 
