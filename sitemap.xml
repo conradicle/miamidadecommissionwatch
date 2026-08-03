@@ -16,6 +16,46 @@
     <priority>0.8</priority>
   </url>
   <url>
+    <loc>https://www.miamidadecommissionwatch.com/constitutional-offices.html</loc>
+    <changefreq>monthly</changefreq>
+    <priority>0.8</priority>
+  </url>
+  <url>
+    <loc>https://www.miamidadecommissionwatch.com/office-property-appraiser.html</loc>
+    <changefreq>monthly</changefreq>
+    <priority>0.6</priority>
+  </url>
+  <url>
+    <loc>https://www.miamidadecommissionwatch.com/office-tax-collector.html</loc>
+    <changefreq>monthly</changefreq>
+    <priority>0.6</priority>
+  </url>
+  <url>
+    <loc>https://www.miamidadecommissionwatch.com/office-clerk-of-courts.html</loc>
+    <changefreq>monthly</changefreq>
+    <priority>0.6</priority>
+  </url>
+  <url>
+    <loc>https://www.miamidadecommissionwatch.com/office-supervisor-of-elections.html</loc>
+    <changefreq>monthly</changefreq>
+    <priority>0.6</priority>
+  </url>
+  <url>
+    <loc>https://www.miamidadecommissionwatch.com/office-sheriff.html</loc>
+    <changefreq>monthly</changefreq>
+    <priority>0.6</priority>
+  </url>
+  <url>
+    <loc>https://www.miamidadecommissionwatch.com/office-state-attorney.html</loc>
+    <changefreq>monthly</changefreq>
+    <priority>0.6</priority>
+  </url>
+  <url>
+    <loc>https://www.miamidadecommissionwatch.com/office-public-defender.html</loc>
+    <changefreq>monthly</changefreq>
+    <priority>0.6</priority>
+  </url>
+  <url>
     <loc>https://www.miamidadecommissionwatch.com/find-my-district.html</loc>
     <changefreq>monthly</changefreq>
     <priority>0.8</priority>
