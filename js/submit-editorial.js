@@ -29,6 +29,7 @@
       var topic = document.getElementById('editorial-topic').value.trim();
       var body = document.getElementById('editorial-body').value.trim();
       var confirmed = document.getElementById('editorial-confirm').checked;
+      var submitBtn = form.querySelector('button[type="submit"]');
 
       if (!name || !grade || !school || !email || !title || !body) {
         statusEl.textContent = 'Please fill in every required field.';
@@ -49,34 +50,37 @@
         return;
       }
 
-      var subject = 'Editorial submission: ' + title;
-      var lines = [
-        'Name: ' + name,
-        'Grade: ' + grade,
-        'School: ' + school,
-        'School email: ' + email,
-        'Related legislation/topic: ' + (topic || '(not specified)'),
-        '',
-        'Your editorial text has been copied to your clipboard.',
-        'Paste it below this line before sending:',
-        '----------------------------------------',
-        ''
-      ];
-      var mailtoUrl = 'mailto:contact@miamidadecommissionwatch.com' +
-        '?subject=' + encodeURIComponent(subject) +
-        '&body=' + encodeURIComponent(lines.join('\n'));
+      statusEl.textContent = 'Submitting...';
+      statusEl.className = 'district-status';
+      submitBtn.disabled = true;
 
-      var copied = false;
-      if (navigator.clipboard && navigator.clipboard.writeText) {
-        navigator.clipboard.writeText(body).then(function () { copied = true; }).catch(function () {});
-      }
-
-      window.location.href = mailtoUrl;
-
-      statusEl.innerHTML = 'Your email app should now be open with your submission details. <strong>Your editorial text was copied to your clipboard' +
-        (copied ? '' : ' (if that didn\'t work, copy it manually from the box above)') +
-        ' — paste it into the email before sending.</strong> If nothing opened, email <a href="mailto:contact@miamidadecommissionwatch.com">contact@miamidadecommissionwatch.com</a> directly with the same information.';
-      statusEl.className = 'district-status success';
+      supabaseClient
+        .from('editorial_submissions')
+        .insert({
+          name: name,
+          grade: grade,
+          school: school,
+          school_email: email,
+          title: title,
+          topic: topic || null,
+          body: body
+        })
+        .then(function (res) {
+          submitBtn.disabled = false;
+          if (res.error) {
+            statusEl.textContent = 'Something went wrong submitting your editorial. Please try again, or email contact@miamidadecommissionwatch.com directly.';
+            statusEl.className = 'district-status error';
+            return;
+          }
+          form.reset();
+          statusEl.textContent = 'Thanks — your editorial has been submitted for review. We\'ll be in touch if it\'s selected for publishing.';
+          statusEl.className = 'district-status success';
+        })
+        .catch(function () {
+          submitBtn.disabled = false;
+          statusEl.textContent = 'Something went wrong submitting your editorial. Please try again, or email contact@miamidadecommissionwatch.com directly.';
+          statusEl.className = 'district-status error';
+        });
     });
   });
 })();
