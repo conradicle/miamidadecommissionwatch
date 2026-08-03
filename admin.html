@@ -1,0 +1,71 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Admin - Editorial Submissions - Miami-Dade Commission Watch</title>
+<meta name="description" content="Administrator review queue for submitted student editorials.">
+<meta name="robots" content="noindex, nofollow">
+<link rel="stylesheet" href="css/style.css">
+<style>
+  .submission-card { background: var(--paper-raised); border: 1px solid var(--line); border-radius: var(--radius); padding: 24px; margin-bottom: 20px; }
+  .submission-meta { font-family: var(--font-mono); font-size: 12px; color: var(--ink-400); margin-bottom: 10px; }
+  .submission-status { display:inline-block; font-family: var(--font-mono); font-size: 11px; text-transform: uppercase; letter-spacing: .05em; padding: 2px 8px; border-radius: 3px; font-weight: 700; margin-left: 8px; }
+  .submission-status.pending { background: var(--gold-100); color: var(--gold-600); }
+  .submission-status.approved { background: rgba(26,125,100,0.14); color: var(--green-700); }
+  .submission-status.rejected { background: rgba(179,69,44,0.12); color: var(--red-600); }
+  .submission-body { white-space: pre-wrap; font-size: 15px; color: var(--ink-900); margin: 14px 0; max-height: 260px; overflow-y: auto; border: 1px solid var(--line); border-radius: var(--radius); padding: 14px; background: var(--paper); }
+  .submission-actions { display: flex; gap: 10px; flex-wrap: wrap; }
+  .btn-small { padding: 8px 16px; font-size: 14px; }
+  .btn-danger { background: var(--red-600); color: #fff; }
+  .btn-danger:hover { background: #8a341f; color: #fff; }
+</style>
+</head>
+<body>
+<a class="skip-link" href="#main">Skip to content</a>
+
+<header class="site-header">
+  <div class="wrap">
+    <a class="wordmark" href="index.html">
+      <span class="mark">Miami-Dade <span class="accent">Commission</span> Watch</span>
+      <span class="tagline">BCC · Plain Language</span>
+    </a>
+    <div class="header-actions">
+      <button type="button" class="btn btn-secondary" id="logout-btn" style="display:none;">Log out</button>
+    </div>
+  </div>
+</header>
+
+<main id="main">
+
+  <section class="hero" style="padding-bottom:24px;">
+    <div class="wrap">
+      <span class="eyebrow">Staff</span>
+      <h1 style="max-width:24ch;">Editorial submissions</h1>
+      <p class="lede">Review, approve, or reject student editorial submissions. Approving publishes immediately to the live <a href="news.html#editorials">News &amp; Editorials</a> page.</p>
+    </div>
+  </section>
+
+  <section class="section">
+    <div class="wrap">
+      <div id="admin-status" class="district-status"></div>
+      <div id="submissions-list"></div>
+    </div>
+  </section>
+
+</main>
+
+<footer class="site-footer">
+  <div class="wrap">
+    <div class="footer-disclaimer">
+      <p style="margin-bottom:0;">&copy; 2026 Miami-Dade Commission Watch.</p>
+    </div>
+  </div>
+</footer>
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="js/supabase-client.js"></script>
+<script src="js/main.js"></script>
+<script src="js/admin.js"></script>
+</body>
+</html>

@@ -78,7 +78,9 @@
         <strong>These are opinions, not our reporting.</strong> Every editorial here is written and submitted by a Miami-Dade County student and is credited by name and school. It reflects that student's own views, not the views of Miami-Dade Commission Watch. Editorials are reviewed before publishing but are not fact-checked line by line the way our meeting summaries are.
       </div>
 
-      <div class="notice text-center" style="margin-top:20px; padding:40px 20px;">
+      <div id="editorials-list" style="margin-top:20px;"></div>
+
+      <div id="editorials-empty" class="notice text-center" style="margin-top:20px; padding:40px 20px; display:none;">
         <p style="margin-bottom:18px;">No editorials have been published yet &mdash; this section is brand new.</p>
         <p style="margin-bottom:0;">Are you a Miami-Dade County student with something to say about county government? <a href="submit-editorial.html">Be the first to submit one &#8599;</a></p>
       </div>
@@ -125,7 +127,10 @@
 </footer>
 
 <div id="google_translate_element"></div>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="js/supabase-client.js"></script>
 <script src="js/main.js"></script>
+<script src="js/editorials-feed.js"></script>
 <script src="js/translate.js"></script>
 <script src="https://translate.google.com/translate_a/element.js?cb=googleTranslateElementInit"></script>
 </body>
