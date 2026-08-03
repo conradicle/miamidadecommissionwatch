@@ -170,7 +170,14 @@ p { margin: 0 0 1em; }
 /* Trim Google's default translate UI down to just what our buttons need */
 body { top: 0 !important; }
 .goog-te-banner-frame.skiptranslate { display: none !important; }
-#google_translate_element { display: none !important; }
+#google_translate_element {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip: rect(0 0 0 0);
+  white-space: nowrap;
+}
 .goog-tooltip, .goog-tooltip:hover { display: none !important; }
 .goog-text-highlight { background: none !important; box-shadow: none !important; }
 .wordmark {
