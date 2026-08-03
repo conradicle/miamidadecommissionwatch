@@ -141,6 +141,38 @@ p { margin: 0 0 1em; }
   padding: 16px 24px;
   gap: 16px;
 }
+.header-actions {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+.lang-toggle {
+  display: flex;
+  border: 1px solid rgba(255,255,255,0.4);
+  border-radius: var(--radius);
+  overflow: hidden;
+}
+.lang-btn {
+  background: transparent;
+  border: none;
+  border-left: 1px solid rgba(255,255,255,0.25);
+  color: rgba(255,255,255,0.75);
+  padding: 7px 9px;
+  font-size: 12px;
+  font-family: var(--font-mono);
+  cursor: pointer;
+  line-height: 1;
+}
+.lang-btn:first-child { border-left: none; }
+.lang-btn:hover { background: rgba(255,255,255,0.12); color: #fff; }
+.lang-btn.active { background: var(--gold-600); color: var(--ink-900); font-weight: 700; }
+
+/* Trim Google's default translate UI down to just what our buttons need */
+body { top: 0 !important; }
+.goog-te-banner-frame.skiptranslate { display: none !important; }
+#google_translate_element { display: none !important; }
+.goog-tooltip, .goog-tooltip:hover { display: none !important; }
+.goog-text-highlight { background: none !important; box-shadow: none !important; }
 .wordmark {
   display: flex;
   align-items: baseline;
