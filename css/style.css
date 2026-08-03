@@ -418,6 +418,68 @@ p { margin: 0 0 1em; }
 }
 .sources-list li { margin-bottom: 8px; font-size: 15px; }
 
+/* ---------- district finder ---------- */
+.district-search-form {
+  display: flex;
+  gap: 10px;
+  flex-wrap: wrap;
+  margin-bottom: 16px;
+}
+.district-search-form input {
+  flex: 1 1 280px;
+  padding: 12px 14px;
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  font-size: 16px;
+  font-family: inherit;
+  background: var(--paper-raised);
+}
+.district-search-form input:focus { border-color: var(--green-700); }
+
+.district-status {
+  min-height: 24px;
+  margin-bottom: 16px;
+  font-size: 15px;
+  color: var(--ink-600);
+}
+.district-status.success {
+  padding: 12px 16px;
+  background: var(--green-100);
+  border-left: 4px solid var(--green-700);
+  border-radius: 0 var(--radius) var(--radius) 0;
+  color: var(--ink-900);
+}
+.district-status.error {
+  padding: 12px 16px;
+  background: var(--gold-100);
+  border-left: 4px solid var(--red-600);
+  border-radius: 0 var(--radius) var(--radius) 0;
+  color: var(--ink-900);
+}
+
+#district-map {
+  height: 480px;
+  width: 100%;
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  background: var(--green-100);
+}
+
+.district-legend {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
+  gap: 8px;
+  margin-top: 20px;
+  font-size: 13px;
+}
+.district-legend-item { display: flex; align-items: center; gap: 8px; }
+.district-legend-swatch {
+  width: 14px;
+  height: 14px;
+  border-radius: 3px;
+  flex-shrink: 0;
+}
+
 /* ---------- founders ---------- */
 .founders-grid {
   display: grid;
