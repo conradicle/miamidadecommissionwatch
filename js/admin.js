@@ -523,11 +523,17 @@
 
         supabaseClient.auth.getSession().then(function (sessionRes) {
           var session = sessionRes.data && sessionRes.data.session;
+          if (!session) {
+            genBtn.disabled = false;
+            genBtn.textContent = 'Generate reset link';
+            window.alert('Your session has expired. Log out and log back in, then try again.');
+            return;
+          }
           fetch('/api/admin-generate-link', {
             method: 'POST',
             headers: {
               'Content-Type': 'application/json',
-              Authorization: 'Bearer ' + (session && session.access_token)
+              Authorization: 'Bearer ' + session.access_token
             },
             body: JSON.stringify({ email: email })
           })
@@ -595,11 +601,17 @@
 
       supabaseClient.auth.getSession().then(function (sessionRes) {
         var session = sessionRes.data && sessionRes.data.session;
+        if (!session) {
+          submitBtn.disabled = false;
+          inviteStatus.textContent = 'Your session has expired. Log out and log back in, then try again.';
+          inviteStatus.className = 'district-status error';
+          return;
+        }
         fetch('/api/admin-invite', {
           method: 'POST',
           headers: {
             'Content-Type': 'application/json',
-            Authorization: 'Bearer ' + (session && session.access_token)
+            Authorization: 'Bearer ' + session.access_token
           },
           body: JSON.stringify({ email: emailInput.value.trim() })
         })
