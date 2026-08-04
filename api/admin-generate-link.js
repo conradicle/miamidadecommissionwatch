@@ -60,7 +60,7 @@ module.exports = async function handler(req, res) {
       body: JSON.stringify({
         type: 'recovery',
         email: email,
-        options: { redirect_to: 'https://www.miamidadecommissionwatch.com/set-password.html' }
+        redirect_to: 'https://www.miamidadecommissionwatch.com/set-password.html'
       })
     });
     var linkData = await linkRes.json();
