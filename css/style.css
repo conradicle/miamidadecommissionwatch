@@ -278,6 +278,13 @@ body { top: 0 !important; }
 }
 .hero h1 { max-width: 16ch; }
 
+.hero-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(340px, 1fr));
+  gap: 40px;
+  align-items: start;
+}
+
 .next-meeting {
   margin-top: 28px;
   background: var(--paper-raised);
