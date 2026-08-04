@@ -454,8 +454,17 @@
             (row.status === 'active' ? 'Revoke access' : 'Restore access') +
           '</button>' +
         '</div>' +
+        '<div class="field">' +
+          '<button type="button" class="btn btn-small btn-secondary staff-gen-link" data-id="' + row.user_id + '" data-email="' + escapeHtml(row.email || '') + '" ' + (row.email ? '' : 'disabled') + '>Generate reset link</button>' +
+        '</div>' +
       '</div>' +
-      '<div class="submission-status ' + (row.status === 'active' ? 'approved' : 'rejected') + '" style="display:inline-block;">' + escapeHtml(row.status) + '</div>';
+      '<div class="submission-status ' + (row.status === 'active' ? 'approved' : 'rejected') + '" style="display:inline-block;">' + escapeHtml(row.status) + '</div>' +
+      '<div class="staff-link-output" data-id="' + row.user_id + '" style="display:none; margin-top:12px;">' +
+        '<div class="field-row" style="align-items:flex-end;">' +
+          '<div class="field" style="flex:1;"><label>Reset link (valid 60 min, one-time use)</label><input type="text" class="link-input" readonly></div>' +
+          '<div class="field" style="flex:0;"><button type="button" class="btn btn-small btn-secondary copy-link-btn">Copy</button></div>' +
+        '</div>' +
+      '</div>';
     return div;
   }
 
@@ -503,6 +512,60 @@
     });
 
     listEl.addEventListener('click', function (e) {
+      var genBtn = e.target.closest('.staff-gen-link');
+      if (genBtn) {
+        var email = genBtn.getAttribute('data-email');
+        var id = genBtn.getAttribute('data-id');
+        var outputEl = listEl.querySelector('.staff-link-output[data-id="' + id + '"]');
+        var linkInput = outputEl.querySelector('.link-input');
+        genBtn.disabled = true;
+        genBtn.textContent = 'Generating...';
+
+        supabaseClient.auth.getSession().then(function (sessionRes) {
+          var session = sessionRes.data && sessionRes.data.session;
+          fetch('/api/admin-generate-link', {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+              Authorization: 'Bearer ' + (session && session.access_token)
+            },
+            body: JSON.stringify({ email: email })
+          })
+            .then(function (r) { return r.json().then(function (data) { return { ok: r.ok, data: data }; }); })
+            .then(function (result) {
+              genBtn.disabled = false;
+              genBtn.textContent = 'Generate reset link';
+              if (!result.ok) {
+                window.alert('Could not generate link: ' + (result.data.error || 'unknown error'));
+                return;
+              }
+              linkInput.value = result.data.link;
+              outputEl.style.display = 'block';
+              linkInput.focus();
+              linkInput.select();
+            })
+            .catch(function () {
+              genBtn.disabled = false;
+              genBtn.textContent = 'Generate reset link';
+              window.alert('Could not reach the server.');
+            });
+        });
+        return;
+      }
+
+      var copyBtn = e.target.closest('.copy-link-btn');
+      if (copyBtn) {
+        var input = copyBtn.closest('.staff-link-output').querySelector('.link-input');
+        input.focus();
+        input.select();
+        navigator.clipboard.writeText(input.value).then(function () {
+          var original = copyBtn.textContent;
+          copyBtn.textContent = 'Copied!';
+          setTimeout(function () { copyBtn.textContent = original; }, 1500);
+        });
+        return;
+      }
+
       var btn = e.target.closest('.staff-toggle-status');
       if (!btn) return;
       var id = btn.getAttribute('data-id');
