@@ -457,6 +457,9 @@
         '<div class="field">' +
           '<button type="button" class="btn btn-small btn-secondary staff-gen-link" data-id="' + row.user_id + '" data-email="' + escapeHtml(row.email || '') + '" ' + (row.email ? '' : 'disabled') + '>Generate reset link</button>' +
         '</div>' +
+        '<div class="field">' +
+          '<button type="button" class="btn btn-small btn-danger staff-delete-user" data-id="' + row.user_id + '" data-email="' + escapeHtml(row.email || row.user_id) + '" ' + (isSelf ? 'disabled' : '') + '>Delete user</button>' +
+        '</div>' +
       '</div>' +
       '<div class="submission-status ' + (row.status === 'active' ? 'approved' : 'rejected') + '" style="display:inline-block;">' + escapeHtml(row.status) + '</div>' +
       '<div class="staff-link-output" data-id="' + row.user_id + '" style="display:none; margin-top:12px;">' +
@@ -568,6 +571,51 @@
           var original = copyBtn.textContent;
           copyBtn.textContent = 'Copied!';
           setTimeout(function () { copyBtn.textContent = original; }, 1500);
+        });
+        return;
+      }
+
+      var deleteBtn = e.target.closest('.staff-delete-user');
+      if (deleteBtn) {
+        var deleteId = deleteBtn.getAttribute('data-id');
+        var deleteEmail = deleteBtn.getAttribute('data-email');
+        if (!window.confirm('Permanently delete ' + deleteEmail + '? This removes their staff access AND their login entirely. They would need a brand new invite to come back. This cannot be undone.')) {
+          return;
+        }
+        deleteBtn.disabled = true;
+        deleteBtn.textContent = 'Deleting...';
+
+        supabaseClient.auth.getSession().then(function (sessionRes) {
+          var session = sessionRes.data && sessionRes.data.session;
+          if (!session) {
+            deleteBtn.disabled = false;
+            deleteBtn.textContent = 'Delete user';
+            window.alert('Your session has expired. Log out and log back in, then try again.');
+            return;
+          }
+          fetch('/api/admin-delete-user', {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+              Authorization: 'Bearer ' + session.access_token
+            },
+            body: JSON.stringify({ user_id: deleteId })
+          })
+            .then(function (r) { return r.json().then(function (data) { return { ok: r.ok, data: data }; }); })
+            .then(function (result) {
+              if (!result.ok) {
+                deleteBtn.disabled = false;
+                deleteBtn.textContent = 'Delete user';
+                window.alert('Could not delete user: ' + (result.data.error || 'unknown error'));
+                return;
+              }
+              loadStaff();
+            })
+            .catch(function () {
+              deleteBtn.disabled = false;
+              deleteBtn.textContent = 'Delete user';
+              window.alert('Could not reach the server.');
+            });
         });
         return;
       }
