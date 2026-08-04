@@ -587,7 +587,7 @@ body { top: 0 !important; }
 /* ---------- forms ---------- */
 .field { margin-bottom: 16px; }
 .field label { display: block; font-weight: 600; margin-bottom: 6px; font-size: 15px; }
-.field input, .field textarea {
+.field input, .field textarea, .field select {
   width: 100%;
   padding: 10px 12px;
   border: 1px solid var(--line);
@@ -596,7 +596,7 @@ body { top: 0 !important; }
   font-size: 15px;
   background: var(--paper-raised);
 }
-.field input:focus, .field textarea:focus { border-color: var(--green-700); }
+.field input:focus, .field textarea:focus, .field select:focus { border-color: var(--green-700); }
 
 .notice {
   background: var(--paper-raised);

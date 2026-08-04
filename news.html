@@ -3,8 +3,8 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>News &amp; Analysis - Miami-Dade Commission Watch</title>
-<meta name="description" content="Explainers and analysis on issues before the Miami-Dade Board of County Commissioners.">
+<title>News &amp; Editorials - Miami-Dade Commission Watch</title>
+<meta name="description" content="Nonpartisan explainers on issues before the Miami-Dade Board of County Commissioners, plus opinion editorials written by Miami-Dade County students.">
 <link rel="stylesheet" href="css/style.css">
 </head>
 <body>
@@ -28,10 +28,10 @@
   <nav class="site-nav" id="site-nav" aria-label="Primary">
     <a href="index.html">Home</a>
     <a href="meetings.html">Meetings</a>
-    <a href="commissioners.html">Commissioners</a>
-    <a href="find-my-district.html">My District</a>
+    <a href="officials.html">Officials</a>
+    <a href="elections.html">Elections</a>
     <a href="get-involved.html">Get Involved</a>
-    <a href="news.html" aria-current="page">News</a>
+    <a href="news.html" aria-current="page">News &amp; Editorials</a>
     <a href="about.html">About</a>
   </nav>
 </header>
@@ -40,21 +40,61 @@
 
   <section class="hero" style="padding-bottom:24px;">
     <div class="wrap">
-      <span class="eyebrow">News &amp; Analysis</span>
-      <h1 style="max-width:20ch;">Explainers on issues before the Board</h1>
-      <p class="lede">Longer pieces that go beyond a single meeting: how a process works, background on a recurring issue, or context you need to make sense of a vote. Factual and nonpartisan, same as the rest of the site. See our <a href="about.html">editorial policy</a>.</p>
+      <span class="eyebrow">News &amp; Editorials</span>
+      <h1 style="max-width:22ch;">Explainers and student perspectives</h1>
+      <p class="lede">Two different kinds of writing live here: nonpartisan <a href="#explainers">Explainers</a> that go deeper on a single issue, and opinion <a href="#editorials">Editorials</a> written by Miami-Dade County students. They're kept clearly separate &mdash; see our <a href="about.html">editorial policy</a>.</p>
     </div>
   </section>
 
-  <section class="section">
+  <section class="section" id="explainers">
     <div class="wrap">
+      <div class="section-head">
+        <span class="eyebrow">Nonpartisan</span>
+        <h2>Explainers</h2>
+      </div>
+      <p class="mt-0" style="max-width:65ch; color:var(--ink-600);">Longer pieces that go beyond a single meeting: how a process works, background on a recurring issue, or context you need to make sense of a vote. Factual and nonpartisan, same as our meeting coverage.</p>
 
-      <a class="meeting-card" href="explainer-fisher-island-fuel-depot.html" style="display:block; text-decoration:none; color:inherit;">
+      <a class="meeting-card" href="explainer-fisher-island-fuel-depot.html" style="display:block; text-decoration:none; color:inherit; margin-top:20px;">
         <div class="meeting-card-date">Explainer &middot; August 2026</div>
         <h3>The fight over PortMiami's only fuel depot</h3>
         <p class="meeting-card-summary">A land sale, a broken $400 million deal, and a county vote to seize a Fisher Island property by eminent domain. Here's what's actually happening, and why it matters beyond one island.</p>
       </a>
+    </div>
+  </section>
 
+  <section class="section" id="news-posts" style="display:none;">
+    <div class="wrap">
+      <div class="section-head">
+        <span class="eyebrow">Staff</span>
+        <h2>Quick Updates</h2>
+      </div>
+      <p class="mt-0" style="max-width:65ch; color:var(--ink-600);">Short, factual updates from our team between full meeting write-ups and explainers.</p>
+      <div id="news-posts-list" style="margin-top:20px;"></div>
+    </div>
+  </section>
+
+  <section class="section section-alt" id="editorials">
+    <div class="wrap">
+      <div class="section-head">
+        <span class="eyebrow">Opinion &middot; by students</span>
+        <h2>Student Editorials</h2>
+      </div>
+      <p class="mt-0" style="max-width:65ch; color:var(--ink-600);">Opinion pieces written by Miami-Dade County students about the Board of County Commissioners, constitutional offices, and county legislation. Unlike the Explainers above, these are opinion, not nonpartisan reporting &mdash; and they belong to their authors, not to us.</p>
+
+      <div class="btn-row">
+        <a class="btn btn-primary" href="submit-editorial.html">Submit your editorial &#8599;</a>
+      </div>
+
+      <div class="notice" style="margin-top:24px;">
+        <strong>These are opinions, not our reporting.</strong> Every editorial here is written and submitted by a Miami-Dade County student and is credited by name and school. It reflects that student's own views, not the views of Miami-Dade Commission Watch. Editorials are reviewed before publishing but are not fact-checked line by line the way our meeting summaries are.
+      </div>
+
+      <div id="editorials-list" style="margin-top:20px;"></div>
+
+      <div id="editorials-empty" class="notice text-center" style="margin-top:20px; padding:40px 20px; display:none;">
+        <p style="margin-bottom:18px;">No editorials have been published yet &mdash; this section is brand new.</p>
+        <p style="margin-bottom:0;">Are you a Miami-Dade County student with something to say about county government? <a href="submit-editorial.html">Be the first to submit one &#8599;</a></p>
+      </div>
     </div>
   </section>
 
@@ -67,10 +107,10 @@
         <h4>Site</h4>
         <ul>
           <li><a href="meetings.html">Meeting Tracker</a></li>
-          <li><a href="commissioners.html">Commissioners</a></li>
-          <li><a href="find-my-district.html">Find My District</a></li>
+          <li><a href="officials.html">Officials</a></li>
+          <li><a href="elections.html">Elections</a></li>
           <li><a href="get-involved.html">Get Involved</a></li>
-          <li><a href="news.html">News</a></li>
+          <li><a href="news.html">News &amp; Editorials</a></li>
         </ul>
       </div>
       <div>
@@ -92,13 +132,17 @@
     <div class="footer-disclaimer">
       <p style="margin-bottom:8px;">Miami-Dade Commission Watch is an independent, student-run project founded by Conrad Gelber and Daniel Llobet. It is <strong>not affiliated with, operated by, or endorsed by Miami-Dade County government</strong>. All information is sourced from public records; see the official Board of County Commissioners site linked above for authoritative agendas and legislation.</p>
       <p style="margin-bottom:8px;">Spanish and Haitian Creole translations on this site are generated automatically by Google Translate and are not reviewed by us. They may contain errors, especially for legal and government terms. When in doubt, refer to the English original.</p>
-      <p style="margin-bottom:0;">&copy; 2026 Miami-Dade Commission Watch.</p>
+      <p style="margin-bottom:0;">&copy; 2026 Miami-Dade Commission Watch. <a href="login.html" style="color:inherit; opacity:0.7; text-decoration:underline;">Staff</a></p>
     </div>
   </div>
 </footer>
 
 <div id="google_translate_element"></div>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="js/supabase-client.js"></script>
 <script src="js/main.js"></script>
+<script src="js/news-feed.js"></script>
+<script src="js/editorials-feed.js"></script>
 <script src="js/translate.js"></script>
 <script src="https://translate.google.com/translate_a/element.js?cb=googleTranslateElementInit"></script>
 </body>

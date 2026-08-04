@@ -1,0 +1,92 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Staff Login - Miami-Dade Commission Watch</title>
+<meta name="description" content="Administrator login for Miami-Dade Commission Watch.">
+<meta name="robots" content="noindex, nofollow">
+<link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+<a class="skip-link" href="#main">Skip to content</a>
+
+<header class="site-header">
+  <div class="wrap">
+    <a class="wordmark" href="index.html">
+      <span class="mark">Miami-Dade <span class="accent">Commission</span> Watch</span>
+      <span class="tagline">BCC · Plain Language</span>
+    </a>
+    <div class="header-actions">
+      <button class="nav-toggle" aria-expanded="false" aria-controls="site-nav">Menu</button>
+    </div>
+  </div>
+  <nav class="site-nav" id="site-nav" aria-label="Primary">
+    <a href="index.html">Home</a>
+    <a href="meetings.html">Meetings</a>
+    <a href="officials.html">Officials</a>
+    <a href="elections.html">Elections</a>
+    <a href="get-involved.html">Get Involved</a>
+    <a href="news.html">News &amp; Editorials</a>
+    <a href="about.html">About</a>
+  </nav>
+</header>
+
+<main id="main">
+
+  <section class="hero" style="padding-bottom:24px;">
+    <div class="wrap">
+      <span class="eyebrow">Staff</span>
+      <h1 style="max-width:20ch;">Admin login</h1>
+      <p class="lede">For Miami-Dade Commission Watch administrators only.</p>
+    </div>
+  </section>
+
+  <section class="section">
+    <div class="wrap">
+      <form id="login-form" style="max-width:420px;">
+        <div class="field">
+          <label for="login-email">Email</label>
+          <input type="email" id="login-email" name="email" autocomplete="username" required>
+        </div>
+        <div class="field">
+          <label for="login-password">Password</label>
+          <input type="password" id="login-password" name="password" autocomplete="current-password" required>
+        </div>
+        <button type="submit" class="btn btn-primary btn-large">Log in</button>
+      </form>
+
+      <div id="login-status" class="district-status" style="margin-top:16px; max-width:420px;"></div>
+
+      <p style="max-width:420px; margin-top:16px;">
+        <a href="#" id="forgot-password-link">Forgot your password?</a>
+      </p>
+
+      <form id="forgot-password-form" style="max-width:420px; display:none;">
+        <div class="field">
+          <label for="forgot-email">Email</label>
+          <input type="email" id="forgot-email" name="email" autocomplete="username" required>
+        </div>
+        <button type="submit" class="btn btn-secondary">Send reset link</button>
+      </form>
+
+      <div id="forgot-password-status" class="district-status" style="margin-top:16px; max-width:420px;"></div>
+    </div>
+  </section>
+
+</main>
+
+<footer class="site-footer">
+  <div class="wrap">
+    <div class="footer-disclaimer">
+      <p style="margin-bottom:0;">&copy; 2026 Miami-Dade Commission Watch.</p>
+    </div>
+  </div>
+</footer>
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="js/supabase-client.js"></script>
+<script src="js/main.js"></script>
+<script src="js/login.js"></script>
+</body>
+</html>
