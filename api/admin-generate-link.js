@@ -34,7 +34,8 @@ module.exports = async function handler(req, res) {
       headers: { Authorization: 'Bearer ' + token, apikey: SERVICE_ROLE_KEY }
     });
     if (!callerRes.ok) {
-      res.status(401).json({ error: 'Invalid session' });
+      var callerErrText = await callerRes.text();
+      res.status(401).json({ error: 'Invalid session (debug: status ' + callerRes.status + ' body ' + callerErrText + ')' });
       return;
     }
     var caller = await callerRes.json();
