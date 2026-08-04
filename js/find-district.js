@@ -117,9 +117,7 @@
       statusEl.textContent = 'Looking up that address...';
       statusEl.className = 'district-status';
 
-      var url = 'https://geocoding.geo.census.gov/geocoder/locations/onelineaddress' +
-        '?address=' + encodeURIComponent(address + ', Miami-Dade County, FL') +
-        '&benchmark=Public_AR_Current&format=json';
+      var url = '/api/geocode?address=' + encodeURIComponent(address + ', Miami-Dade County, FL');
 
       fetch(url)
         .then(function (res) { return res.json(); })

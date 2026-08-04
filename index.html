@@ -3,6 +3,13 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
+<script>
+(function () {
+  if (/type=recovery|type=invite/.test(window.location.hash)) {
+    window.location.replace('set-password.html' + window.location.hash);
+  }
+})();
+</script>
 <title>Miami-Dade Commission Watch</title>
 <meta name="description" content="Independent, nonpartisan tracking of the Miami-Dade County Board of County Commissioners: meeting summaries, a commissioner directory, and ways to get involved.">
 <link rel="stylesheet" href="css/style.css">
@@ -28,10 +35,10 @@
   <nav class="site-nav" id="site-nav" aria-label="Primary">
     <a href="index.html" aria-current="page">Home</a>
     <a href="meetings.html">Meetings</a>
-    <a href="commissioners.html">Commissioners</a>
-    <a href="find-my-district.html">My District</a>
+    <a href="officials.html">Officials</a>
+    <a href="elections.html">Elections</a>
     <a href="get-involved.html">Get Involved</a>
-    <a href="news.html">News</a>
+    <a href="news.html">News &amp; Editorials</a>
     <a href="about.html">About</a>
   </nav>
 </header>
@@ -45,7 +52,7 @@
       <p class="lede">Thirteen commissioners, one per district, vote on the things that touch your block directly: zoning, transit, rent, permits, the budget. Miami-Dade Commission Watch reads the agendas and reports back in plain language. No spin, no endorsements.</p>
       <div class="btn-row">
         <a class="btn btn-primary" href="meetings.html">See the latest meeting</a>
-        <a class="btn btn-secondary" href="find-my-district.html">Find your commissioner</a>
+        <a class="btn btn-secondary" href="get-involved.html#find-district">Find your commissioner</a>
       </div>
       <div class="next-meeting">
         <div>
@@ -68,9 +75,9 @@
           <h3>Meeting Tracker</h3>
           <p>Plain-language summaries of what the Board discussed and decided, meeting by meeting.</p>
         </a>
-        <a class="card" href="commissioners.html">
-          <h3>Commissioner Directory</h3>
-          <p>Who represents your district, their role on the Board, and how to reach their office.</p>
+        <a class="card" href="officials.html">
+          <h3>Elected Officials</h3>
+          <p>Who represents your district on the Board, plus the county's constitutional officers like the Sheriff and Property Appraiser.</p>
         </a>
         <a class="card" href="get-involved.html">
           <h3>Get Involved</h3>
@@ -98,10 +105,10 @@
         <h4>Site</h4>
         <ul>
           <li><a href="meetings.html">Meeting Tracker</a></li>
-          <li><a href="commissioners.html">Commissioners</a></li>
-          <li><a href="find-my-district.html">Find My District</a></li>
+          <li><a href="officials.html">Officials</a></li>
+          <li><a href="elections.html">Elections</a></li>
           <li><a href="get-involved.html">Get Involved</a></li>
-          <li><a href="news.html">News</a></li>
+          <li><a href="news.html">News &amp; Editorials</a></li>
         </ul>
       </div>
       <div>
@@ -123,7 +130,7 @@
     <div class="footer-disclaimer">
       <p style="margin-bottom:8px;">Miami-Dade Commission Watch is an independent, student-run project founded by Conrad Gelber and Daniel Llobet. It is <strong>not affiliated with, operated by, or endorsed by Miami-Dade County government</strong>. All information is sourced from public records; see the official Board of County Commissioners site linked above for authoritative agendas and legislation.</p>
       <p style="margin-bottom:8px;">Spanish and Haitian Creole translations on this site are generated automatically by Google Translate and are not reviewed by us. They may contain errors, especially for legal and government terms. When in doubt, refer to the English original.</p>
-      <p style="margin-bottom:0;">&copy; 2026 Miami-Dade Commission Watch.</p>
+      <p style="margin-bottom:0;">&copy; 2026 Miami-Dade Commission Watch. <a href="login.html" style="color:inherit; opacity:0.7; text-decoration:underline;">Staff</a></p>
     </div>
   </div>
 </footer>
