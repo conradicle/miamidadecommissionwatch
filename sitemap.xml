@@ -66,6 +66,11 @@
     <priority>0.8</priority>
   </url>
   <url>
+    <loc>https://www.miamidadecommissionwatch.com/speak-out-september.html</loc>
+    <changefreq>weekly</changefreq>
+    <priority>0.6</priority>
+  </url>
+  <url>
     <loc>https://www.miamidadecommissionwatch.com/explainer-fisher-island-fuel-depot.html</loc>
     <changefreq>monthly</changefreq>
     <priority>0.7</priority>
