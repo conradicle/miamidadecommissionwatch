@@ -48,6 +48,10 @@
 
   --radius: 6px;
   --max-width: 1080px;
+
+  --ease: cubic-bezier(.22,.61,.36,1);
+  --shadow: 0 24px 50px -24px rgba(14,74,60,.35);
+  --shadow-sm: 0 10px 24px -12px rgba(14,74,60,.28);
 }
 
 * { box-sizing: border-box; }
@@ -67,6 +71,11 @@ body {
   font-size: 17px;
   line-height: 1.6;
   -webkit-font-smoothing: antialiased;
+  animation: pageIn .5s var(--ease);
+}
+@keyframes pageIn {
+  0% { opacity: 0; transform: translateY(8px); }
+  100% { opacity: 1; transform: none; }
 }
 
 .wrap {
@@ -123,11 +132,12 @@ p { margin: 0 0 1em; }
   border: 2px solid transparent;
   font-size: 15px;
   cursor: pointer;
+  transition: transform .3s var(--ease), background-color .3s, box-shadow .3s;
 }
 .btn-primary { background: var(--green-700); color: #fff; }
-.btn-primary:hover { background: var(--green-900); color: #fff; }
+.btn-primary:hover { background: var(--green-900); color: #fff; transform: translateY(-2px); box-shadow: var(--shadow-sm); }
 .btn-secondary { background: transparent; color: var(--ink-900); border-color: var(--ink-900); }
-.btn-secondary:hover { background: var(--ink-900); color: #fff; }
+.btn-secondary:hover { background: var(--ink-900); color: #fff; transform: translateY(-2px); }
 .btn-row { display: flex; gap: 12px; flex-wrap: wrap; margin-top: 24px; }
 .btn-large { padding: 18px 34px; font-size: 18px; }
 
@@ -145,10 +155,18 @@ p { margin: 0 0 1em; }
 
 /* ---------- header ---------- */
 .site-header {
-  position: relative;
+  position: sticky;
+  top: 0;
+  z-index: 90;
   background: var(--green-900);
   color: #fff;
   border-bottom: 4px solid var(--gold-600);
+  transition: box-shadow .4s, background-color .4s;
+}
+.site-header.scrolled {
+  background: rgba(14,74,60,0.94);
+  backdrop-filter: saturate(160%) blur(10px);
+  box-shadow: 0 10px 30px rgba(0,0,0,0.22);
 }
 .site-header .wrap {
   display: flex;
@@ -291,6 +309,22 @@ body { top: 0 !important; }
     font-size: 15px;
     font-weight: 400;
     padding: 10px 8px;
+    position: relative;
+  }
+  .site-nav a::after {
+    content: "";
+    position: absolute;
+    left: 8px;
+    right: 8px;
+    bottom: 4px;
+    height: 2px;
+    background: var(--gold-600);
+    transform: scaleX(0);
+    transform-origin: left center;
+    transition: transform .3s var(--ease);
+  }
+  .site-nav a:hover::after, .site-nav a[aria-current="page"]::after {
+    transform: scaleX(1);
   }
 }
 
@@ -348,8 +382,9 @@ body { top: 0 !important; }
   text-decoration: none;
   color: inherit;
   display: block;
+  transition: transform .35s var(--ease), box-shadow .35s var(--ease), border-color .35s;
 }
-.card:hover { border-color: var(--green-700); }
+.card:hover { border-color: var(--green-700); transform: translateY(-6px); box-shadow: var(--shadow); }
 .card h3 { margin-bottom: 8px; }
 .card p { color: var(--ink-600); font-size: 15px; margin-bottom: 0; }
 
@@ -360,7 +395,9 @@ body { top: 0 !important; }
   border-radius: var(--radius);
   padding: 24px;
   margin-bottom: 20px;
+  transition: transform .35s var(--ease), box-shadow .35s var(--ease), border-color .35s;
 }
+.meeting-card:hover { border-color: var(--green-700); transform: translateY(-4px); box-shadow: var(--shadow); }
 .meeting-card-date {
   font-family: var(--font-mono);
   font-size: 13px;
@@ -442,7 +479,9 @@ body { top: 0 !important; }
   border: 1px solid var(--line);
   border-radius: var(--radius);
   padding: 20px;
+  transition: transform .35s var(--ease), box-shadow .35s var(--ease), border-color .35s;
 }
+.roster-card:hover { border-color: var(--green-700); transform: translateY(-5px); box-shadow: var(--shadow-sm); }
 .roster-card .district {
   font-family: var(--font-mono);
   font-size: 12px;
@@ -561,7 +600,9 @@ body { top: 0 !important; }
   border: 1px solid var(--line);
   border-radius: var(--radius);
   overflow: hidden;
+  transition: transform .4s var(--ease), box-shadow .4s var(--ease), border-color .4s;
 }
+.founder-card:hover { border-color: transparent; transform: translateY(-6px); box-shadow: var(--shadow); }
 .founder-photo {
   width: 100%;
   aspect-ratio: 3 / 4;
@@ -695,7 +736,9 @@ body { top: 0 !important; }
   border-radius: var(--radius);
   padding: 28px;
   margin-top: 24px;
+  transition: transform .4s var(--ease), box-shadow .4s var(--ease), border-color .4s;
 }
+.partner-card:hover { border-color: transparent; transform: translateY(-4px); box-shadow: var(--shadow); }
 .partner-card img { width: 100%; height: auto; }
 .partner-card h3 { margin-bottom: 6px; }
 .partner-card p { color: var(--ink-600); font-size: 15px; }
@@ -703,6 +746,106 @@ body { top: 0 !important; }
 @media (max-width: 560px) {
   .partner-card { grid-template-columns: 1fr; text-align: center; }
   .partner-card img { max-width: 180px; margin: 0 auto; }
+}
+
+/* ---------- scroll reveal ----------
+   Only engages once js/main.js adds .animate-on to <body> (IntersectionObserver
+   supported). No JS, or JS fails: everything just stays visible, nothing hides
+   by default. */
+.animate-on .card,
+.animate-on .meeting-card,
+.animate-on .roster-card,
+.animate-on .founder-card,
+.animate-on .partner-card,
+.animate-on .stat-item,
+.animate-on .faq-item {
+  opacity: 0;
+  transform: translateY(24px);
+  transition: opacity .7s var(--ease), transform .7s var(--ease);
+}
+.animate-on .card.in,
+.animate-on .meeting-card.in,
+.animate-on .roster-card.in,
+.animate-on .founder-card.in,
+.animate-on .partner-card.in,
+.animate-on .stat-item.in,
+.animate-on .faq-item.in {
+  opacity: 1;
+  transform: none;
+}
+.card-grid .card:nth-child(2), .roster-grid .roster-card:nth-child(2), .founders-grid .founder-card:nth-child(2), .stat-grid .stat-item:nth-child(2) { transition-delay: .08s; }
+.card-grid .card:nth-child(3), .roster-grid .roster-card:nth-child(3), .founders-grid .founder-card:nth-child(3), .stat-grid .stat-item:nth-child(3) { transition-delay: .16s; }
+.card-grid .card:nth-child(4), .roster-grid .roster-card:nth-child(4), .stat-grid .stat-item:nth-child(4) { transition-delay: .24s; }
+.card-grid .card:nth-child(5), .roster-grid .roster-card:nth-child(5) { transition-delay: .32s; }
+.card-grid .card:nth-child(6), .roster-grid .roster-card:nth-child(6) { transition-delay: .4s; }
+
+/* ---------- seal ---------- */
+.seal {
+  position: relative;
+  float: right;
+  width: 148px;
+  height: 148px;
+  margin: -6px -6px 16px 20px;
+  z-index: 5;
+  pointer-events: none;
+}
+.seal .ring { position: absolute; inset: 0; animation: seal-spin 40s linear infinite; }
+.seal .ring svg { width: 100%; height: 100%; }
+@keyframes seal-spin { 100% { transform: rotate(360deg); } }
+.seal .core {
+  position: absolute;
+  inset: 15%;
+  border-radius: 50%;
+  background: radial-gradient(120% 120% at 30% 20%, var(--green-600), var(--green-900) 65%);
+  box-shadow: inset 0 0 0 2px rgba(200,162,75,.5), var(--shadow-sm);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  color: #fff;
+  padding: 10px;
+}
+.seal .core svg { width: 22px; height: 22px; color: var(--gold-600); margin-bottom: 4px; }
+.seal .core .est {
+  font-family: var(--font-mono);
+  font-weight: 700;
+  font-size: 8px;
+  letter-spacing: 0.16em;
+  color: var(--gold-100);
+}
+.seal .core .ttl {
+  font-family: var(--font-display);
+  font-weight: 700;
+  font-size: 13px;
+  line-height: 1.1;
+  margin: 3px 0 2px;
+}
+.seal .core .sub {
+  font-size: 7px;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: rgba(255,255,255,0.7);
+}
+.seal-float {
+  position: absolute;
+  z-index: 6;
+  background: var(--paper-raised);
+  border: 1px solid var(--line);
+  border-radius: 12px;
+  padding: 6px 10px;
+  box-shadow: var(--shadow-sm);
+  font-family: var(--font-mono);
+  text-align: center;
+  animation: seal-float 6s ease-in-out infinite;
+}
+.seal-float .n { font-weight: 700; color: var(--green-700); font-size: 15px; line-height: 1; }
+.seal-float .l { font-size: 8px; letter-spacing: 0.06em; text-transform: uppercase; color: var(--ink-400); margin-top: 2px; }
+.sf-1 { top: -14px; left: -30px; animation-delay: 0s; }
+.sf-2 { bottom: -14px; right: -30px; animation-delay: .8s; animation-duration: 7s; }
+@keyframes seal-float { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(-8px); } }
+@media (max-width: 640px) {
+  .seal, .seal-float { display: none; }
 }
 
 /* ---------- FAQ ---------- */
