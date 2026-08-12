@@ -26,6 +26,22 @@
   --paper-raised: #ffffff;
   --line: #e2ddcd;
 
+  /* Commission district colors, named so the get-involved/speak-out-september
+     legends don't repeat raw hex. Some districts reuse the core palette. */
+  --district-1: var(--green-700);
+  --district-2: var(--navy-800);
+  --district-3: var(--gold-600);
+  --district-4: #7a2d5e;
+  --district-5: var(--navy-600);
+  --district-6: var(--red-600);
+  --district-7: var(--green-600);
+  --district-8: #8a5a1e;
+  --district-9: var(--ink-600);
+  --district-10: var(--green-900);
+  --district-11: #a5673f;
+  --district-12: #3d6b8a;
+  --district-13: #6b4226;
+
   --font-display: Georgia, 'Times New Roman', serif;
   --font-body: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
   --font-mono: 'Courier New', ui-monospace, monospace;
@@ -218,6 +234,13 @@ body { top: 0 !important; }
 }
 @media (min-width: 860px) {
   .nav-toggle { display: none; }
+}
+
+/* Header icon is redundant with the footer's Connect column and (on the
+   homepage) the follow section, so drop it first when space is tight. */
+.site-header .social-icons { display: none; }
+@media (min-width: 480px) {
+  .site-header .social-icons { display: flex; }
 }
 
 .site-nav {
@@ -581,6 +604,105 @@ body { top: 0 !important; }
   border-radius: 0 var(--radius) var(--radius) 0;
   font-size: 13px;
   color: var(--ink-900);
+}
+
+/* ---------- stat strip ---------- */
+.stat-strip { padding: 8px 0 40px; }
+.stat-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+  gap: 24px;
+  text-align: center;
+}
+.stat-number {
+  font-family: var(--font-display);
+  font-weight: 700;
+  font-size: clamp(28px, 4vw, 40px);
+  color: var(--green-700);
+  line-height: 1;
+  margin-bottom: 8px;
+}
+.stat-label {
+  font-family: var(--font-mono);
+  font-size: 12px;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: var(--ink-400);
+}
+
+/* ---------- pull quote ---------- */
+.pull-quote {
+  border-left: 4px solid var(--gold-600);
+  padding: 4px 0 4px 28px;
+  margin: 28px 0;
+}
+.pull-quote p {
+  font-family: var(--font-display);
+  font-size: clamp(22px, 3vw, 30px);
+  font-weight: 700;
+  line-height: 1.3;
+  color: var(--ink-900);
+  margin-bottom: 12px;
+  max-width: 42ch;
+}
+.pull-quote cite {
+  font-family: var(--font-mono);
+  font-size: 13px;
+  font-style: normal;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: var(--ink-400);
+}
+
+/* ---------- social icons ---------- */
+.social-icons { display: flex; align-items: center; gap: 8px; }
+.social-icon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  border: 1px solid rgba(255,255,255,0.4);
+  color: #fff;
+  flex-shrink: 0;
+}
+.social-icon svg { width: 16px; height: 16px; fill: currentColor; }
+.social-icon:hover { background: rgba(255,255,255,0.15); border-color: #fff; }
+.site-footer .social-icon { border-color: rgba(255,255,255,0.3); }
+.site-footer .social-icon:hover { background: rgba(255,255,255,0.12); border-color: var(--gold-600); color: var(--gold-600); }
+
+/* ---------- follow section ---------- */
+.follow-section { padding: 40px 0; text-align: center; }
+.follow-row { display: flex; align-items: center; justify-content: center; gap: 16px; margin-top: 18px; flex-wrap: wrap; }
+.follow-section .social-icon {
+  border-color: var(--green-700);
+  color: var(--green-700);
+  width: 44px;
+  height: 44px;
+}
+.follow-section .social-icon svg { width: 20px; height: 20px; }
+.follow-section .social-icon:hover { background: var(--green-700); color: #fff; }
+
+/* ---------- partner card ---------- */
+.partner-card {
+  display: grid;
+  grid-template-columns: 200px 1fr;
+  gap: 28px;
+  align-items: center;
+  background: var(--paper-raised);
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  padding: 28px;
+  margin-top: 24px;
+}
+.partner-card img { width: 100%; height: auto; }
+.partner-card h3 { margin-bottom: 6px; }
+.partner-card p { color: var(--ink-600); font-size: 15px; }
+.partner-card p:last-child { margin-bottom: 0; }
+@media (max-width: 560px) {
+  .partner-card { grid-template-columns: 1fr; text-align: center; }
+  .partner-card img { max-width: 180px; margin: 0 auto; }
 }
 
 /* ---------- FAQ ---------- */
