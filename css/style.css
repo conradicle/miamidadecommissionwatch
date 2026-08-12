@@ -153,6 +153,10 @@ p { margin: 0 0 1em; }
 }
 .skip-link:focus { left: 12px; top: 12px; }
 
+/* Anchor-jump targets (#find-district, #commission, etc.) need clearance so
+   they land below the sticky header instead of tucked behind it. */
+section[id] { scroll-margin-top: 140px; }
+
 /* ---------- header ---------- */
 .site-header {
   position: sticky;
