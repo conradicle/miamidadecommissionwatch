@@ -697,19 +697,6 @@ body { top: 0 !important; }
   margin-top: 24px;
 }
 .partner-card img { width: 100%; height: auto; }
-.partner-logo-text {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  text-align: center;
-  line-height: 1.2;
-  font-family: var(--font-body);
-  font-weight: 800;
-  font-size: 19px;
-  letter-spacing: -0.01em;
-  color: #cc2222;
-}
 .partner-card h3 { margin-bottom: 6px; }
 .partner-card p { color: var(--ink-600); font-size: 15px; }
 .partner-card p:last-child { margin-bottom: 0; }
