@@ -162,14 +162,13 @@ section[id] { scroll-margin-top: 140px; }
   position: sticky;
   top: 0;
   z-index: 90;
-  background: var(--green-900);
+  background: rgba(14,74,60,0.94);
+  backdrop-filter: saturate(160%) blur(10px);
   color: #fff;
   border-bottom: 4px solid var(--gold-600);
   transition: box-shadow .4s, background-color .4s;
 }
 .site-header.scrolled {
-  background: rgba(14,74,60,0.94);
-  backdrop-filter: saturate(160%) blur(10px);
   box-shadow: 0 10px 30px rgba(0,0,0,0.22);
 }
 .site-header .wrap {
