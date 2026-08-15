@@ -569,6 +569,8 @@ body { top: 0 !important; }
 }
 
 #district-map {
+  position: relative;
+  z-index: 1;
   height: 480px;
   width: 100%;
   border: 1px solid var(--line);
