@@ -801,13 +801,22 @@ body { top: 0 !important; }
   position: relative;
   width: min(240px, 60vw);
 }
-.seal img {
+.seal-ring {
   width: 100%;
   height: auto;
   display: block;
   border-radius: 50%;
   box-shadow: var(--shadow);
   animation: seal-spin 50s linear infinite;
+}
+.seal-gator {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: auto;
+  display: block;
+  pointer-events: none;
 }
 @keyframes seal-spin { 100% { transform: rotate(360deg); } }
 .seal-float {
