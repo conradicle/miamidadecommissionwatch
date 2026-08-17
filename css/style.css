@@ -20,11 +20,33 @@
 
   --ink-900: #1e2430;
   --ink-600: #4b5563;
-  --ink-400: #7a8391;
+  /* Darkened from the original #7a8391 -- that shade sat at ~3.5:1 on paper,
+     failing WCAG AA (4.5:1) at the small mono sizes it's used at (labels,
+     bylines, captions). This tone holds ~5.5:1 while staying visibly lighter
+     than ink-600. */
+  --ink-400: #5c6472;
+
+  /* Gold-600 stays the brand accent for borders/backgrounds/focus rings,
+     where the 3:1 non-text threshold applies. For gold text on gold-100
+     (badges, "why it matters" labels) that pairing was ~2.6:1, so those
+     spots use this darker variant instead. */
+  --gold-700: #7a5419;
 
   --paper: #f7f4ec;
   --paper-raised: #ffffff;
   --line: #e2ddcd;
+
+  /* Spacing scale (4px base) -- used at the primary layout rhythm points
+     (sections, cards, grids). Existing one-off pixel values elsewhere are
+     left alone rather than churned for no visual change. */
+  --space-1: 4px;
+  --space-2: 8px;
+  --space-3: 12px;
+  --space-4: 16px;
+  --space-5: 24px;
+  --space-6: 32px;
+  --space-7: 48px;
+  --space-8: 64px;
 
   /* Commission district colors, named so the get-involved/speak-out-september
      legends don't repeat raw hex. Some districts reuse the core palette. */
@@ -46,12 +68,13 @@
   --font-body: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
   --font-mono: 'Courier New', ui-monospace, monospace;
 
-  --radius: 6px;
+  --radius: 10px;
+  --radius-sm: 4px;
   --max-width: 1080px;
 
   --ease: cubic-bezier(.22,.61,.36,1);
-  --shadow: 0 24px 50px -24px rgba(14,74,60,.35);
-  --shadow-sm: 0 10px 24px -12px rgba(14,74,60,.28);
+  --shadow: 0 20px 44px -20px rgba(14,74,60,.30), 0 4px 10px -6px rgba(14,74,60,.16);
+  --shadow-sm: 0 8px 20px -10px rgba(14,74,60,.24), 0 2px 6px -2px rgba(14,74,60,.12);
 }
 
 * { box-sizing: border-box; }
@@ -194,7 +217,8 @@ section[id] { scroll-margin-top: 140px; }
   border: none;
   border-left: 1px solid rgba(255,255,255,0.25);
   color: rgba(255,255,255,0.75);
-  padding: 7px 9px;
+  padding: 11px 12px;
+  min-width: 40px;
   font-size: 12px;
   font-family: var(--font-mono);
   cursor: pointer;
@@ -245,11 +269,14 @@ body { top: 0 !important; }
 
 .nav-toggle {
   display: inline-flex;
+  align-items: center;
+  justify-content: center;
   background: transparent;
   border: 2px solid rgba(255,255,255,0.5);
   color: #fff;
   border-radius: var(--radius);
-  padding: 8px 12px;
+  padding: 8px 14px;
+  min-height: 44px;
   font-size: 15px;
   cursor: pointer;
 }
@@ -268,28 +295,35 @@ body { top: 0 !important; }
   display: none;
   position: absolute;
   top: 100%;
-  right: 24px;
-  margin-top: 10px;
-  min-width: 200px;
+  left: 0;
+  right: 0;
+  margin-top: 0;
+  min-width: 0;
   flex-direction: column;
-  gap: 0;
+  gap: 2px;
   background: var(--green-900);
-  border: 1px solid rgba(255,255,255,0.18);
-  border-radius: var(--radius);
-  padding: 6px;
-  box-shadow: 0 12px 28px rgba(0,0,0,0.28);
+  border-top: 1px solid rgba(255,255,255,0.18);
+  padding: 10px 20px calc(16px + env(safe-area-inset-bottom));
+  box-shadow: 0 16px 32px rgba(0,0,0,0.28);
   z-index: 50;
+  max-height: calc(100vh - 64px);
+  overflow-y: auto;
 }
 .site-nav.open { display: flex; }
 .site-nav a {
+  display: flex;
+  align-items: center;
   color: rgba(255,255,255,0.88);
   text-decoration: none;
-  padding: 9px 12px;
+  padding: 13px 12px;
+  min-height: 44px;
   border-radius: var(--radius);
-  font-size: 14px;
+  border-bottom: 1px solid rgba(255,255,255,0.08);
+  font-size: 15px;
   line-height: 1.3;
   font-weight: 600;
 }
+.site-nav a:last-child { border-bottom: none; }
 .site-nav a:hover, .site-nav a[aria-current="page"] {
   background: rgba(255,255,255,0.12);
   color: #fff;
@@ -312,6 +346,8 @@ body { top: 0 !important; }
     font-size: 15px;
     font-weight: 400;
     padding: 10px 8px;
+    min-height: 0;
+    border-bottom: none;
     position: relative;
   }
   .site-nav a::after {
@@ -437,7 +473,7 @@ body { top: 0 !important; }
 }
 .outcome.passed { background: rgba(26,125,100,0.14); color: var(--green-700); }
 .outcome.failed { background: rgba(179,69,44,0.12); color: var(--red-600); }
-.outcome.deferred { background: var(--gold-100); color: var(--gold-600); }
+.outcome.deferred { background: var(--gold-100); color: var(--gold-700); }
 
 .why-matters {
   margin-top: 12px;
@@ -452,7 +488,7 @@ body { top: 0 !important; }
   font-size: 11px;
   text-transform: uppercase;
   letter-spacing: 0.05em;
-  color: var(--gold-600);
+  color: var(--gold-700);
   display: block;
   margin-bottom: 4px;
   font-weight: 700;
@@ -499,7 +535,7 @@ body { top: 0 !important; }
   font-size: 11px;
   text-transform: uppercase;
   background: var(--gold-100);
-  color: var(--gold-600);
+  color: var(--gold-700);
   padding: 2px 8px;
   border-radius: 3px;
   margin-bottom: 8px;
