@@ -72,7 +72,7 @@
       <div class="card-grid">
         <div class="card">
           <h3>Who can submit</h3>
-          <p>Any student enrolled at a Miami-Dade County public, charter, private, or home school, any grade level. Use your school-issued email address in the form so we can verify enrollment before publishing.</p>
+          <p>Any high school student (grades 9&ndash;12) enrolled at a Miami-Dade County public, charter, private, or home school. Use your school-issued email address in the form so we can verify enrollment before publishing. We're not able to accept submissions from middle school or elementary students.</p>
         </div>
         <div class="card">
           <h3>What to write about</h3>
@@ -110,7 +110,13 @@
         </div>
         <div class="field">
           <label for="editorial-grade">Grade *</label>
-          <input type="text" id="editorial-grade" name="grade" placeholder="e.g. 11th grade" required>
+          <select id="editorial-grade" name="grade" required>
+            <option value="">Select your grade</option>
+            <option>9th grade</option>
+            <option>10th grade</option>
+            <option>11th grade</option>
+            <option>12th grade</option>
+          </select>
         </div>
         <div class="field">
           <label for="editorial-school">School *</label>
@@ -135,7 +141,7 @@
         <div class="field">
           <label style="display:flex; align-items:flex-start; gap:8px; font-weight:400;">
             <input type="checkbox" id="editorial-confirm" name="confirm" style="margin-top:4px;" required>
-            <span>I confirm this is my own original work, not previously published elsewhere, and I understand it will be reviewed before publishing and may be edited or declined.</span>
+            <span>I confirm I am a high school student (grades 9&ndash;12), this is my own original work not previously published elsewhere, and I understand it will be reviewed before publishing and may be edited or declined. I've read the <a href="privacy.html">Privacy Policy</a>.</span>
           </label>
         </div>
         <button type="submit" class="btn btn-primary btn-large">Submit editorial</button>
@@ -167,6 +173,8 @@
           <li><a href="about.html">Mission &amp; founders</a></li>
           <li><a href="faq.html">FAQ &amp; glossary</a></li>
           <li><a href="contact.html">Contact / report an error</a></li>
+          <li><a href="privacy.html">Privacy &amp; Terms</a></li>
+          <li><a href="accessibility.html">Accessibility</a></li>
         </ul>
       </div>
       <div>
