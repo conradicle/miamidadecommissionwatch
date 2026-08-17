@@ -16,7 +16,7 @@
 <meta name="twitter:title" content="Get Involved - Miami-Dade Commission Watch">
 <meta name="twitter:description" content="How to find your Miami-Dade commissioner, follow meetings, and speak at public comment.">
 <meta name="twitter:image" content="https://www.miamidadecommissionwatch.com/assets/img/og-image.png">
-<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css">
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" integrity="sha384-sHL9NAb7lN7rfvG5lfHpm643Xkcjzp4jFvuavGOndn6pjVqS6ny56CAt3nsEVT4H" crossorigin="anonymous">
 <link rel="icon" type="image/png" sizes="32x32" href="assets/img/favicon-32x32.png">
 <link rel="icon" type="image/png" sizes="16x16" href="assets/img/favicon-16x16.png">
 <link rel="apple-touch-icon" sizes="180x180" href="assets/img/apple-touch-icon.png">
@@ -82,7 +82,7 @@
       </form>
       <div id="district-search-status" class="district-status"></div>
 
-      <div id="district-map"></div>
+      <div id="district-map" role="application" aria-label="Interactive map of Miami-Dade commission districts. The address search above gives the same result without using the map."></div>
 
       <div class="district-legend">
         <div class="district-legend-item"><span class="district-legend-swatch" style="background:var(--district-1);"></span>D1 &middot; Gilbert</div>
@@ -230,6 +230,8 @@
           <li><a href="about.html">Mission &amp; founders</a></li>
           <li><a href="faq.html">FAQ &amp; glossary</a></li>
           <li><a href="contact.html">Contact / report an error</a></li>
+          <li><a href="privacy.html">Privacy &amp; Terms</a></li>
+          <li><a href="accessibility.html">Accessibility</a></li>
         </ul>
       </div>
       <div>
@@ -261,7 +263,7 @@
 
 <div id="google_translate_element"></div>
 <script src="js/main.js"></script>
-<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" integrity="sha384-cxOPjt7s7Iz04uaHJceBmS+qpjv2JkIHNVcuOrM+YHwZOmJGBXI00mdUXEq65HTH" crossorigin="anonymous"></script>
 <script src="js/find-district.js"></script>
 <script src="js/translate.js"></script>
 <script src="https://translate.google.com/translate_a/element.js?cb=googleTranslateElementInit"></script>
