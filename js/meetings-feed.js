@@ -2,7 +2,18 @@
   function escapeHtml(str) {
     var div = document.createElement('div');
     div.textContent = str == null ? '' : String(str);
-    return div.innerHTML;
+    return div.innerHTML.replace(/"/g, '&quot;').replace(/'/g, '&#39;');
+  }
+
+  // Only allow http/https links so a staff-entered source_url can't carry a
+  // javascript: URI (or similar) that executes when a visitor clicks it.
+  function safeHref(url) {
+    try {
+      var parsed = new URL(url, window.location.href);
+      return (parsed.protocol === 'http:' || parsed.protocol === 'https:') ? parsed.href : null;
+    } catch (e) {
+      return null;
+    }
   }
 
   function formatMeetingDate(dateStr) {
@@ -20,8 +31,9 @@
       ? '<span class="outcome ' + escapeHtml(item.tag_status || 'passed') + '">' + escapeHtml(item.tag_label) + '</span>'
       : '<span class="item-code">' + escapeHtml(item.tag_label) + '</span>';
 
-    var sourceHtml = item.source_url
-      ? ' Source: <a href="' + escapeHtml(item.source_url) + '" target="_blank" rel="noopener">' + escapeHtml(item.source_label || 'link') + '</a>.'
+    var safeSourceUrl = item.source_url ? safeHref(item.source_url) : null;
+    var sourceHtml = safeSourceUrl
+      ? ' Source: <a href="' + escapeHtml(safeSourceUrl) + '" target="_blank" rel="noopener">' + escapeHtml(item.source_label || 'link') + '</a>.'
       : '';
 
     return (
