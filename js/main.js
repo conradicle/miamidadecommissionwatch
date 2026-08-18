@@ -46,8 +46,12 @@ document.addEventListener('DOMContentLoaded', function () {
     // Minimum real movement (in px) required before the bar's state can
     // flip again, so residual scroll noise near the threshold — or the
     // sub-pixel jitter some browsers report while a smooth scroll settles —
-    // can't toggle it back and forth.
-    var DIRECTION_CHANGE_BUFFER = 6;
+    // can't toggle it back and forth. A small scroll gesture (slow trackpad
+    // drag, or the rubber-band settle at the end of a scroll) routinely
+    // produces single ticks of 10-15px in alternating directions, so the
+    // buffer needs to clear that comfortably rather than just filter
+    // sub-pixel noise.
+    var DIRECTION_CHANGE_BUFFER = 24;
     window.addEventListener('scroll', function () {
       var currentScrollY = window.scrollY;
       header.classList.toggle('scrolled', currentScrollY > 10);
