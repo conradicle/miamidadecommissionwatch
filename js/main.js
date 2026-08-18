@@ -44,8 +44,8 @@ document.addEventListener('DOMContentLoaded', function () {
   if (header) {
     var lastScrollY = window.scrollY;
     // Minimum real movement (in px) required before the bar's state can
-    // flip again, so residual scroll noise near the threshold — or the
-    // sub-pixel jitter some browsers report while a smooth scroll settles —
+    // flip again, so residual scroll noise near the threshold, or the
+    // sub-pixel jitter some browsers report while a smooth scroll settles,
     // can't toggle it back and forth. A small scroll gesture (slow trackpad
     // drag, or the rubber-band settle at the end of a scroll) routinely
     // produces single ticks of 10-15px in alternating directions, so the

@@ -73,7 +73,7 @@
             return;
           }
           form.reset();
-          statusEl.textContent = 'Thanks — your editorial has been submitted for review. We\'ll be in touch if it\'s selected for publishing.';
+          statusEl.textContent = 'Thanks! Your editorial has been submitted for review. We\'ll be in touch if it\'s selected for publishing.';
           statusEl.className = 'district-status success';
         })
         .catch(function () {

@@ -60,7 +60,7 @@ function renderPage(title, message) {
   return '<!DOCTYPE html><html lang="en"><head><meta charset="UTF-8">' +
     '<meta name="viewport" content="width=device-width, initial-scale=1.0">' +
     '<meta name="robots" content="noindex, nofollow">' +
-    '<title>' + escapeHtml(title) + ' — Miami-Dade Commission Watch</title>' +
+    '<title>' + escapeHtml(title) + ' - Miami-Dade Commission Watch</title>' +
     '<style>' +
       'body{font-family:Georgia,\'Times New Roman\',serif;background:#f7f4ee;color:#1a1a1a;max-width:520px;margin:80px auto;padding:0 24px;text-align:center;}' +
       'h1{font-size:24px;font-family:Arial,sans-serif;}' +
