@@ -614,8 +614,12 @@
   // ---------- newsletter stats ----------
   function renderStatCard(number, label) {
     var card = document.createElement('div');
-    card.className = 'card';
+    // Not "card" -- that class is watched by main.js's scroll-reveal
+    // IntersectionObserver, which only scans the DOM once at page load, so
+    // cards inserted later by this async fetch would stay stuck at opacity 0.
+    card.className = 'submission-card';
     card.style.textAlign = 'center';
+    card.style.marginBottom = '0';
     card.innerHTML =
       '<div class="stat-number">' + escapeHtml(String(number)) + '</div>' +
       '<div class="stat-label">' + escapeHtml(label) + '</div>';
