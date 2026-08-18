@@ -371,6 +371,13 @@ body { top: 0 !important; }
 .header-newsletter {
   background: rgba(0,0,0,0.18);
   border-top: 1px solid rgba(255,255,255,0.14);
+  opacity: 1;
+  overflow: hidden;
+  transition: max-height .35s var(--ease), opacity .3s var(--ease), border-color .35s var(--ease);
+}
+.header-newsletter.header-newsletter-hidden {
+  opacity: 0;
+  border-top-color: transparent;
 }
 .header-newsletter .wrap {
   display: flex;
