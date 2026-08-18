@@ -1,4 +1,4 @@
-/* Miami-Dade Commission Watch — shared stylesheet
+/* Miami-Dade Commission Watch: shared stylesheet
    Palette is inspired by (but not copied from) Miami-Dade County's official
    site, which is blue-and-white with a small orange accent. This site leads
    with green instead (the county's own 1978 color resolution names blue,
@@ -193,7 +193,7 @@ section[id] { scroll-margin-top: 140px; }
   /* The newsletter bar inside this sticky header animates its height on
      scroll. Without this, the browser's scroll anchoring "corrects" the
      scroll position to compensate for that height change, which the scroll
-     handler below reads as a direction change — hiding/showing the bar
+     handler below reads as a direction change, hiding/showing the bar
      again and again in a feedback loop (visible as jitter). */
   overflow-anchor: none;
 }

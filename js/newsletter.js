@@ -31,7 +31,7 @@
             return;
           }
           form.reset();
-          statusEl.textContent = 'You’re subscribed — check your inbox for a welcome email.';
+          statusEl.textContent = 'You’re subscribed. Check your inbox for a welcome email.';
           statusEl.className = 'newsletter-status success';
         })
         .catch(function () {

@@ -1,4 +1,4 @@
-// Public project URL and anon key — safe to expose in client-side code.
+// Public project URL and anon key: safe to expose in client-side code.
 // Row Level Security policies (see supabase/schema.sql) are what actually
 // protect the data, not secrecy of this key.
 var SUPABASE_URL = 'https://kpchirnlgjwdqducqdtx.supabase.co';

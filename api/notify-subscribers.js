@@ -202,7 +202,7 @@ function buildAgendaEmail(meeting) {
     'Read the full agenda: ' + siteUrl();
 
   return {
-    subject: 'Agenda posted: ' + meeting.title + ' — ' + dateStr,
+    subject: 'Agenda posted: ' + meeting.title + ' - ' + dateStr,
     html: html,
     text: text
   };
@@ -250,7 +250,7 @@ function buildRecapEmail(meeting) {
     'Read the full write-up: ' + siteUrl();
 
   return {
-    subject: 'What happened: ' + meeting.title + ' — ' + dateStr,
+    subject: 'What happened: ' + meeting.title + ' - ' + dateStr,
     html: html,
     text: text
   };
