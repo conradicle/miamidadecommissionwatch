@@ -611,6 +611,59 @@
     loadNewsAdmin();
   }
 
+  // ---------- newsletter stats ----------
+  function renderStatCard(number, label) {
+    var card = document.createElement('div');
+    card.className = 'card';
+    card.style.textAlign = 'center';
+    card.innerHTML =
+      '<div class="stat-number">' + escapeHtml(String(number)) + '</div>' +
+      '<div class="stat-label">' + escapeHtml(label) + '</div>';
+    return card;
+  }
+
+  function loadNewsletterStats() {
+    var statusEl = document.getElementById('newsletter-stats-status');
+    var gridEl = document.getElementById('newsletter-stats-grid');
+    statusEl.textContent = 'Loading...';
+    statusEl.className = 'district-status';
+
+    supabaseClient.auth.getSession().then(function (sessionRes) {
+      var session = sessionRes.data && sessionRes.data.session;
+      if (!session) {
+        statusEl.textContent = 'Your session has expired. Log out and log back in, then try again.';
+        statusEl.className = 'district-status error';
+        return;
+      }
+      fetch('/api/newsletter-stats', {
+        headers: { Authorization: 'Bearer ' + session.access_token }
+      })
+        .then(function (r) { return r.json().then(function (data) { return { ok: r.ok, data: data }; }); })
+        .then(function (result) {
+          if (!result.ok) {
+            statusEl.textContent = 'Could not load newsletter stats: ' + (result.data.error || 'unknown error');
+            statusEl.className = 'district-status error';
+            return;
+          }
+          statusEl.textContent = '';
+          gridEl.innerHTML = '';
+          gridEl.appendChild(renderStatCard(result.data.subscribed, 'Current subscribers'));
+          gridEl.appendChild(renderStatCard(result.data.newLast7Days, 'New in last 7 days'));
+          gridEl.appendChild(renderStatCard(result.data.newLast30Days, 'New in last 30 days'));
+          gridEl.appendChild(renderStatCard(result.data.unsubscribed, 'Unsubscribed (all time)'));
+        })
+        .catch(function () {
+          statusEl.textContent = 'Could not reach the server.';
+          statusEl.className = 'district-status error';
+        });
+    });
+  }
+
+  function initNewsletterStats() {
+    document.getElementById('newsletter-stats-refresh').addEventListener('click', loadNewsletterStats);
+    loadNewsletterStats();
+  }
+
   // ---------- staff (owner only) ----------
   function renderStaffRow(row) {
     var isSelf = row.user_id === currentUserId;
@@ -903,6 +956,7 @@
           initEditorials();
           initMeetings();
           initNews();
+          initNewsletterStats();
 
           if (currentRole === 'owner') {
             staffTabBtn.style.display = 'inline-block';
