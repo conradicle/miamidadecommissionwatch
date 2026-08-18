@@ -190,6 +190,12 @@ section[id] { scroll-margin-top: 140px; }
   color: #fff;
   border-bottom: 4px solid var(--gold-600);
   transition: box-shadow .4s, background-color .4s;
+  /* The newsletter bar inside this sticky header animates its height on
+     scroll. Without this, the browser's scroll anchoring "corrects" the
+     scroll position to compensate for that height change, which the scroll
+     handler below reads as a direction change — hiding/showing the bar
+     again and again in a feedback loop (visible as jitter). */
+  overflow-anchor: none;
 }
 .site-header.scrolled {
   box-shadow: 0 10px 30px rgba(0,0,0,0.22);
