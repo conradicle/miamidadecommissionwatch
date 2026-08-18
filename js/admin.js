@@ -520,97 +520,6 @@
     loadMeetingsAdmin();
   }
 
-  // ---------- news ----------
-  function renderNewsAdmin(row) {
-    var card = document.createElement('div');
-    card.className = 'submission-card';
-    card.innerHTML =
-      '<div class="submission-meta">' + escapeHtml(formatDate(row.created_at)) + '</div>' +
-      '<h3 style="margin-bottom:4px;">' + escapeHtml(row.title) + '</h3>' +
-      '<p style="color:var(--ink-600); font-size:14px; white-space:pre-wrap;">' + escapeHtml(row.body) + '</p>' +
-      '<div class="submission-actions"><button type="button" class="btn btn-danger btn-small" data-action="delete-news" data-id="' + row.id + '">Delete</button></div>';
-    return card;
-  }
-
-  function loadNewsAdmin() {
-    var listEl = document.getElementById('news-admin-list');
-    listEl.innerHTML = '';
-
-    supabaseClient
-      .from('news_posts')
-      .select('*')
-      .order('created_at', { ascending: false })
-      .then(function (res) {
-        if (res.error) {
-          listEl.innerHTML = '<div class="notice">Could not load news posts: ' + escapeHtml(res.error.message) + '</div>';
-          return;
-        }
-        if (!res.data || res.data.length === 0) {
-          listEl.innerHTML = '<div class="notice">No news posts yet.</div>';
-          return;
-        }
-        res.data.forEach(function (row) {
-          listEl.appendChild(renderNewsAdmin(row));
-        });
-      });
-  }
-
-  function initNews() {
-    var form = document.getElementById('news-form');
-    var statusEl = document.getElementById('news-form-status');
-    var listEl = document.getElementById('news-admin-list');
-
-    form.addEventListener('submit', function (e) {
-      e.preventDefault();
-      var submitBtn = form.querySelector('button[type="submit"]');
-      submitBtn.disabled = true;
-      statusEl.textContent = 'Publishing...';
-      statusEl.className = 'district-status';
-
-      supabaseClient
-        .from('news_posts')
-        .insert({
-          title: document.getElementById('n-title').value.trim(),
-          body: document.getElementById('n-body').value.trim(),
-          created_by: currentUserId
-        })
-        .then(function (res) {
-          submitBtn.disabled = false;
-          if (res.error) {
-            statusEl.textContent = 'Could not publish: ' + res.error.message;
-            statusEl.className = 'district-status error';
-            return;
-          }
-          statusEl.textContent = 'Published.';
-          statusEl.className = 'district-status success';
-          form.reset();
-          loadNewsAdmin();
-        });
-    });
-
-    listEl.addEventListener('click', function (e) {
-      var btn = e.target.closest('button[data-action="delete-news"]');
-      if (!btn) return;
-      if (!window.confirm('Delete this news post?')) return;
-      btn.disabled = true;
-      supabaseClient
-        .from('news_posts')
-        .delete()
-        .eq('id', btn.getAttribute('data-id'))
-        .then(function (res) {
-          if (res.error) {
-            statusEl.textContent = 'Delete failed: ' + res.error.message;
-            statusEl.className = 'district-status error';
-            btn.disabled = false;
-            return;
-          }
-          loadNewsAdmin();
-        });
-    });
-
-    loadNewsAdmin();
-  }
-
   // ---------- newsletter stats ----------
   function renderStatCard(number, label) {
     var card = document.createElement('div');
@@ -959,7 +868,6 @@
           initTabs();
           initEditorials();
           initMeetings();
-          initNews();
           initNewsletterStats();
 
           if (currentRole === 'owner') {
