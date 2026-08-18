@@ -156,7 +156,7 @@
           statusEl.innerHTML = 'You\'re in <strong>District ' + d + '</strong>, represented by <strong>' + name +
             '</strong>. <a href="' + officialProfileUrl(d) + '" target="_blank" rel="noopener">Official profile &#8599;</a>';
           statusEl.className = 'district-status success';
-          resultMarker.bindPopup('District ' + d + ' &mdash; ' + name).openPopup();
+          resultMarker.bindPopup('District ' + d + ': ' + name).openPopup();
         })
         .catch(function () {
           statusEl.textContent = 'Something went wrong looking up that address. Please try again.';

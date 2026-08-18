@@ -131,9 +131,9 @@ async function sendWelcomeEmail(apiKey, email, unsubscribeToken) {
         '<span style="font-family:Arial,sans-serif;font-weight:700;font-size:18px;color:#fff;">Miami-Dade <span style="color:#c08a2e;">Commission</span> Watch</span>' +
       '</div>' +
       '<div style="padding:28px 24px;">' +
-        '<h1 style="font-size:22px;margin:0 0 16px;">Welcome &mdash; here\'s what to expect</h1>' +
+        '<h1 style="font-size:22px;margin:0 0 16px;">Welcome: here\'s what to expect</h1>' +
         '<p style="line-height:1.6;">Thanks for signing up. The Miami-Dade Board of County Commissioners meets regularly and decides things that show up in your rent, your commute, and your neighborhood\'s next ten years. Almost nobody outside government reads the agendas. We do, and we send back what\'s on them in plain language, with a link to the source for every claim.</p>' +
-        '<p style="line-height:1.6;">Miami-Dade Commission Watch is an independent, student-run project founded by Conrad Gelber and Daniel Llobet. It is not affiliated with, operated by, or endorsed by Miami-Dade County government, any political party, or any candidate for office. We report what was on the agenda, what happened, and how commissioners voted &mdash; we don\'t endorse candidates or editorialize about anyone\'s motives.</p>' +
+        '<p style="line-height:1.6;">Miami-Dade Commission Watch is an independent, student-run project founded by Conrad Gelber and Daniel Llobet. It is not affiliated with, operated by, or endorsed by Miami-Dade County government, any political party, or any candidate for office. We report what was on the agenda, what happened, and how commissioners voted; we don\'t endorse candidates or editorialize about anyone\'s motives.</p>' +
         '<p style="line-height:1.6;font-weight:700;margin-bottom:6px;">From here on, you\'ll get an email:</p>' +
         '<ul style="line-height:1.7;padding-left:20px;">' +
           '<li>When a new meeting\'s agenda is posted, before commissioners vote</li>' +
