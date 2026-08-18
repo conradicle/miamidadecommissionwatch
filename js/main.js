@@ -43,20 +43,30 @@ document.addEventListener('DOMContentLoaded', function () {
 
   if (header) {
     var lastScrollY = window.scrollY;
+    // Minimum real movement (in px) required before the bar's state can
+    // flip again, so residual scroll noise near the threshold — or the
+    // sub-pixel jitter some browsers report while a smooth scroll settles —
+    // can't toggle it back and forth.
+    var DIRECTION_CHANGE_BUFFER = 6;
     window.addEventListener('scroll', function () {
       var currentScrollY = window.scrollY;
       header.classList.toggle('scrolled', currentScrollY > 10);
 
       if (newsletterBar) {
         var isHidden = newsletterBar.classList.contains('header-newsletter-hidden');
-        if (currentScrollY > lastScrollY && currentScrollY > HIDE_THRESHOLD && !isHidden) {
+        var delta = currentScrollY - lastScrollY;
+        if (delta > DIRECTION_CHANGE_BUFFER && currentScrollY > HIDE_THRESHOLD && !isHidden) {
           hideNewsletterBar();
-        } else if (currentScrollY < lastScrollY && isHidden) {
+          lastScrollY = currentScrollY;
+        } else if (delta < -DIRECTION_CHANGE_BUFFER && isHidden) {
           showNewsletterBar();
+          lastScrollY = currentScrollY;
+        } else if (Math.abs(delta) > DIRECTION_CHANGE_BUFFER) {
+          lastScrollY = currentScrollY;
         }
+      } else {
+        lastScrollY = currentScrollY;
       }
-
-      lastScrollY = currentScrollY;
     }, { passive: true });
   }
 
