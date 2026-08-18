@@ -201,12 +201,24 @@
       return '<li>' + escapeHtml(item.tag_label) + ' &mdash; ' + escapeHtml(item.heading) + '</li>';
     }).join('');
 
+    var agendaLabel = meeting.agenda_sent_at
+      ? 'Re-send agenda email (sent ' + escapeHtml(formatDate(meeting.agenda_sent_at)) + ')'
+      : 'Email subscribers: Agenda';
+    var recapLabel = meeting.recap_sent_at
+      ? 'Re-send recap email (sent ' + escapeHtml(formatDate(meeting.recap_sent_at)) + ')'
+      : 'Email subscribers: Recap';
+
     card.innerHTML =
       '<div class="submission-meta">' + escapeHtml(meeting.meeting_type) + ' &middot; ' + escapeHtml(formatMeetingDate(meeting.meeting_date)) + '</div>' +
       '<h3 style="margin-bottom:4px;">' + escapeHtml(meeting.title) + '</h3>' +
       '<p style="color:var(--ink-600); font-size:14px;">' + escapeHtml(meeting.summary) + '</p>' +
       (itemsHtml ? '<ul style="margin:8px 0 14px; padding-left:20px; font-size:14px; color:var(--ink-600);">' + itemsHtml + '</ul>' : '') +
-      '<div class="submission-actions"><button type="button" class="btn btn-danger btn-small" data-action="delete-meeting" data-id="' + meeting.id + '">Delete meeting</button></div>';
+      '<div class="submission-actions">' +
+        '<button type="button" class="btn btn-secondary btn-small" data-action="edit-meeting" data-id="' + meeting.id + '">Edit</button>' +
+        '<button type="button" class="btn btn-secondary btn-small" data-action="send-agenda" data-id="' + meeting.id + '">' + agendaLabel + '</button>' +
+        '<button type="button" class="btn btn-secondary btn-small" data-action="send-recap" data-id="' + meeting.id + '">' + recapLabel + '</button>' +
+        '<button type="button" class="btn btn-danger btn-small" data-action="delete-meeting" data-id="' + meeting.id + '">Delete meeting</button>' +
+      '</div>';
 
     return card;
   }
@@ -239,12 +251,76 @@
     var itemsContainer = document.getElementById('meeting-items');
     var statusEl = document.getElementById('meeting-form-status');
     var listEl = document.getElementById('meetings-admin-list');
+    var headingEl = document.getElementById('meeting-form-heading');
+    var submitBtn = document.getElementById('meeting-submit-btn');
+    var cancelBtn = document.getElementById('meeting-cancel-edit-btn');
+    var editingMeetingId = null;
 
     itemsContainer.appendChild(createItemRow());
 
     document.getElementById('add-item-btn').addEventListener('click', function () {
       itemsContainer.appendChild(createItemRow());
     });
+
+    function resetToCreateMode() {
+      editingMeetingId = null;
+      headingEl.textContent = 'Add a meeting';
+      submitBtn.textContent = 'Publish meeting';
+      cancelBtn.style.display = 'none';
+      form.reset();
+      itemsContainer.innerHTML = '';
+      itemsContainer.appendChild(createItemRow());
+    }
+
+    cancelBtn.addEventListener('click', resetToCreateMode);
+
+    function fillItemRow(row, item) {
+      var tagTypeEl = row.querySelector('.mi-tag-type');
+      tagTypeEl.value = item.tag_type;
+      tagTypeEl.dispatchEvent(new Event('change'));
+      if (item.tag_type === 'outcome' && item.tag_status) {
+        row.querySelector('.mi-tag-status').value = item.tag_status;
+      }
+      row.querySelector('.mi-tag-label').value = item.tag_label;
+      row.querySelector('.mi-heading').value = item.heading;
+      row.querySelector('.mi-description').value = item.description;
+      row.querySelector('.mi-source-label').value = item.source_label || '';
+      row.querySelector('.mi-source-url').value = item.source_url || '';
+      row.querySelector('.mi-why').value = item.why_it_matters;
+    }
+
+    function enterEditMode(meeting) {
+      editingMeetingId = meeting.id;
+      headingEl.textContent = 'Edit meeting';
+      submitBtn.textContent = 'Save changes';
+      cancelBtn.style.display = 'inline-flex';
+
+      document.getElementById('m-date').value = meeting.meeting_date;
+      document.getElementById('m-type').value = meeting.meeting_type;
+      document.getElementById('m-title').value = meeting.title;
+      document.getElementById('m-summary').value = meeting.summary;
+
+      itemsContainer.innerHTML = '';
+      var items = (meeting.meeting_items || []).slice().sort(function (a, b) { return a.sort_order - b.sort_order; });
+      if (items.length === 0) {
+        itemsContainer.appendChild(createItemRow());
+      } else {
+        items.forEach(function (item) {
+          var row = createItemRow();
+          itemsContainer.appendChild(row);
+          fillItemRow(row, item);
+        });
+      }
+
+      form.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    }
+
+    function saveItems(meetingId, items) {
+      var itemsWithMeetingId = items.map(function (item) {
+        return Object.assign({ meeting_id: meetingId }, item);
+      });
+      return supabaseClient.from('meeting_items').insert(itemsWithMeetingId);
+    }
 
     form.addEventListener('submit', function (e) {
       e.preventDefault();
@@ -273,69 +349,170 @@
         });
       }
 
-      var submitBtn = form.querySelector('button[type="submit"]');
+      var meetingFields = {
+        meeting_date: document.getElementById('m-date').value,
+        meeting_type: document.getElementById('m-type').value.trim(),
+        title: document.getElementById('m-title').value.trim(),
+        summary: document.getElementById('m-summary').value.trim()
+      };
+
       submitBtn.disabled = true;
-      statusEl.textContent = 'Publishing...';
+      statusEl.textContent = editingMeetingId ? 'Saving...' : 'Publishing...';
       statusEl.className = 'district-status';
 
-      supabaseClient
-        .from('meetings')
-        .insert({
-          meeting_date: document.getElementById('m-date').value,
-          meeting_type: document.getElementById('m-type').value.trim(),
-          title: document.getElementById('m-title').value.trim(),
-          summary: document.getElementById('m-summary').value.trim(),
-          created_by: currentUserId
-        })
-        .select()
-        .single()
-        .then(function (res) {
-          if (res.error) {
-            statusEl.textContent = 'Could not save meeting: ' + res.error.message;
-            statusEl.className = 'district-status error';
-            submitBtn.disabled = false;
-            return;
-          }
-          var meetingId = res.data.id;
-          var itemsWithMeetingId = items.map(function (item) {
-            return Object.assign({ meeting_id: meetingId }, item);
+      if (editingMeetingId) {
+        var meetingId = editingMeetingId;
+        supabaseClient
+          .from('meetings')
+          .update(meetingFields)
+          .eq('id', meetingId)
+          .then(function (res) {
+            if (res.error) {
+              statusEl.textContent = 'Could not save meeting: ' + res.error.message;
+              statusEl.className = 'district-status error';
+              submitBtn.disabled = false;
+              return;
+            }
+            supabaseClient
+              .from('meeting_items')
+              .delete()
+              .eq('meeting_id', meetingId)
+              .then(function (delRes) {
+                if (delRes.error) {
+                  statusEl.textContent = 'Meeting saved, but could not replace agenda items: ' + delRes.error.message;
+                  statusEl.className = 'district-status error';
+                  submitBtn.disabled = false;
+                  return;
+                }
+                saveItems(meetingId, items).then(function (itemsRes) {
+                  submitBtn.disabled = false;
+                  if (itemsRes.error) {
+                    statusEl.textContent = 'Meeting saved, but agenda items failed: ' + itemsRes.error.message;
+                    statusEl.className = 'district-status error';
+                    return;
+                  }
+                  statusEl.textContent = 'Meeting updated. Use the buttons below to (re-)send subscriber emails.';
+                  statusEl.className = 'district-status success';
+                  resetToCreateMode();
+                  loadMeetingsAdmin();
+                });
+              });
           });
-          supabaseClient
-            .from('meeting_items')
-            .insert(itemsWithMeetingId)
-            .then(function (itemsRes) {
+      } else {
+        supabaseClient
+          .from('meetings')
+          .insert(Object.assign({ created_by: currentUserId }, meetingFields))
+          .select()
+          .single()
+          .then(function (res) {
+            if (res.error) {
+              statusEl.textContent = 'Could not save meeting: ' + res.error.message;
+              statusEl.className = 'district-status error';
+              submitBtn.disabled = false;
+              return;
+            }
+            saveItems(res.data.id, items).then(function (itemsRes) {
               submitBtn.disabled = false;
               if (itemsRes.error) {
                 statusEl.textContent = 'Meeting saved, but agenda items failed: ' + itemsRes.error.message;
                 statusEl.className = 'district-status error';
                 return;
               }
-              statusEl.textContent = 'Meeting published.';
+              statusEl.textContent = 'Meeting published. Use the buttons below to email subscribers.';
               statusEl.className = 'district-status success';
-              form.reset();
-              itemsContainer.innerHTML = '';
-              itemsContainer.appendChild(createItemRow());
+              resetToCreateMode();
               loadMeetingsAdmin();
             });
-        });
+          });
+      }
     });
 
     listEl.addEventListener('click', function (e) {
-      var btn = e.target.closest('button[data-action="delete-meeting"]');
-      if (!btn) return;
+      var editBtn = e.target.closest('button[data-action="edit-meeting"]');
+      if (editBtn) {
+        var editId = editBtn.getAttribute('data-id');
+        supabaseClient
+          .from('meetings')
+          .select('*, meeting_items(*)')
+          .eq('id', editId)
+          .single()
+          .then(function (res) {
+            if (res.error || !res.data) {
+              window.alert('Could not load meeting for editing.');
+              return;
+            }
+            enterEditMode(res.data);
+          });
+        return;
+      }
+
+      var sendBtn = e.target.closest('button[data-action="send-agenda"], button[data-action="send-recap"]');
+      if (sendBtn) {
+        var kind = sendBtn.getAttribute('data-action') === 'send-agenda' ? 'agenda' : 'recap';
+        var meetingId = sendBtn.getAttribute('data-id');
+        var alreadySent = sendBtn.textContent.indexOf('Re-send') === 0;
+        var confirmMsg = alreadySent
+          ? 'This meeting already had a ' + kind + ' email sent. Send it again to every current subscriber?'
+          : 'Email every subscriber the ' + kind + ' for this meeting now?';
+        if (!window.confirm(confirmMsg)) return;
+
+        sendBtn.disabled = true;
+        var originalText = sendBtn.textContent;
+        sendBtn.textContent = 'Sending...';
+
+        supabaseClient.auth.getSession().then(function (sessionRes) {
+          var session = sessionRes.data && sessionRes.data.session;
+          if (!session) {
+            sendBtn.disabled = false;
+            sendBtn.textContent = originalText;
+            window.alert('Your session has expired. Log out and log back in, then try again.');
+            return;
+          }
+          fetch('/api/notify-subscribers', {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+              Authorization: 'Bearer ' + session.access_token
+            },
+            body: JSON.stringify({ meeting_id: meetingId, kind: kind })
+          })
+            .then(function (r) { return r.json().then(function (data) { return { ok: r.ok, data: data }; }); })
+            .then(function (result) {
+              sendBtn.disabled = false;
+              if (!result.ok) {
+                sendBtn.textContent = originalText;
+                window.alert('Could not send: ' + (result.data.error || 'unknown error'));
+                return;
+              }
+              window.alert('Sent to ' + result.data.sent + ' subscriber' + (result.data.sent === 1 ? '' : 's') + '.');
+              loadMeetingsAdmin();
+            })
+            .catch(function () {
+              sendBtn.disabled = false;
+              sendBtn.textContent = originalText;
+              window.alert('Could not reach the server.');
+            });
+        });
+        return;
+      }
+
+      var deleteBtn = e.target.closest('button[data-action="delete-meeting"]');
+      if (!deleteBtn) return;
       if (!window.confirm('Delete this meeting and all of its agenda items?')) return;
-      btn.disabled = true;
+      var deleteId = deleteBtn.getAttribute('data-id');
+      deleteBtn.disabled = true;
       supabaseClient
         .from('meetings')
         .delete()
-        .eq('id', btn.getAttribute('data-id'))
+        .eq('id', deleteId)
         .then(function (res) {
           if (res.error) {
             statusEl.textContent = 'Delete failed: ' + res.error.message;
             statusEl.className = 'district-status error';
-            btn.disabled = false;
+            deleteBtn.disabled = false;
             return;
           }
+          if (editingMeetingId === deleteId) resetToCreateMode();
           loadMeetingsAdmin();
         });
     });
