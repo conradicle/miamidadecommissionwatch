@@ -44,6 +44,19 @@
       <button class="nav-toggle" aria-expanded="false" aria-controls="site-nav">Menu</button>
     </div>
   </div>
+  <div class="header-newsletter">
+    <div class="wrap">
+      <form class="newsletter-form" id="newsletter-form" aria-label="Subscribe for meeting emails">
+        <label for="newsletter-email" class="newsletter-label">Get agendas &amp; recaps in your inbox</label>
+        <div class="newsletter-input-row">
+          <input type="email" id="newsletter-email" class="newsletter-input" placeholder="you@email.com" required aria-label="Email address">
+          <button type="submit" class="btn btn-primary btn-small">Subscribe</button>
+        </div>
+      </form>
+      <p class="newsletter-status" id="newsletter-status" role="status" aria-live="polite"></p>
+    </div>
+  </div>
+
   <nav class="site-nav" id="site-nav" aria-label="Primary">
     <a href="index.html">Home</a>
     <a href="meetings.html">Meetings</a>
@@ -202,6 +215,7 @@
 
 <div id="google_translate_element"></div>
 <script src="js/main.js"></script>
+<script src="js/newsletter.js"></script>
 <script src="js/translate.js"></script>
 <script src="https://translate.google.com/translate_a/element.js?cb=googleTranslateElementInit"></script>
 </body>

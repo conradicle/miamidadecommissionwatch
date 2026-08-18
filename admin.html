@@ -79,7 +79,7 @@
 
       <div class="admin-panel" id="panel-meetings" style="display:none;">
         <form id="meeting-form" class="admin-form">
-          <h3 style="margin-top:0;">Add a meeting</h3>
+          <h3 style="margin-top:0;" id="meeting-form-heading">Add a meeting</h3>
           <div class="field-row">
             <div class="field"><label for="m-date">Meeting date</label><input type="date" id="m-date" required></div>
             <div class="field"><label for="m-type">Meeting type</label><input type="text" id="m-type" value="Regular Meeting" required></div>
@@ -91,8 +91,9 @@
           <div id="meeting-items"></div>
           <button type="button" class="btn btn-secondary btn-small" id="add-item-btn" style="margin-top:12px;">+ Add agenda item</button>
 
-          <div style="margin-top:20px;">
-            <button type="submit" class="btn btn-primary">Publish meeting</button>
+          <div style="margin-top:20px; display:flex; gap:10px;">
+            <button type="submit" class="btn btn-primary" id="meeting-submit-btn">Publish meeting</button>
+            <button type="button" class="btn btn-secondary" id="meeting-cancel-edit-btn" style="display:none;">Cancel edit</button>
           </div>
           <div id="meeting-form-status" class="district-status" style="margin-top:12px;"></div>
         </form>
