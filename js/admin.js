@@ -198,7 +198,7 @@
     card.className = 'submission-card';
     var items = (meeting.meeting_items || []).slice().sort(function (a, b) { return a.sort_order - b.sort_order; });
     var itemsHtml = items.map(function (item) {
-      return '<li>' + escapeHtml(item.tag_label) + ' &mdash; ' + escapeHtml(item.heading) + '</li>';
+      return '<li>' + escapeHtml(item.tag_label) + ': ' + escapeHtml(item.heading) + '</li>';
     }).join('');
 
     var agendaLabel = meeting.agenda_sent_at
