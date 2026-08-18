@@ -91,5 +91,22 @@ document.addEventListener('DOMContentLoaded', function () {
     document.querySelectorAll(revealSelector).forEach(function (el) {
       io.observe(el);
     });
+
+    // Feed scripts (editorials, news posts, meetings) fetch data and append
+    // cards after this DOMContentLoaded handler already ran, so they'd never
+    // get observed above and would stay stuck at opacity:0. Watch for those
+    // later insertions too.
+    var mo = new MutationObserver(function (mutations) {
+      mutations.forEach(function (mutation) {
+        mutation.addedNodes.forEach(function (node) {
+          if (node.nodeType !== 1) return;
+          if (node.matches(revealSelector)) io.observe(node);
+          node.querySelectorAll(revealSelector).forEach(function (el) {
+            io.observe(el);
+          });
+        });
+      });
+    });
+    mo.observe(document.body, { childList: true, subtree: true });
   }
 });
