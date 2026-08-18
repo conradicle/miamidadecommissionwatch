@@ -70,6 +70,7 @@
         <button type="button" class="admin-tab active" data-tab="editorials">Editorials</button>
         <button type="button" class="admin-tab" data-tab="meetings">Meetings</button>
         <button type="button" class="admin-tab" data-tab="news">News</button>
+        <button type="button" class="admin-tab" data-tab="newsletter">Newsletter</button>
         <button type="button" class="admin-tab" data-tab="staff" id="staff-tab-btn" style="display:none;">Staff</button>
       </div>
 
@@ -111,6 +112,15 @@
         </form>
 
         <div id="news-admin-list"></div>
+      </div>
+
+      <div class="admin-panel" id="panel-newsletter" style="display:none;">
+        <div class="field-row" style="align-items:center; margin-bottom:20px;">
+          <h3 style="margin:0;">Newsletter signups</h3>
+          <button type="button" class="btn btn-secondary btn-small" id="newsletter-stats-refresh" style="flex:0;">Refresh</button>
+        </div>
+        <div id="newsletter-stats-status" class="district-status"></div>
+        <div class="card-grid" id="newsletter-stats-grid"></div>
       </div>
 
       <div class="admin-panel" id="panel-staff" style="display:none;">
