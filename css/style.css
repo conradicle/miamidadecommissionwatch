@@ -185,8 +185,7 @@ section[id] { scroll-margin-top: 140px; }
   position: sticky;
   top: 0;
   z-index: 90;
-  background: rgba(14,74,60,0.94);
-  backdrop-filter: saturate(160%) blur(10px);
+  background: var(--green-900);
   color: #fff;
   border-bottom: 4px solid var(--gold-600);
   transition: box-shadow .4s, background-color .4s;
