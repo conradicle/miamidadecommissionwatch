@@ -52,18 +52,37 @@ document.addEventListener('DOMContentLoaded', function () {
     // buffer needs to clear that comfortably rather than just filter
     // sub-pixel noise.
     var DIRECTION_CHANGE_BUFFER = 24;
+    // The newsletter bar sits in normal flow inside the sticky header, so
+    // collapsing/expanding it changes the header's height while it's
+    // pinned to the top. That shifts every element below it (nav included)
+    // on the very frame the CSS transition starts, which the browser's
+    // scroll-anchoring reports back as a scroll event - read by this same
+    // handler as a direction change, toggling the bar again, which shifts
+    // things again, and so on. The visible result is the nav bar rapidly
+    // bobbing between the two layouts instead of settling. Muting the
+    // handler for the duration of our own transition breaks that loop;
+    // it doesn't affect genuine user scrolling, which keeps generating
+    // events after the mute window ends.
+    var TRANSITION_MS = 400;
+    var mutedUntil = 0;
     window.addEventListener('scroll', function () {
       var currentScrollY = window.scrollY;
       header.classList.toggle('scrolled', currentScrollY > 10);
+
+      if (Date.now() < mutedUntil) {
+        return;
+      }
 
       if (newsletterBar) {
         var isHidden = newsletterBar.classList.contains('header-newsletter-hidden');
         var delta = currentScrollY - lastScrollY;
         if (delta > DIRECTION_CHANGE_BUFFER && currentScrollY > HIDE_THRESHOLD && !isHidden) {
           hideNewsletterBar();
+          mutedUntil = Date.now() + TRANSITION_MS;
           lastScrollY = currentScrollY;
         } else if (delta < -DIRECTION_CHANGE_BUFFER && isHidden) {
           showNewsletterBar();
+          mutedUntil = Date.now() + TRANSITION_MS;
           lastScrollY = currentScrollY;
         } else if (Math.abs(delta) > DIRECTION_CHANGE_BUFFER) {
           lastScrollY = currentScrollY;
