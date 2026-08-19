@@ -1,14 +1,54 @@
 {
+  "redirects": [
+    {
+      "source": "/find-my-district.html",
+      "destination": "/get-involved.html#find-district",
+      "permanent": true
+    },
+    {
+      "source": "/commissioners.html",
+      "destination": "/officials.html",
+      "permanent": true
+    },
+    {
+      "source": "/constitutional-offices.html",
+      "destination": "/officials.html",
+      "permanent": true
+    },
+    {
+      "source": "/editorials.html",
+      "destination": "/news.html",
+      "permanent": true
+    }
+  ],
   "headers": [
     {
       "source": "/(.*)",
       "headers": [
-        { "key": "X-Content-Type-Options", "value": "nosniff" },
-        { "key": "X-Frame-Options", "value": "SAMEORIGIN" },
-        { "key": "Referrer-Policy", "value": "strict-origin-when-cross-origin" },
-        { "key": "Permissions-Policy", "value": "geolocation=(), camera=(), microphone=(), payment=()" },
-        { "key": "Strict-Transport-Security", "value": "max-age=63072000; includeSubDomains" },
-        { "key": "Content-Security-Policy", "value": "default-src 'self'; script-src 'self' 'unsafe-inline' 'unsafe-eval' https://cdn.jsdelivr.net https://unpkg.com https://translate.google.com https://translate.googleapis.com; style-src 'self' 'unsafe-inline' https://unpkg.com; img-src 'self' data: https://*.tile.openstreetmap.org https://unpkg.com https://www.gstatic.com https://translate.googleapis.com https://translate.google.com; font-src 'self' data: https://fonts.gstatic.com; connect-src 'self' https://kpchirnlgjwdqducqdtx.supabase.co https://translate.googleapis.com; frame-src 'self' https://translate.google.com; object-src 'none'; base-uri 'self'; form-action 'self'" }
+        {
+          "key": "X-Content-Type-Options",
+          "value": "nosniff"
+        },
+        {
+          "key": "X-Frame-Options",
+          "value": "SAMEORIGIN"
+        },
+        {
+          "key": "Referrer-Policy",
+          "value": "strict-origin-when-cross-origin"
+        },
+        {
+          "key": "Permissions-Policy",
+          "value": "geolocation=(), camera=(), microphone=(), payment=()"
+        },
+        {
+          "key": "Strict-Transport-Security",
+          "value": "max-age=63072000; includeSubDomains"
+        },
+        {
+          "key": "Content-Security-Policy",
+          "value": "default-src 'self'; script-src 'self' 'unsafe-inline' 'unsafe-eval' https://cdn.jsdelivr.net https://unpkg.com https://translate.google.com https://translate.googleapis.com; style-src 'self' 'unsafe-inline' https://unpkg.com; img-src 'self' data: https://*.tile.openstreetmap.org https://unpkg.com https://www.gstatic.com https://translate.googleapis.com https://translate.google.com; font-src 'self' data: https://fonts.gstatic.com; connect-src 'self' https://kpchirnlgjwdqducqdtx.supabase.co https://translate.googleapis.com; frame-src 'self' https://translate.google.com; object-src 'none'; base-uri 'self'; form-action 'self'"
+        }
       ]
     }
   ]

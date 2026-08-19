@@ -1,4 +1,9 @@
 User-agent: *
 Allow: /
+Disallow: /admin.html
+Disallow: /login.html
+Disallow: /set-password.html
+Disallow: /drafts/
+Disallow: /api/
 
 Sitemap: https://www.miamidadecommissionwatch.com/sitemap.xml
