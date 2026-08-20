@@ -233,9 +233,14 @@ section[id] { scroll-margin-top: 140px; }
 .lang-btn:hover { background: rgba(255,255,255,0.12); color: #fff; }
 .lang-btn.active { background: var(--gold-600); color: var(--ink-900); font-weight: 700; }
 
-/* Trim Google's default translate UI down to just what our buttons need */
-body { top: 0 !important; }
-.goog-te-banner-frame.skiptranslate { display: none !important; }
+/* Trim Google's default translate UI down to just what our buttons need.
+   Google injects the banner iframe under obfuscated class names that change
+   between widget releases, so match the stable `skiptranslate` marker on any
+   iframe it drops into the page rather than one release's class name. */
+body { top: 0 !important; position: static !important; }
+.goog-te-banner-frame.skiptranslate,
+.VIpgJd-ZVi9od-ORHb-OEVmcd,
+iframe.skiptranslate { display: none !important; }
 #google_translate_element {
   position: absolute;
   width: 1px;
