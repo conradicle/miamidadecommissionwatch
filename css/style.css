@@ -524,6 +524,50 @@ iframe.skiptranslate { display: none !important; }
 .meeting-card h3 { margin-bottom: 8px; }
 .meeting-card-summary { color: var(--ink-600); margin-bottom: 14px; }
 
+/* ---------- student editorial cards ----------
+   Rendered by js/editorials-feed.js. Each card starts collapsed: byline stays
+   visible, the body is clamped to two lines. Clicking the card (or the toggle)
+   expands it in place. No JS: the .editorial-body clamp still applies, so the
+   fallback is a tidy excerpt rather than a wall of text. */
+.editorial-card { cursor: pointer; scroll-margin-top: 140px; }
+.editorial-byline {
+  color: var(--ink-600);
+  font-size: 14px;
+  margin-bottom: 12px;
+}
+.editorial-body {
+  color: var(--ink-600);
+  white-space: pre-wrap;
+  margin-bottom: 0;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+.editorial-card.open { cursor: default; }
+.editorial-card.open .editorial-body {
+  display: block;
+  overflow: visible;
+  cursor: auto;
+}
+.editorial-toggle {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  margin-top: 14px;
+  padding: 0;
+  border: 0;
+  background: none;
+  font-family: inherit;
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--green-700);
+  cursor: pointer;
+}
+.editorial-toggle:hover { color: var(--navy-800); }
+.editorial-chevron { transition: transform .25s var(--ease); }
+.editorial-card.open .editorial-chevron { transform: rotate(180deg); }
+
 .item-block {
   border-top: 1px solid var(--line);
   padding-top: 16px;
