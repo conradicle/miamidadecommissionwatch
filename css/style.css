@@ -798,6 +798,42 @@ iframe.skiptranslate { display: none !important; }
   display: block;
 }
 .founder-body p { font-size: 15px; color: var(--ink-600); margin-bottom: 12px; }
+.founder-connect {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin: 0 0 16px;
+}
+.founder-connect .founder-connect-label {
+  font-family: var(--font-mono);
+  font-size: 11px;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: var(--ink-400);
+}
+.founder-link {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  padding: 6px 12px;
+  border: 1px solid var(--line);
+  border-radius: 999px;
+  font-family: var(--font-mono);
+  font-size: 12px;
+  letter-spacing: 0.03em;
+  color: var(--green-700);
+  text-decoration: none;
+  background: var(--paper);
+  transition: background .25s var(--ease), color .25s var(--ease), border-color .25s var(--ease);
+}
+.founder-link svg { width: 15px; height: 15px; fill: currentColor; flex-shrink: 0; }
+.founder-link:hover,
+.founder-link:focus-visible {
+  background: var(--green-700);
+  border-color: var(--green-700);
+  color: #fff;
+  text-decoration: none;
+}
 .disclosure-note {
   margin-top: 14px;
   padding: 12px 14px;
