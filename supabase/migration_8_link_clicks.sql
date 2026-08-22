@@ -71,6 +71,13 @@ as $$
   order by 1, 3 desc;
 $$;
 
--- The function is security definer, so only the service role needs to be
--- able to call it; the API layer is what gates this on staff role.
-revoke execute on function public.link_stats(timestamptz) from anon, authenticated;
+-- The function is security definer, so only the service role needs to be able
+-- to call it; the API layer is what gates this on staff role.
+--
+-- Postgres grants EXECUTE on a new function to PUBLIC automatically, and anon
+-- inherits it through that, so naming anon and authenticated in the revoke is
+-- not enough -- the grant has to be taken from PUBLIC. Doing that also takes
+-- it from service_role, which reaches the function the same way, hence the
+-- explicit grant back: without it, /api/link-stats loses access too.
+revoke execute on function public.link_stats(timestamptz) from public, anon, authenticated;
+grant execute on function public.link_stats(timestamptz) to service_role;
