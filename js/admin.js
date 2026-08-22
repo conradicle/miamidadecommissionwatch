@@ -577,6 +577,112 @@
     loadNewsletterStats();
   }
 
+  // ---------- links page stats ----------
+  // Human-readable names for the data-link ids in links.html. An id that
+  // isn't here (an old card that was renamed, say) still shows, using the
+  // raw id, rather than vanishing from the totals.
+  var LINK_LABELS = {
+    'meetings': 'Latest meeting recap',
+    'find-district': 'Find your commissioner',
+    'public-comment': 'How to speak at public comment',
+    'elections': '2026 elections guide',
+    'submit-editorial': 'Submit a student editorial',
+    'editorials': 'Read student editorials',
+    'join': 'Join Commission Watch',
+    'officials': 'Elected officials directory',
+    'about': 'About us',
+    'contact': 'Contact us',
+    'county-agendas': 'Official county agendas',
+    'instagram': 'Instagram handle',
+    'full-site': 'Back to the full site'
+  };
+
+  function renderBarRow(label, count, max) {
+    var row = document.createElement('div');
+    row.className = 'stat-bar-row';
+    var pct = max > 0 ? Math.round((count / max) * 100) : 0;
+    row.innerHTML =
+      '<div class="sb-label">' + escapeHtml(label) + '</div>' +
+      '<div class="sb-track"><div class="sb-fill" style="width:' + pct + '%;"></div></div>' +
+      '<div class="sb-count">' + escapeHtml(String(count)) + '</div>';
+    return row;
+  }
+
+  function renderBarList(containerId, rows, emptyText) {
+    var el = document.getElementById(containerId);
+    el.innerHTML = '';
+    if (!rows.length) {
+      var empty = document.createElement('p');
+      empty.className = 'stat-empty';
+      empty.textContent = emptyText;
+      el.appendChild(empty);
+      return;
+    }
+    var max = rows.reduce(function (m, r) { return Math.max(m, r.count); }, 0);
+    rows.forEach(function (r) {
+      el.appendChild(renderBarRow(r.label, r.count, max));
+    });
+  }
+
+  function loadLinkStats() {
+    var statusEl = document.getElementById('link-stats-status');
+    var gridEl = document.getElementById('link-stats-grid');
+    var days = document.getElementById('link-stats-range').value;
+    statusEl.textContent = 'Loading...';
+    statusEl.className = 'district-status';
+
+    supabaseClient.auth.getSession().then(function (sessionRes) {
+      var session = sessionRes.data && sessionRes.data.session;
+      if (!session) {
+        statusEl.textContent = 'Your session has expired. Log out and log back in, then try again.';
+        statusEl.className = 'district-status error';
+        return;
+      }
+      fetch('/api/link-stats?days=' + encodeURIComponent(days), {
+        headers: { Authorization: 'Bearer ' + session.access_token }
+      })
+        .then(function (r) { return r.json().then(function (data) { return { ok: r.ok, data: data }; }); })
+        .then(function (result) {
+          if (!result.ok) {
+            statusEl.textContent = 'Could not load link stats: ' + (result.data.error || 'unknown error');
+            statusEl.className = 'district-status error';
+            return;
+          }
+          statusEl.textContent = '';
+
+          var views = result.data.views || 0;
+          var totalClicks = result.data.totalClicks || 0;
+          // Taps per open, not per person -- see the note in the panel.
+          var perView = views > 0 ? (totalClicks / views).toFixed(2) : '--';
+
+          gridEl.innerHTML = '';
+          gridEl.appendChild(renderStatCard(views, 'Page opens'));
+          gridEl.appendChild(renderStatCard(totalClicks, 'Links tapped'));
+          gridEl.appendChild(renderStatCard(perView, 'Taps per open'));
+
+          var clicks = (result.data.clicks || []).map(function (row) {
+            return { label: LINK_LABELS[row.link] || row.link, count: row.count };
+          });
+          renderBarList('link-stats-clicks', clicks, 'No taps recorded in this window yet.');
+
+          var sources = (result.data.sources || []).map(function (row) {
+            return { label: row.source === 'direct' ? 'Direct / no tag' : row.source, count: row.count };
+          });
+          renderBarList('link-stats-sources', sources, 'No page opens recorded in this window yet.');
+        })
+        .catch(function () {
+          statusEl.textContent = 'Could not reach the server.';
+          statusEl.className = 'district-status error';
+        });
+    });
+  }
+
+  function initLinkStats() {
+    document.getElementById('link-stats-refresh').addEventListener('click', loadLinkStats);
+    document.getElementById('link-stats-range').addEventListener('change', loadLinkStats);
+    loadLinkStats();
+  }
+
   // ---------- staff (owner only) ----------
   function renderStaffRow(row) {
     var isSelf = row.user_id === currentUserId;
@@ -869,6 +975,7 @@
           initEditorials();
           initMeetings();
           initNewsletterStats();
+          initLinkStats();
 
           if (currentRole === 'owner') {
             staffTabBtn.style.display = 'inline-block';
