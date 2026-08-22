@@ -30,6 +30,19 @@
   .field-row { display: flex; gap: 16px; flex-wrap: wrap; }
   .field-row .field { flex: 1; min-width: 180px; }
   .meeting-item-row { border-top: 1px solid var(--line); padding-top: 16px; margin-top: 16px; }
+
+  /* Link-stats bars: label, proportional bar, count. The bar is sized off the
+     busiest row so the shape of the list is readable at a glance. */
+  .stat-bar-row { display: grid; grid-template-columns: minmax(120px, 200px) 1fr auto; gap: 12px; align-items: center; padding: 7px 0; border-bottom: 1px solid var(--line); }
+  .stat-bar-row .sb-label { font-size: 14px; color: var(--ink-900); }
+  .stat-bar-row .sb-track { background: var(--green-100); border-radius: 3px; height: 10px; overflow: hidden; }
+  .stat-bar-row .sb-fill { background: var(--green-700); height: 100%; border-radius: 3px; }
+  .stat-bar-row .sb-count { font-family: var(--font-mono); font-size: 13px; color: var(--ink-600); min-width: 3ch; text-align: right; }
+  .stat-empty { color: var(--ink-400); font-size: 14px; padding: 10px 0; }
+  #link-stats-grid { grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); }
+  .link-stats-controls { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; margin-bottom: 20px; }
+  .link-stats-controls label { font-family: var(--font-mono); font-size: 12px; color: var(--ink-600); }
+  .link-stats-controls select { width: auto; min-width: 150px; }
 </style>
 </head>
 <body>
@@ -70,6 +83,7 @@
         <button type="button" class="admin-tab active" data-tab="editorials">Editorials</button>
         <button type="button" class="admin-tab" data-tab="meetings">Meetings</button>
         <button type="button" class="admin-tab" data-tab="newsletter">Newsletter</button>
+        <button type="button" class="admin-tab" data-tab="links">Links page</button>
         <button type="button" class="admin-tab" data-tab="staff" id="staff-tab-btn" style="display:none;">Staff</button>
       </div>
 
@@ -108,6 +122,33 @@
         </div>
         <div id="newsletter-stats-status" class="district-status"></div>
         <div class="card-grid" id="newsletter-stats-grid"></div>
+      </div>
+
+      <div class="admin-panel" id="panel-links" style="display:none;">
+        <h3 style="margin:0 0 12px;">Instagram links page <span class="mono" style="font-size:13px; color:var(--ink-400);">/links</span></h3>
+        <div class="link-stats-controls">
+          <label for="link-stats-range">Time range</label>
+          <select id="link-stats-range">
+            <option value="7">Last 7 days</option>
+            <option value="30" selected>Last 30 days</option>
+            <option value="365">Last 12 months</option>
+          </select>
+          <button type="button" class="btn btn-secondary btn-small" id="link-stats-refresh">Refresh</button>
+        </div>
+        <div id="link-stats-status" class="district-status"></div>
+        <div class="card-grid" id="link-stats-grid" style="margin-bottom:28px;"></div>
+
+        <h4 style="margin-bottom:10px;">Taps per link</h4>
+        <div id="link-stats-clicks" style="margin-bottom:28px;"></div>
+
+        <h4 style="margin-bottom:10px;">Where views came from</h4>
+        <div id="link-stats-sources"></div>
+
+        <p class="mono" style="font-size:12px; color:var(--ink-400); margin-top:24px; max-width:70ch;">
+          Counts are anonymous events, not people: no cookie, IP, or device id is stored, so one visitor
+          tapping three links shows as three taps and cannot be told apart from three visitors.
+          Add <strong>?src=ig</strong> to the URL in the Instagram bio to separate that traffic from direct visits.
+        </p>
       </div>
 
       <div class="admin-panel" id="panel-staff" style="display:none;">
