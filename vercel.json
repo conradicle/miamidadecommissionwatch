@@ -1,4 +1,10 @@
 {
+  "rewrites": [
+    {
+      "source": "/links",
+      "destination": "/links.html"
+    }
+  ],
   "redirects": [
     {
       "source": "/find-my-district.html",
