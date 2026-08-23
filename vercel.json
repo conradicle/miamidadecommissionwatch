@@ -3,9 +3,22 @@
     {
       "source": "/links",
       "destination": "/links.html"
+    },
+    {
+      "source": "/cities",
+      "destination": "/cities/index.html"
+    },
+    {
+      "source": "/cities/:slug",
+      "destination": "/cities/:slug.html"
     }
   ],
   "redirects": [
+    {
+      "source": "/cities/index",
+      "destination": "/cities/",
+      "permanent": true
+    },
     {
       "source": "/find-my-district.html",
       "destination": "/get-involved.html#find-district",

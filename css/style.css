@@ -1102,3 +1102,48 @@ iframe.skiptranslate { display: none !important; }
 /* ---------- utility ---------- */
 .text-center { text-align: center; }
 .mt-0 { margin-top: 0; }
+
+/* ---------- cities ---------- */
+/* Status badges follow the .outcome idiom above: mono, uppercase, tinted by
+   meaning. 'active' borrows the passed-green, 'team-needed' the deferred-gold
+   (an invitation, not an error), 'forming' the navy of in-progress notices. */
+.city-status {
+  display: inline-block;
+  font-family: var(--font-mono);
+  font-size: 11px;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  padding: 2px 8px;
+  border-radius: 3px;
+  font-weight: 700;
+  margin-bottom: 10px;
+}
+.city-status-active { background: rgba(26,125,100,0.14); color: var(--green-700); }
+.city-status-forming { background: rgba(44,77,122,0.12); color: var(--navy-600); }
+.city-status-needed { background: var(--gold-100); color: var(--gold-700); }
+
+/* City cards reuse .card wholesale; these rules only handle the parts .card
+   doesn't have: keeping link-cards readable and pinning the CTA line to the
+   bottom so a short blurb doesn't leave it floating mid-card. */
+.city-card {
+  display: flex;
+  flex-direction: column;
+}
+.city-card .city-card-cta {
+  margin-top: auto;
+  padding-top: 12px;
+  margin-bottom: 0;
+  font-weight: 600;
+  font-size: 15px;
+}
+a.city-card .city-card-cta { color: var(--green-700); }
+
+.city-section-empty {
+  font-size: 14px;
+  color: var(--ink-400);
+  font-style: italic;
+  margin-bottom: 0;
+}
+/* .city-card is a column flex container, which would stretch the inline-block
+   badge to full card width; pin it to its content size instead. */
+.city-card .city-status { align-self: flex-start; }
