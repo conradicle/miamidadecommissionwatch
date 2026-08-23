@@ -936,6 +936,260 @@
     loadStaff();
   }
 
+  // ---------- cities ----------
+  // Applications come from start-a-city.html; approving one upserts the city
+  // into the public `cities` table as 'forming', which puts it live on
+  // /cities/ (served by the cities/city.html template) with no deploy.
+  // See supabase/migration_13_city_program.sql.
+
+  function citySlugify(name) {
+    return String(name == null ? '' : name)
+      .toLowerCase()
+      .replace(/^(city|town|village) of /, '')
+      .replace(/[^a-z0-9]+/g, '-')
+      .replace(/^-+|-+$/g, '')
+      .slice(0, 50)
+      .replace(/-+$/, '');
+  }
+
+  function renderCityApplication(row) {
+    var card = document.createElement('div');
+    card.className = 'submission-card';
+
+    var actionsHtml = '';
+    if (row.status === 'pending') {
+      actionsHtml =
+        '<button type="button" class="btn btn-primary btn-small" data-action="approve-app" data-id="' + row.id + '">Approve &amp; put city live</button>' +
+        '<button type="button" class="btn btn-danger btn-small" data-action="reject-app" data-id="' + row.id + '">Reject</button>';
+    } else {
+      actionsHtml =
+        '<button type="button" class="btn btn-secondary btn-small" data-action="pending-app" data-id="' + row.id + '">Move back to pending</button>';
+    }
+
+    card.innerHTML =
+      '<div class="submission-meta">' +
+        'Applied ' + escapeHtml(formatDate(row.submitted_at)) +
+        '<span class="submission-status ' + row.status + '">' + escapeHtml(row.status) + '</span>' +
+      '</div>' +
+      '<h3 style="margin-bottom:4px;">' + escapeHtml(row.city_name) + '</h3>' +
+      '<p style="color:var(--ink-600); font-size:14px; margin-bottom:2px;">' + escapeHtml(row.applicant_name) + ', ' + escapeHtml(row.grade) + ' at ' + escapeHtml(row.school) + '</p>' +
+      '<p style="color:var(--ink-400); font-size:13px; margin-bottom:0;">' + escapeHtml(row.school_email) + '</p>' +
+      '<div class="submission-body">' + escapeHtml(row.why) + '</div>' +
+      '<div class="submission-actions">' + actionsHtml + '</div>';
+
+    return card;
+  }
+
+  function loadCityApplications() {
+    var statusEl = document.getElementById('city-apps-status');
+    var listEl = document.getElementById('city-apps-list');
+    listEl.innerHTML = '';
+
+    supabaseClient
+      .from('city_applications')
+      .select('*')
+      .order('submitted_at', { ascending: false })
+      .then(function (res) {
+        if (res.error) {
+          statusEl.textContent = 'Could not load applications: ' + res.error.message +
+            ' (has supabase/migration_13_city_program.sql been run?)';
+          statusEl.className = 'district-status error';
+          return;
+        }
+        if (!res.data || res.data.length === 0) {
+          listEl.innerHTML = '<div class="notice">No applications yet. Students apply from /start-a-city.html.</div>';
+          return;
+        }
+        res.data.forEach(function (row) {
+          listEl.appendChild(renderCityApplication(row));
+        });
+      });
+  }
+
+  function renderCityAdmin(row) {
+    var card = document.createElement('div');
+    card.className = 'submission-card';
+
+    card.innerHTML =
+      '<div class="submission-meta">' +
+        '<a href="/cities/' + encodeURIComponent(row.slug) + '" target="_blank" rel="noopener" class="mono" style="font-size:13px;">/cities/' + escapeHtml(row.slug) + ' &#8599;</a>' +
+        '<span class="submission-status ' + (row.listed ? 'approved' : 'rejected') + '">' + (row.listed ? 'listed' : 'hidden') + '</span>' +
+      '</div>' +
+      '<div class="field"><label>Name</label><input type="text" class="city-name-input" value="' + escapeHtml(row.name) + '"></div>' +
+      '<div class="field"><label>Blurb (shown on the hub card)</label><textarea class="city-blurb-input" rows="2">' + escapeHtml(row.blurb || '') + '</textarea></div>' +
+      '<div class="field-row">' +
+        '<div class="field"><label>Status</label>' +
+          '<select class="city-status-input">' +
+            '<option value="team-needed"' + (row.status === 'team-needed' ? ' selected' : '') + '>Student team needed</option>' +
+            '<option value="forming"' + (row.status === 'forming' ? ' selected' : '') + '>Team forming</option>' +
+            '<option value="active"' + (row.status === 'active' ? ' selected' : '') + '>Active coverage</option>' +
+          '</select>' +
+        '</div>' +
+        '<div class="field"><label style="display:flex; align-items:center; gap:8px;">' +
+          '<input type="checkbox" class="city-listed-input"' + (row.listed ? ' checked' : '') + ' style="width:auto;"> Listed on /cities/' +
+        '</label></div>' +
+      '</div>' +
+      '<div class="submission-actions">' +
+        '<button type="button" class="btn btn-primary btn-small" data-action="save-city" data-slug="' + escapeHtml(row.slug) + '">Save</button>' +
+      '</div>';
+
+    return card;
+  }
+
+  function loadCitiesAdmin() {
+    var statusEl = document.getElementById('cities-admin-status');
+    var listEl = document.getElementById('cities-admin-list');
+    listEl.innerHTML = '';
+
+    supabaseClient
+      .from('cities')
+      .select('*')
+      .order('name', { ascending: true })
+      .then(function (res) {
+        if (res.error) {
+          statusEl.textContent = 'Could not load cities: ' + res.error.message +
+            ' (has supabase/migration_13_city_program.sql been run?)';
+          statusEl.className = 'district-status error';
+          return;
+        }
+        if (!res.data || res.data.length === 0) {
+          listEl.innerHTML = '<div class="notice">No cities in the database yet.</div>';
+          return;
+        }
+        res.data.forEach(function (row) {
+          listEl.appendChild(renderCityAdmin(row));
+        });
+      });
+  }
+
+  // Ensures a city row exists for an approved application and is at least
+  // 'forming'. Never downgrades: approving a second team member's application
+  // for an already-active city must not knock it back to forming.
+  function activateCity(slug, cityName, done) {
+    supabaseClient
+      .from('cities')
+      .select('slug, status')
+      .eq('slug', slug)
+      .maybeSingle()
+      .then(function (res) {
+        if (res.error) { done(res.error); return; }
+        if (res.data) {
+          var updates = { listed: true, updated_at: new Date().toISOString() };
+          if (res.data.status === 'team-needed') updates.status = 'forming';
+          supabaseClient.from('cities').update(updates).eq('slug', slug)
+            .then(function (r) { done(r.error); });
+          return;
+        }
+        supabaseClient.from('cities').insert({
+          slug: slug,
+          name: cityName,
+          blurb: 'Coverage of the ' + cityName + ' government, run by students in ' + cityName + '.',
+          status: 'forming'
+        }).then(function (r) { done(r.error); });
+      });
+  }
+
+  function initCities() {
+    var appsList = document.getElementById('city-apps-list');
+    var appsStatus = document.getElementById('city-apps-status');
+    var citiesList = document.getElementById('cities-admin-list');
+    var citiesStatus = document.getElementById('cities-admin-status');
+
+    appsList.addEventListener('click', function (e) {
+      var btn = e.target.closest('button[data-action]');
+      if (!btn) return;
+      var id = btn.getAttribute('data-id');
+      var action = btn.getAttribute('data-action');
+      btn.disabled = true;
+
+      function setAppStatus(newStatus) {
+        supabaseClient
+          .from('city_applications')
+          .update({ status: newStatus, reviewed_at: new Date().toISOString(), reviewed_by: currentUserId })
+          .eq('id', id)
+          .then(function (res) {
+            if (res.error) {
+              appsStatus.textContent = 'Update failed: ' + res.error.message;
+              appsStatus.className = 'district-status error';
+              btn.disabled = false;
+              return;
+            }
+            appsStatus.textContent = '';
+            loadCityApplications();
+            loadCitiesAdmin();
+          });
+      }
+
+      if (action === 'approve-app') {
+        var card = btn.closest('.submission-card');
+        var cityName = card.querySelector('h3').textContent;
+        var slug = window.prompt(
+          'Approve "' + cityName + '"?\n\nConfirm the URL slug for this city (letters, numbers, hyphens). It becomes /cities/<slug> and should not change later:',
+          citySlugify(cityName)
+        );
+        if (slug === null) { btn.disabled = false; return; }
+        slug = slug.trim().toLowerCase();
+        if (!/^[a-z0-9-]{1,50}$/.test(slug)) {
+          appsStatus.textContent = 'That slug isn\'t valid: use only lowercase letters, numbers, and hyphens.';
+          appsStatus.className = 'district-status error';
+          btn.disabled = false;
+          return;
+        }
+        activateCity(slug, cityName, function (err) {
+          if (err) {
+            appsStatus.textContent = 'Could not activate the city: ' + err.message;
+            appsStatus.className = 'district-status error';
+            btn.disabled = false;
+            return;
+          }
+          setAppStatus('approved');
+        });
+      } else if (action === 'reject-app') {
+        setAppStatus('rejected');
+      } else if (action === 'pending-app') {
+        setAppStatus('pending');
+      }
+    });
+
+    citiesList.addEventListener('click', function (e) {
+      var btn = e.target.closest('button[data-action="save-city"]');
+      if (!btn) return;
+      var slug = btn.getAttribute('data-slug');
+      var card = btn.closest('.submission-card');
+      var updates = {
+        name: card.querySelector('.city-name-input').value.trim(),
+        blurb: card.querySelector('.city-blurb-input').value.trim(),
+        status: card.querySelector('.city-status-input').value,
+        listed: card.querySelector('.city-listed-input').checked,
+        updated_at: new Date().toISOString()
+      };
+      if (!updates.name) {
+        citiesStatus.textContent = 'A city needs a name.';
+        citiesStatus.className = 'district-status error';
+        return;
+      }
+      btn.disabled = true;
+      supabaseClient
+        .from('cities')
+        .update(updates)
+        .eq('slug', slug)
+        .then(function (res) {
+          btn.disabled = false;
+          if (res.error) {
+            citiesStatus.textContent = 'Save failed: ' + res.error.message;
+            citiesStatus.className = 'district-status error';
+            return;
+          }
+          citiesStatus.textContent = 'Saved.';
+          citiesStatus.className = 'district-status success';
+          loadCitiesAdmin();
+        });
+    });
+
+    loadCityApplications();
+    loadCitiesAdmin();
+  }
+
   // ---------- bootstrap ----------
   document.addEventListener('DOMContentLoaded', function () {
     var statusEl = document.getElementById('admin-status');
@@ -976,6 +1230,7 @@
           initMeetings();
           initNewsletterStats();
           initLinkStats();
+          initCities();
 
           if (currentRole === 'owner') {
             staffTabBtn.style.display = 'inline-block';

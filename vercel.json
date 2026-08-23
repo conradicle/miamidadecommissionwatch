@@ -9,8 +9,12 @@
       "destination": "/cities/index.html"
     },
     {
+      "source": "/cities/miami-beach",
+      "destination": "/cities/miami-beach.html"
+    },
+    {
       "source": "/cities/:slug",
-      "destination": "/cities/:slug.html"
+      "destination": "/cities/city.html"
     }
   ],
   "redirects": [

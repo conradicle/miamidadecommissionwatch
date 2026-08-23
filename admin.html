@@ -84,6 +84,7 @@
         <button type="button" class="admin-tab" data-tab="meetings">Meetings</button>
         <button type="button" class="admin-tab" data-tab="newsletter">Newsletter</button>
         <button type="button" class="admin-tab" data-tab="links">Links page</button>
+        <button type="button" class="admin-tab" data-tab="cities">Cities</button>
         <button type="button" class="admin-tab" data-tab="staff" id="staff-tab-btn" style="display:none;">Staff</button>
       </div>
 
@@ -122,6 +123,18 @@
         </div>
         <div id="newsletter-stats-status" class="district-status"></div>
         <div class="card-grid" id="newsletter-stats-grid"></div>
+      </div>
+
+      <div class="admin-panel" id="panel-cities" style="display:none;">
+        <h3 style="margin:0 0 4px;">City applications</h3>
+        <p style="font-size:14px; color:var(--ink-600); margin:0 0 16px;">Students apply from <span class="mono">/start-a-city.html</span>. Approving an application puts the city live on <span class="mono">/cities/</span> as &ldquo;Team forming&rdquo; &mdash; no deploy needed. Follow up with the applicant by email before or right after approving.</p>
+        <div id="city-apps-status" class="district-status"></div>
+        <div id="city-apps-list"></div>
+
+        <h3 style="margin:32px 0 4px;">Cities</h3>
+        <p style="font-size:14px; color:var(--ink-600); margin:0 0 16px;">Every listed city appears on the public hub. Government details, sources, and public team info are JSON columns on the <span class="mono">cities</span> table (Supabase &rarr; Table Editor) for now &mdash; remember: public team names are &ldquo;First L.&rdquo; only, and contact must be a project alias.</p>
+        <div id="cities-admin-status" class="district-status"></div>
+        <div id="cities-admin-list"></div>
       </div>
 
       <div class="admin-panel" id="panel-links" style="display:none;">

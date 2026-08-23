@@ -20,13 +20,14 @@
 <link rel="icon" type="image/png" sizes="32x32" href="/assets/img/favicon-32x32.png">
 <link rel="icon" type="image/png" sizes="16x16" href="/assets/img/favicon-16x16.png">
 <link rel="apple-touch-icon" sizes="180x180" href="/assets/img/apple-touch-icon.png">
-<!-- City pages are thin static shells: this file carries the SEO head, the
-     hero, and empty section containers; js/city-page.js fills the sections
-     from the registry entry matching <body data-city-slug>. To add a city,
-     copy this file, update the head + hero + data-city-slug, and add the city
-     to js/cities-data.js (full steps in that file's header comment).
-     Root-absolute paths throughout: relative ones would resolve against
-     /cities/ and break. -->
+<!-- Dedicated static city page: carries this city's SEO head and hero;
+     js/city-page.js fills the sections below from the Supabase `cities` row
+     matching <body data-city-slug> (fallback: js/cities-data.js), so staff
+     edits in the admin dashboard go live here with no deploy. Most cities
+     don't need a file like this -- cities/city.html serves them via the
+     /cities/:slug rewrite; promote a city to its own static page (steps in
+     js/cities-data.js) when it deserves dedicated SEO. Root-absolute paths
+     throughout: relative ones would resolve against /cities/ and break. -->
 <link rel="stylesheet" href="/css/style.css?v=20260823">
 </head>
 <body data-city-slug="miami-beach">
@@ -86,7 +87,7 @@
       <p class="lede">Student-led coverage of Miami Beach's city government &mdash; what the City Commission is deciding, and why it matters to the people who live there. Part of Miami-Dade Commission Watch.</p>
       <!-- Static so the no-team disclosure never depends on JS; js/city-page.js
            replaces it with the richer registry-driven version. -->
-      <div class="notice" id="city-status-notice" style="margin-top:20px;"><p style="margin:0;"><strong>Miami Beach does not have a student Commission Watch team yet.</strong> <a href="/contact.html">Interested in starting one? Get in touch.</a></p></div>
+      <div class="notice" id="city-status-notice" style="margin-top:20px;"><p style="margin:0;"><strong>Miami Beach does not have a student Commission Watch team yet.</strong> <a href="/start-a-city.html">Interested in starting one? Apply here.</a></p></div>
     </div>
   </section>
 
@@ -189,11 +190,13 @@
 </footer>
 
 <div id="google_translate_element"></div>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.112.3" integrity="sha384-l8ah+VgaWtk1mvOe9VC+OirC6qHFF4yH7l7mKRidV9MSti3E9F463bMp6ZVN4kuC" crossorigin="anonymous"></script>
+<script src="/js/supabase-client.js"></script>
 <script src="/js/main.js?v=20260820"></script>
 <script src="/js/newsletter.js?v=20260820"></script>
-<script src="/js/cities-data.js?v=20260823"></script>
+<script src="/js/cities-data.js?v=20260823b"></script>
 <script src="/js/public-byline.js?v=20260822"></script>
-<script src="/js/city-page.js?v=20260823"></script>
+<script src="/js/city-page.js?v=20260823b"></script>
 <script src="/js/translate.js?v=20260820"></script>
 <script src="https://translate.google.com/translate_a/element.js?cb=googleTranslateElementInit"></script>
 </body>

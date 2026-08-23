@@ -1,22 +1,28 @@
-// Registry of municipal Commission Watch coverage areas.
+// Fallback registry of municipal Commission Watch coverage areas.
 //
-// Miami-Dade Commission Watch covers county government at the site root; this
-// file is the single source of truth for the /cities/ section, where student
-// teams can cover an individual municipality's government. The cities hub
-// (js/cities-hub.js) and every city page (js/city-page.js) render from this
-// registry, so adding or updating a city here updates everything that shows it.
+// Since supabase/migration_13_city_program.sql, the live source of truth for
+// the /cities/ section is the `cities` table in Supabase: students apply from
+// start-a-city.html and staff approve cities from the admin dashboard, with
+// no code change. The hub (js/cities-hub.js) and city pages (js/city-page.js)
+// read the database first and fall back to this file only when that read
+// fails (Supabase down, script blocked), so /cities/ never renders empty.
 //
 // Plain global, matching the rest of js/ (no build step, no modules).
 //
-// ---------- How to add a city ----------
-// 1. Add an entry to MDCW_CITIES below. Start with status 'team-needed' and
-//    hasPage false; that alone puts the city's card on /cities/.
-// 2. When the city is ready for its own page, copy cities/miami-beach.html to
-//    cities/<slug>.html, update the <title>, meta description, canonical URL,
-//    hero copy, and the data-city-slug attribute on <body>, then set hasPage
-//    to true here. The clean URL /cities/<slug> already works: vercel.json
-//    rewrites any /cities/:slug to /cities/:slug.html.
-// 3. Add the new URL to sitemap.xml.
+// ---------- How a city gets added now ----------
+// 1. Normal path: a student applies at start-a-city.html; staff hit Approve
+//    in the admin dashboard's Cities tab. That inserts/updates the city's
+//    row and it appears on /cities/ immediately, served at /cities/<slug>
+//    by the shared template cities/city.html (vercel.json rewrites any
+//    unclaimed /cities/:slug there).
+// 2. Optional, for a mature city: give it a dedicated static page for
+//    better SEO. Copy cities/miami-beach.html to cities/<slug>.html, update
+//    the <title>, meta description, canonical URL, hero copy, and the
+//    data-city-slug attribute on <body>, add a rewrite for the slug ABOVE
+//    the generic /cities/:slug rule in vercel.json, and add the URL to
+//    sitemap.xml. Content still comes from the database.
+// 3. Keep this fallback roughly in sync with the table when convenient; it
+//    only shows when the database is unreachable, so "roughly" is fine.
 //
 // ---------- Editorial rules for this file ----------
 // * Never invent anything. No made-up student teams, officials, meeting
@@ -144,4 +150,68 @@ function mdcwFindCity(slug) {
     if (MDCW_CITIES[i].slug === slug) return MDCW_CITIES[i];
   }
   return null;
+}
+
+// Maps a row from the Supabase `cities` table onto the object shape the
+// renderers (and this fallback registry) use, so the rest of the code never
+// cares which source a city came from. Cities served from the database always
+// have a page: the shared template cities/city.html renders any approved slug.
+function mdcwCityFromRow(row) {
+  return {
+    slug: row.slug,
+    name: row.name,
+    blurb: row.blurb || '',
+    status: row.status || 'team-needed',
+    hasPage: true,
+    government: row.government || null,
+    officialWebsite: row.official_website || null,
+    sources: row.sources || [],
+    team: row.team_public || null
+  };
+}
+
+// Fetches the listed cities (or one city by slug) from Supabase, falling back
+// to the static registry above whenever the database isn't reachable. Calls
+// back with (cities: array) or (city: object|null) respectively -- always
+// asynchronously, so callers have one code path.
+function mdcwLoadCities(callback) {
+  if (typeof supabaseClient === 'undefined') {
+    setTimeout(function () { callback(MDCW_CITIES); }, 0);
+    return;
+  }
+  supabaseClient
+    .from('cities')
+    .select('slug, name, blurb, status, government, official_website, sources, team_public')
+    .eq('listed', true)
+    .order('name', { ascending: true })
+    .then(function (res) {
+      if (res.error || !res.data) {
+        callback(MDCW_CITIES);
+        return;
+      }
+      callback(res.data.map(mdcwCityFromRow));
+    })
+    .catch(function () { callback(MDCW_CITIES); });
+}
+
+function mdcwLoadCity(slug, callback) {
+  if (typeof supabaseClient === 'undefined') {
+    setTimeout(function () { callback(mdcwFindCity(slug)); }, 0);
+    return;
+  }
+  supabaseClient
+    .from('cities')
+    .select('slug, name, blurb, status, government, official_website, sources, team_public')
+    .eq('listed', true)
+    .eq('slug', slug)
+    .then(function (res) {
+      if (res.error || !res.data) {
+        callback(mdcwFindCity(slug));
+        return;
+      }
+      // A database that answered but has no such city is authoritative: no
+      // registry fallback, so unlisting a city in the admin really hides it.
+      callback(res.data.length > 0 ? mdcwCityFromRow(res.data[0]) : null);
+    })
+    .catch(function () { callback(mdcwFindCity(slug)); });
 }
