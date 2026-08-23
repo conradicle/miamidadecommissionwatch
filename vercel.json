@@ -3,6 +3,14 @@
     {
       "source": "/links",
       "destination": "/links.html"
+    },
+    {
+      "source": "/cities",
+      "destination": "/cities/index.html"
+    },
+    {
+      "source": "/cities/:slug",
+      "destination": "/cities/:slug.html"
     }
   ],
   "redirects": [
