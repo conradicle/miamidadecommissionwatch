@@ -1144,3 +1144,6 @@ a.city-card .city-card-cta { color: var(--green-700); }
   font-style: italic;
   margin-bottom: 0;
 }
+/* .city-card is a column flex container, which would stretch the inline-block
+   badge to full card width; pin it to its content size instead. */
+.city-card .city-status { align-self: flex-start; }
