@@ -1,0 +1,215 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>City coverage - Miami-Dade Commission Watch</title>
+<meta name="description" content="Student-led coverage of a Miami-Dade municipal government, part of Miami-Dade Commission Watch.">
+<meta property="og:type" content="website">
+<meta property="og:url" content="https://www.miamidadecommissionwatch.com/cities/">
+<link rel="canonical" href="https://www.miamidadecommissionwatch.com/cities/">
+<meta property="og:title" content="City coverage - Miami-Dade Commission Watch">
+<meta property="og:description" content="Student-led coverage of a Miami-Dade municipal government, part of Miami-Dade Commission Watch.">
+<meta property="og:image" content="https://www.miamidadecommissionwatch.com/assets/img/og-image.png">
+<meta property="og:image:width" content="1200">
+<meta property="og:image:height" content="630">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:title" content="City coverage - Miami-Dade Commission Watch">
+<meta name="twitter:description" content="Student-led coverage of a Miami-Dade municipal government, part of Miami-Dade Commission Watch.">
+<meta name="twitter:image" content="https://www.miamidadecommissionwatch.com/assets/img/og-image.png">
+<link rel="icon" type="image/png" sizes="32x32" href="/assets/img/favicon-32x32.png">
+<link rel="icon" type="image/png" sizes="16x16" href="/assets/img/favicon-16x16.png">
+<link rel="apple-touch-icon" sizes="180x180" href="/assets/img/apple-touch-icon.png">
+<!-- Shared template for every city that doesn't have a bespoke page of its
+     own. vercel.json rewrites /cities/<slug> here, js/cities.js reads the slug
+     off the URL, loads that city from the database, and fills in the title,
+     description, canonical, hero, and every section below. Adding a city is a
+     row in the Cities tab of the staff dashboard -- no file, no deploy.
+
+     A city that grows into a page worth hand-writing gets its own
+     cities/<slug>.html (the filesystem wins over the rewrite); such a stub
+     sets data-city-shell="static" so this file's metadata pass leaves the
+     hand-written head and hero alone. Root-absolute paths throughout:
+     relative ones would resolve against /cities/ and break. -->
+<link rel="stylesheet" href="/css/style.css?v=20260823">
+</head>
+<body>
+<a class="skip-link" href="#main">Skip to content</a>
+
+<header class="site-header">
+  <div class="wrap">
+    <a class="wordmark" href="/">
+      <span class="mark">Miami-Dade <span class="accent">Commission</span> Watch</span>
+      <span class="tagline">BCC · Plain Language</span>
+    </a>
+    <div class="header-actions">
+      <div class="lang-toggle" role="group" aria-label="Language">
+        <button type="button" class="lang-btn" data-lang="en">EN</button>
+        <button type="button" class="lang-btn" data-lang="es">ES</button>
+        <button type="button" class="lang-btn" data-lang="ht">HT</button>
+      </div>
+      <div class="social-icons">
+        <a class="social-icon" href="https://instagram.com/miamidadecommissionwatch" target="_blank" rel="noopener" aria-label="Miami-Dade Commission Watch on Instagram">
+          <svg viewBox="0 0 24 24" aria-hidden="true"><rect x="2" y="2" width="20" height="20" rx="6" fill="none" stroke="currentColor" stroke-width="2"/><circle cx="12" cy="12" r="5" fill="none" stroke="currentColor" stroke-width="2"/><circle cx="17.5" cy="6.5" r="1.3" fill="currentColor"/></svg>
+        </a>
+      </div>
+      <button class="nav-toggle" aria-expanded="false" aria-controls="site-nav">Menu</button>
+    </div>
+  </div>
+  <div class="header-newsletter">
+    <div class="wrap">
+      <form class="newsletter-form" id="newsletter-form" aria-label="Subscribe for meeting emails">
+        <label for="newsletter-email" class="newsletter-label">Get agendas &amp; recaps in your inbox</label>
+        <div class="newsletter-input-row">
+          <input type="email" id="newsletter-email" class="newsletter-input" placeholder="you@email.com" required aria-label="Email address">
+          <button type="submit" class="btn btn-primary btn-small">Subscribe</button>
+        </div>
+      </form>
+      <p class="newsletter-status" id="newsletter-status" role="status" aria-live="polite"></p>
+    </div>
+  </div>
+
+  <nav class="site-nav" id="site-nav" aria-label="Primary">
+    <a href="/">Home</a>
+    <a href="/meetings.html">Meetings</a>
+    <a href="/officials.html">Officials</a>
+    <a href="/elections.html">Elections</a>
+    <a href="/cities/" aria-current="page">Cities</a>
+    <a href="/get-involved.html">Get Involved</a>
+    <a href="/news.html">Student Editorials</a>
+    <a href="/about.html">About</a>
+  </nav>
+</header>
+
+<main id="main">
+
+  <section class="hero" style="padding-bottom:24px;">
+    <div class="wrap">
+      <span class="eyebrow"><a href="/cities/" style="color:inherit;">Cities</a> &middot; <span id="city-eyebrow-name">Municipal coverage</span></span>
+      <h1 style="max-width:20ch;" id="city-heading">Municipal coverage</h1>
+      <p class="lede" id="city-lede">Student-led coverage of a Miami-Dade city government &mdash; what the governing body is deciding, and why it matters to the people who live there. Part of Miami-Dade Commission Watch.</p>
+      <div class="notice" id="city-status-notice" style="margin-top:20px;"><p style="margin:0;">Loading this city&rsquo;s coverage&hellip; <a href="/cities/">See all cities</a> if this doesn&rsquo;t finish.</p></div>
+    </div>
+  </section>
+
+  <section class="section" id="meetings">
+    <div class="wrap">
+      <div class="section-head">
+        <span class="eyebrow">Coverage</span>
+        <h2>Meetings</h2>
+      </div>
+      <p class="mt-0" style="max-width:60ch; color:var(--ink-600);">Plain-language summaries of what the governing body discussed and decided, with a link to the record for every claim.</p>
+      <noscript><p>Meeting summaries need JavaScript to display. For official information, see the city&rsquo;s own website.</p></noscript>
+      <div id="city-meetings"></div>
+    </div>
+  </section>
+
+  <section class="section section-alt" id="officials">
+    <div class="wrap">
+      <div class="section-head">
+        <span class="eyebrow">Who holds office</span>
+        <h2>Officials</h2>
+      </div>
+      <p class="mt-0" style="max-width:60ch; color:var(--ink-600);">Who serves in the city government and how to reach them. Contact details are the officials&rsquo; public offices, taken from the city&rsquo;s own directory.</p>
+      <!-- noscript sits outside the grid: a child element there would shift the
+           cards' nth-child scroll-reveal stagger in css/style.css. -->
+      <noscript><p>The officials directory needs JavaScript to display.</p></noscript>
+      <div class="roster-grid" id="city-officials"></div>
+    </div>
+  </section>
+
+  <section class="section">
+    <div class="wrap">
+      <div class="section-head">
+        <span class="eyebrow">The basics</span>
+        <h2>Government at a glance</h2>
+      </div>
+      <p class="mt-0" style="max-width:60ch; color:var(--ink-600);">Every municipality is structured differently &mdash; a city government doesn&rsquo;t work like the county&rsquo;s.</p>
+      <div id="city-government"></div>
+    </div>
+  </section>
+
+  <section class="section section-alt">
+    <div class="wrap">
+      <div class="section-head">
+        <span class="eyebrow">Primary sources</span>
+        <h2>Official sources</h2>
+      </div>
+      <p class="mt-0" style="max-width:60ch; color:var(--ink-600);">The links below go to the government&rsquo;s own records. Anything published on this page by a student team is independent student journalism &mdash; clearly ours, never official government information.</p>
+      <div id="city-sources"></div>
+    </div>
+  </section>
+
+  <section class="section">
+    <div class="wrap">
+      <div class="section-head">
+        <span class="eyebrow">Who runs this page</span>
+        <h2>The student team</h2>
+      </div>
+      <div id="city-team"></div>
+    </div>
+  </section>
+
+</main>
+
+<footer class="site-footer">
+  <div class="wrap">
+    <div class="footer-grid">
+      <div>
+        <h4>Site</h4>
+        <ul>
+          <li><a href="/meetings.html">Meeting Tracker</a></li>
+          <li><a href="/officials.html">Officials</a></li>
+          <li><a href="/elections.html">Elections</a></li>
+          <li><a href="/cities/">Cities</a></li>
+          <li><a href="/get-involved.html">Get Involved</a></li>
+          <li><a href="/news.html">Student Editorials</a></li>
+        </ul>
+      </div>
+      <div>
+        <h4>About</h4>
+        <ul>
+          <li><a href="/about.html">Mission &amp; founders</a></li>
+          <li><a href="/faq.html">FAQ &amp; glossary</a></li>
+          <li><a href="/contact.html">Contact / report an error</a></li>
+          <li><a href="/privacy.html">Privacy &amp; Terms</a></li>
+          <li><a href="/accessibility.html">Accessibility</a></li>
+        </ul>
+      </div>
+      <div>
+        <h4>Official sources</h4>
+        <ul>
+          <li><a href="https://www.miamidade.gov/commission/" target="_blank" rel="noopener">Board of County Commissioners</a></li>
+          <li><a href="https://www.miamidade.gov/govaction/home.asp" target="_blank" rel="noopener">Legislation &amp; agendas</a></li>
+        </ul>
+      </div>
+      <div>
+        <h4>Connect</h4>
+        <div class="social-icons" style="margin-bottom:12px;">
+          <a class="social-icon" href="https://instagram.com/miamidadecommissionwatch" target="_blank" rel="noopener" aria-label="Miami-Dade Commission Watch on Instagram">
+            <svg viewBox="0 0 24 24" aria-hidden="true"><rect x="2" y="2" width="20" height="20" rx="6" fill="none" stroke="currentColor" stroke-width="2"/><circle cx="12" cy="12" r="5" fill="none" stroke="currentColor" stroke-width="2"/><circle cx="17.5" cy="6.5" r="1.3" fill="currentColor"/></svg>
+          </a>
+        </div>
+        <ul>
+          <li><a href="https://instagram.com/miamidadecommissionwatch" target="_blank" rel="noopener">@miamidadecommissionwatch</a></li>
+        </ul>
+      </div>
+    </div>
+    <div class="footer-disclaimer">
+      <p style="margin-bottom:8px;">Miami-Dade Commission Watch is an independent, student-run project founded by Conrad Gelber and Daniel Llobet. It is <strong>not affiliated with, operated by, or endorsed by Miami-Dade County government or any municipal government</strong>. All information is sourced from public records; see the official government sites linked above for authoritative agendas and legislation.</p>
+      <p style="margin-bottom:8px;">Spanish and Haitian Creole translations on this site are generated automatically by Google Translate and are not reviewed by us. They may contain errors, especially for legal and government terms. When in doubt, refer to the English original.</p>
+      <p style="margin-bottom:0;">&copy; 2026 Miami-Dade Commission Watch. <a href="/login.html" style="color:inherit; opacity:0.7; text-decoration:underline;">Staff</a></p>
+    </div>
+  </div>
+</footer>
+
+<div id="google_translate_element"></div>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.112.3" integrity="sha384-l8ah+VgaWtk1mvOe9VC+OirC6qHFF4yH7l7mKRidV9MSti3E9F463bMp6ZVN4kuC" crossorigin="anonymous"></script>
+<script src="/js/supabase-client.js"></script>
+<script src="/js/main.js?v=20260820"></script>
+<script src="/js/newsletter.js?v=20260820"></script>
+<script src="/js/cities.js?v=20260823"></script>
+<script src="/js/translate.js?v=20260820"></script>
+<script src="https://translate.google.com/translate_a/element.js?cb=googleTranslateElementInit"></script>
+</body>
+</html>

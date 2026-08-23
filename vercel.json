@@ -10,12 +10,17 @@
     },
     {
       "source": "/cities/:slug",
-      "destination": "/cities/:slug.html"
+      "destination": "/cities/city.html"
     }
   ],
   "redirects": [
     {
       "source": "/cities/index",
+      "destination": "/cities/",
+      "permanent": true
+    },
+    {
+      "source": "/cities/city",
       "destination": "/cities/",
       "permanent": true
     },
