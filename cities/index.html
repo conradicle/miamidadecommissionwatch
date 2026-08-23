@@ -92,7 +92,11 @@
         <span class="eyebrow">Coverage areas</span>
         <h2>Cities</h2>
       </div>
-      <p class="mt-0" style="max-width:60ch; color:var(--ink-600);">County government stays on the main site; the cards here are for municipal governments. Every city is still waiting on a student team &mdash; that could be you.</p>
+      <!-- Filled in by js/cities.js from the live team statuses: hardcoding
+           "every city is still waiting" here would go stale the day a team
+           launches. The text below is the no-team wording, which is correct
+           until one does. -->
+      <p class="mt-0" id="cities-intro" style="max-width:60ch; color:var(--ink-600);">County government stays on the main site; the cards here are for municipal governments. Every city is still waiting on a student team &mdash; that could be you.</p>
       <!-- noscript sits outside the grid: a child element there would shift the
            cards' nth-child scroll-reveal stagger in css/style.css. -->
       <noscript><p>The city list needs JavaScript to display. City pages are at /cities/&lt;city-name&gt;, for example <a href="/cities/miami-beach">/cities/miami-beach</a>.</p></noscript>
@@ -194,10 +198,11 @@
 </footer>
 
 <div id="google_translate_element"></div>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.112.3" integrity="sha384-l8ah+VgaWtk1mvOe9VC+OirC6qHFF4yH7l7mKRidV9MSti3E9F463bMp6ZVN4kuC" crossorigin="anonymous"></script>
+<script src="/js/supabase-client.js"></script>
 <script src="/js/main.js?v=20260820"></script>
 <script src="/js/newsletter.js?v=20260820"></script>
-<script src="/js/cities-data.js?v=20260823"></script>
-<script src="/js/cities-hub.js?v=20260823"></script>
+<script src="/js/cities.js?v=20260823"></script>
 <script src="/js/translate.js?v=20260820"></script>
 <script src="https://translate.google.com/translate_a/element.js?cb=googleTranslateElementInit"></script>
 </body>

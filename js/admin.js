@@ -960,8 +960,14 @@
         .then(function (roleRes) {
           var role = roleRes.data && roleRes.data.role;
           var status = roleRes.data && roleRes.data.status;
-          if (roleRes.error || !roleRes.data || status !== 'active' || (role !== 'admin' && role !== 'owner')) {
-            statusEl.textContent = 'Your account isn’t authorized as staff, or your access has been revoked. Contact the site owner if this is unexpected.';
+          // Three roles reach this page now. Staff get everything; a city
+          // editor gets the Cities tab and nothing else, because every other
+          // tool here is county-wide and their RLS policies would deny it
+          // anyway (see supabase/migration_13_cities.sql).
+          var isStaff = role === 'owner' || role === 'admin';
+          var isCityEditor = role === 'city_editor';
+          if (roleRes.error || !roleRes.data || status !== 'active' || (!isStaff && !isCityEditor)) {
+            statusEl.textContent = 'Your account isn’t authorized as staff or a city team member, or your access has been revoked. Contact the site owner if this is unexpected.';
             statusEl.className = 'district-status error';
             logoutBtn.style.display = 'inline-flex';
             return;
@@ -972,10 +978,24 @@
           tabsEl.style.display = 'flex';
 
           initTabs();
-          initEditorials();
-          initMeetings();
-          initNewsletterStats();
-          initLinkStats();
+
+          if (isStaff) {
+            initEditorials();
+            initMeetings();
+            initNewsletterStats();
+            initLinkStats();
+          } else {
+            document.querySelectorAll('.admin-tab').forEach(function (tab) {
+              if (tab.getAttribute('data-tab') !== 'cities') tab.style.display = 'none';
+            });
+            // Editorials is the panel that starts visible, so hand over to
+            // Cities through the tab's own handler rather than duplicating it.
+            document.querySelector('.admin-tab[data-tab="cities"]').click();
+          }
+
+          if (typeof window.initAdminCities === 'function') {
+            window.initAdminCities({ userId: currentUserId, role: role, isStaff: isStaff });
+          }
 
           if (currentRole === 'owner') {
             staffTabBtn.style.display = 'inline-block';
