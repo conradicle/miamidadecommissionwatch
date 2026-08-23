@@ -1,0 +1,38 @@
+-- Miami-Dade Commission Watch: stop anon reading grade, school, and school email
+-- Run this once in the Supabase SQL editor. Applied to production 2026-08-22.
+--
+-- Everyone who submits an editorial is a Miami-Dade high school student, i.e. a
+-- minor. js/editorials-feed.js now renders a byline of first name + last
+-- initial only (see js/public-byline.js) and no longer even requests grade or
+-- school. That fixes the page. It does not fix the API.
+--
+-- The select policy in schema.sql is row-level only:
+--
+--   create policy "Public can read approved editorials"
+--     on public.editorial_submissions for select
+--     using (status = 'approved');
+--
+-- Column visibility in Postgres is a GRANT, not a policy, and the default grant
+-- covers every column. The anon key is public by design (it ships in
+-- js/supabase-client.js), so until this migration anyone could run:
+--
+--   curl "$SUPABASE_URL/rest/v1/editorial_submissions\
+-- ?status=eq.approved&select=name,grade,school,school_email" -H "apikey: <anon>"
+--
+-- and get every approved student's full name, grade, school, and school email.
+-- The school email embeds the student's dadeschools ID number, so this served
+-- more about a named minor than the page ever displayed. Confirmed 2026-08-22
+-- against production, both before and after.
+--
+-- Drops nothing, deletes nothing, and changes no policy or row: it only narrows
+-- which columns anon may read. `authenticated` is deliberately untouched, so
+-- admin.html keeps showing full name, grade, school, and school email for
+-- review. INSERT is untouched, so the submission form still works unchanged.
+--
+-- status is granted because the feed filters on it (?status=eq.approved) and
+-- submitted_at because the feed orders by it. name is still readable by anon
+-- because publicByline() shortens it in the browser; closing that too would
+-- mean serving the feed from a view that exposes only the reduced byline.
+
+revoke select on public.editorial_submissions from anon;
+grant select (name, title, body, submitted_at, status) on public.editorial_submissions to anon;
