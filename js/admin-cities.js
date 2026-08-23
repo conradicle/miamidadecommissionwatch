@@ -16,6 +16,16 @@
   var ctx = null;      // { userId, role, isStaff }
   var cities = [];
   var currentCity = null;
+  var counts = {};     // per-section tallies, drives Overview and the nav badges
+
+  // Order of the sub-tabs, and what Overview says about each.
+  var SECTIONS = [
+    { key: 'meetings',   label: 'Meetings',   empty: 'No meeting summaries yet.' },
+    { key: 'officials',  label: 'Officials',  empty: 'Nobody recorded yet.' },
+    { key: 'government', label: 'Government', empty: 'Structure not recorded yet.' },
+    { key: 'sources',    label: 'Sources',    empty: 'No official sources yet.' },
+    { key: 'team',       label: 'Team',       empty: 'Nobody on the team yet.' }
+  ];
 
   // ---------- helpers ----------
   function escapeHtml(str) {
@@ -60,6 +70,112 @@
     return html;
   }
 
+  function tally(rows) {
+    var out = { total: rows.length, published: 0, pending: 0, draft: 0 };
+    rows.forEach(function (row) {
+      if (out[row.review_status] !== undefined) out[row.review_status]++;
+    });
+    return out;
+  }
+
+  // ---------- sub-tabs ----------
+  // One section on screen at a time. The whole panel used to be seven stacked
+  // forms, which meant a team member landed on a wall of inputs with nothing
+  // telling them where to start.
+  function showView(name) {
+    document.querySelectorAll('#city-nav .city-nav-btn').forEach(function (btn) {
+      btn.classList.toggle('active', btn.getAttribute('data-view') === name);
+    });
+    document.querySelectorAll('#city-workspace .city-view').forEach(function (view) {
+      view.style.display = view.id === 'view-' + name ? '' : 'none';
+    });
+  }
+
+  function initSubTabs() {
+    el('city-nav').addEventListener('click', function (e) {
+      var btn = e.target.closest('.city-nav-btn');
+      if (btn) showView(btn.getAttribute('data-view'));
+    });
+
+    // Add-forms start collapsed so the first thing you see in a section is
+    // what's already there, not an empty form.
+    document.querySelectorAll('.city-add-toggle').forEach(function (btn) {
+      btn.addEventListener('click', function () {
+        var block = el(btn.getAttribute('data-form'));
+        var opening = block.style.display === 'none';
+        block.style.display = opening ? '' : 'none';
+        btn.textContent = opening ? 'Cancel' : btn.getAttribute('data-label');
+        btn.classList.toggle('btn-primary', !opening);
+        btn.classList.toggle('btn-secondary', opening);
+      });
+    });
+  }
+
+  function closeAddForm(formBlockId) {
+    var block = el(formBlockId);
+    if (block) block.style.display = 'none';
+    var btn = document.querySelector('.city-add-toggle[data-form="' + formBlockId + '"]');
+    if (btn) {
+      btn.textContent = btn.getAttribute('data-label');
+      btn.classList.add('btn-primary');
+      btn.classList.remove('btn-secondary');
+    }
+  }
+
+  // ---------- overview ----------
+  function refreshOverview() {
+    var grid = el('overview-grid');
+    if (!grid || !currentCity) return;
+
+    var waiting = 0;
+    SECTIONS.forEach(function (section) {
+      var c = counts[section.key];
+      if (c && c.pending) waiting += c.pending;
+    });
+
+    el('overview-intro').textContent = ctx.isStaff
+      ? (waiting === 0
+          ? 'Nothing is waiting for review. Pick a section to add or edit something.'
+          : waiting + ' item' + (waiting === 1 ? '' : 's') + ' waiting for your review.')
+      : 'Everything you add starts as a draft. Submit it for review when it’s ready, and an editor publishes it.';
+
+    grid.innerHTML = SECTIONS.map(function (section) {
+      var c = counts[section.key] || { total: 0, published: 0, pending: 0, draft: 0 };
+      var dot = c.pending ? 'ov-dot-wait' : (c.published || (section.key === 'team' && c.total) ? 'ov-dot-ok' : 'ov-dot-none');
+
+      var body;
+      if (c.total === 0) {
+        body = '<div class="ov-empty">' + escapeHtml(section.empty) + '</div>';
+      } else if (section.key === 'team') {
+        body = '<div class="ov-line">' + c.total + ' member' + (c.total === 1 ? '' : 's') + '</div>';
+      } else {
+        body = '';
+        if (c.published) body += '<div class="ov-line">' + c.published + ' published</div>';
+        if (c.pending) body += '<div class="ov-line">' + c.pending + ' in review</div>';
+        if (c.draft) body += '<div class="ov-line">' + c.draft + ' draft' + (c.draft === 1 ? '' : 's') + '</div>';
+      }
+
+      return '<div class="overview-card">' +
+        '<h4><span class="ov-dot ' + dot + '"></span>' + escapeHtml(section.label) + '</h4>' +
+        body +
+        '<div class="ov-go"><button type="button" class="btn btn-small btn-secondary ov-open" data-view="' +
+        section.key + '">Open ' + escapeHtml(section.label.toLowerCase()) + '</button></div>' +
+        '</div>';
+    }).join('');
+
+    SECTIONS.forEach(function (section) {
+      var badge = document.querySelector('#city-nav .count[data-count="' + section.key + '"]');
+      if (!badge) return;
+      var c = counts[section.key];
+      badge.textContent = c && c.total ? c.total : '';
+    });
+  }
+
+  function setCount(key, value) {
+    counts[key] = value;
+    refreshOverview();
+  }
+
   // ---------- cities list + picker ----------
   // Which cities this account may work on. Staff get all of them.
   //
@@ -90,6 +206,7 @@
     return allowedCityIds().then(function (ids) {
       if (ids && ids.length === 0) {
         el('city-picker').innerHTML = '';
+        el('city-bar').style.display = 'none';
         el('city-workspace').style.display = 'none';
         setStatus('cities-status', 'You have not been added to a city team yet. Ask an editor to add you.', '');
         return;
@@ -111,6 +228,7 @@
 
         if (cities.length === 0) {
           picker.innerHTML = '';
+          el('city-bar').style.display = 'none';
           el('city-workspace').style.display = 'none';
           setStatus('cities-status', ctx.isStaff
             ? 'No cities yet. Add one below to get started.'
@@ -127,8 +245,9 @@
         picker.value = wanted;
         if (!picker.value) picker.value = cities[0].slug;
 
+        el('city-bar').style.display = 'flex';
         // A team with exactly one city has nothing to pick between.
-        el('city-picker-row').style.display = cities.length > 1 ? 'flex' : 'none';
+        el('city-picker-row').style.display = cities.length > 1 ? '' : 'none';
         selectCity(picker.value);
       });
     });
@@ -142,7 +261,20 @@
     setStatus('cities-status', '');
 
     el('city-public-link').href = '/cities/' + currentCity.slug;
-    el('city-public-link').textContent = '/cities/' + currentCity.slug;
+
+    var STATUS_LABEL = {
+      'active': 'Active coverage', 'forming': 'Team forming', 'team-needed': 'Student team needed'
+    };
+    el('city-bar-status').innerHTML =
+      '<span class="submission-status ' + (currentCity.status === 'active' ? 'approved' : 'pending') + '">' +
+      escapeHtml(STATUS_LABEL[currentCity.status] || currentCity.status) + '</span>' +
+      (currentCity.is_published ? '' : ' <span class="submission-status rejected">not public</span>');
+
+    // Switching cities starts from Overview with a clean slate, so counts from
+    // the previous city can't linger while the new ones load.
+    counts = {};
+    showView('overview');
+    refreshOverview();
 
     if (ctx.isStaff) {
       el('cs-name').value = currentCity.name || '';
@@ -207,10 +339,21 @@
             setStatus('add-city-status', 'Could not add: ' + res.error.message, 'error');
             return;
           }
-          setStatus('add-city-status', 'Added. It stays unpublished until you tick “Live on the public site”.', 'success');
+          setStatus('add-city-status', 'Added. It stays unpublished until you tick “Live on the public site” in Settings.', 'success');
           el('add-city-form').reset();
+          el('add-city-block').style.display = 'none';
           loadCities(slug);
         });
+    });
+
+    el('new-city-btn').addEventListener('click', function () {
+      el('add-city-block').style.display = '';
+      el('nc-name').focus();
+    });
+    el('cancel-city-btn').addEventListener('click', function () {
+      el('add-city-block').style.display = 'none';
+      el('add-city-form').reset();
+      setStatus('add-city-status', '');
     });
 
     // Slug suggestion, so nobody has to think about URL formatting.
@@ -243,8 +386,10 @@
           listEl.innerHTML = '<p class="stat-empty">Could not load the team: ' + escapeHtml(res.error.message) + '</p>';
           return;
         }
+        setCount('team', { total: res.data ? res.data.length : 0, published: 0, pending: 0, draft: 0 });
         if (!res.data || res.data.length === 0) {
-          listEl.innerHTML = '<p class="stat-empty">Nobody is on this team yet. Add an email above.</p>';
+          listEl.innerHTML = '<p class="stat-empty">Nobody is on this team yet.' +
+            (ctx.isStaff ? ' Add an email above.' : '') + '</p>';
           return;
         }
         listEl.innerHTML = res.data.map(function (row) {
@@ -341,8 +486,9 @@
           return;
         }
         var rows = res.data || [];
+        setCount('government', tally(rows));
         if (rows.length === 0) {
-          listEl.innerHTML = '<p class="stat-empty">Nothing recorded yet. Fill in the form above and save a draft.</p>';
+          listEl.innerHTML = '<p class="stat-empty">Nothing recorded yet. Use “Add a version” above.</p>';
           return;
         }
         listEl.innerHTML = rows.map(function (row) {
@@ -381,6 +527,7 @@
           }
           setStatus('city-gov-status', 'Draft saved.', 'success');
           el('city-gov-form').reset();
+          closeAddForm('city-gov-form-block');
           loadGovernment();
         });
     });
@@ -433,6 +580,7 @@
           return;
         }
         var rows = res.data || [];
+        setCount(table === 'city_sources' ? 'sources' : 'officials', tally(rows));
         listEl.innerHTML = rows.length
           ? rows.map(config.render).join('')
           : '<p class="stat-empty">' + config.empty + '</p>';
@@ -461,6 +609,7 @@
           }
           setStatus('city-source-status', 'Draft saved.', 'success');
           el('city-source-form').reset();
+          closeAddForm('city-source-form-block');
           loadList('city_sources');
         });
     });
@@ -491,6 +640,7 @@
           }
           setStatus('city-official-status', 'Draft saved.', 'success');
           el('city-official-form').reset();
+          closeAddForm('city-official-form-block');
           loadList('city_officials');
         });
     });
@@ -566,6 +716,7 @@
           return;
         }
         var rows = res.data || [];
+        setCount('meetings', tally(rows));
         if (rows.length === 0) {
           listEl.innerHTML = '<p class="stat-empty">No meeting summaries yet.</p>';
           return;
@@ -639,6 +790,7 @@
       setStatus('city-meeting-status', 'Draft saved.', 'success');
       el('city-meeting-form').reset();
       el('city-meeting-items').innerHTML = '';
+      closeAddForm('city-meeting-form-block');
       loadMeetings();
     }
   }
@@ -725,11 +877,11 @@
   window.initAdminCities = function (context) {
     ctx = context;
 
-    // Publishing, city settings, and adding a city are staff-only; a city
-    // editor gets the same panel with those blocks absent.
-    document.querySelectorAll('.staff-only').forEach(function (node) {
-      node.style.display = ctx.isStaff ? '' : 'none';
-    });
+    // Publishing, city settings, and adding a city are staff-only. Done with a
+    // class on the panel rather than by writing display on each .staff-only
+    // node: several of them (the Settings view, the add-city form) start
+    // hidden on purpose, and clearing their inline style would reveal them.
+    el('panel-cities').classList.toggle('is-staff', ctx.isStaff);
     if (!ctx.isStaff) {
       var hint = el('city-editor-hint');
       if (hint) hint.style.display = '';
@@ -738,6 +890,14 @@
     el('city-picker').addEventListener('change', function () {
       selectCity(el('city-picker').value);
     });
+
+    // Overview's "Open <section>" buttons are just sub-tab switches.
+    el('overview-grid').addEventListener('click', function (e) {
+      var btn = e.target.closest('.ov-open');
+      if (btn) showView(btn.getAttribute('data-view'));
+    });
+
+    initSubTabs();
 
     if (ctx.isStaff) initCitySettings();
     initTeam();

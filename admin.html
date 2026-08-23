@@ -18,6 +18,43 @@
   .submission-status.approved { background: rgba(26,125,100,0.14); color: var(--green-700); }
   .submission-status.rejected { background: rgba(179,69,44,0.12); color: var(--red-600); }
   .submission-status.draft { background: var(--green-100); color: var(--ink-600); }
+
+  /* ---------- cities tab ---------- */
+  /* Sub-navigation inside the Cities panel. Deliberately NOT .admin-tab:
+     js/admin.js binds the top-level tab handler to that class and hides
+     .admin-panel, so reusing it here would fight the outer tabs. */
+  /* Staff-only blocks. A class on the panel rather than inline display, so
+     nodes that start hidden for their own reasons (Settings view, add-city
+     form) aren't revealed just because the viewer is staff. */
+  #panel-cities:not(.is-staff) .staff-only { display: none !important; }
+
+  .city-bar { display: flex; justify-content: space-between; align-items: flex-end; gap: 16px; flex-wrap: wrap; padding: 16px 20px; background: var(--paper-raised); border: 1px solid var(--line); border-radius: var(--radius); margin-bottom: 20px; }
+  .city-bar-main { display: flex; align-items: flex-end; gap: 14px; flex-wrap: wrap; }
+  .city-bar-main select { width: auto; min-width: 200px; margin: 0; }
+  .city-bar-label { font-family: var(--font-mono); font-size: 12px; color: var(--ink-600); display: block; margin-bottom: 4px; }
+  .city-bar-actions { display: flex; align-items: center; gap: 14px; }
+  .city-bar-actions a { font-size: 14px; }
+
+  .city-nav { display: flex; gap: 2px; flex-wrap: wrap; border-bottom: 1px solid var(--line); margin-bottom: 22px; }
+  .city-nav-btn { padding: 9px 15px; font-size: 14px; font-weight: 600; background: none; border: none; border-bottom: 2px solid transparent; color: var(--ink-600); cursor: pointer; }
+  .city-nav-btn.active { color: var(--green-700); border-bottom-color: var(--green-700); }
+  .city-nav-btn .count { font-family: var(--font-mono); font-size: 11px; color: var(--ink-400); margin-left: 6px; }
+  .city-nav-btn.active .count { color: var(--green-700); }
+
+  .city-view-head { display: flex; justify-content: space-between; align-items: center; gap: 12px; margin-bottom: 12px; flex-wrap: wrap; }
+  .city-view-head h3 { margin: 0; }
+  .city-view-intro { font-size: 14px; color: var(--ink-600); max-width: 72ch; margin: 0 0 18px; }
+
+  .overview-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(230px, 1fr)); gap: 14px; }
+  .overview-card { background: var(--paper-raised); border: 1px solid var(--line); border-radius: var(--radius); padding: 16px 18px; display: flex; flex-direction: column; }
+  .overview-card h4 { margin: 0 0 10px; font-size: 15px; }
+  .overview-card .ov-line { font-size: 14px; color: var(--ink-600); margin-bottom: 3px; }
+  .overview-card .ov-empty { font-size: 14px; color: var(--ink-400); font-style: italic; margin-bottom: 3px; }
+  .overview-card .ov-go { margin-top: auto; padding-top: 12px; }
+  .ov-dot { display: inline-block; width: 8px; height: 8px; border-radius: 50%; margin-right: 7px; vertical-align: middle; }
+  .ov-dot-ok { background: var(--green-700); }
+  .ov-dot-wait { background: var(--gold-700); }
+  .ov-dot-none { background: var(--ink-400); opacity: .5; }
   .submission-body { white-space: pre-wrap; font-size: 15px; color: var(--ink-900); margin: 14px 0; max-height: 260px; overflow-y: auto; border: 1px solid var(--line); border-radius: var(--radius); padding: 14px; background: var(--paper); }
   .submission-actions { display: flex; gap: 10px; flex-wrap: wrap; }
   .btn-small { padding: 8px 16px; font-size: 14px; }
@@ -155,7 +192,7 @@
 
 
       <div class="admin-panel" id="panel-cities" style="display:none;">
-        <div class="notice" id="city-editor-hint" style="display:none; margin-bottom:24px;">
+        <div class="notice" id="city-editor-hint" style="display:none; margin-bottom:20px;">
           You&rsquo;re editing as a city team member. Everything you save starts as a <strong>draft</strong>; use
           <strong>Submit for review</strong> when it&rsquo;s ready and an editor will publish it. Nothing you enter
           here appears on the public site until they do.
@@ -163,17 +200,24 @@
 
         <div id="cities-status" class="district-status"></div>
 
-        <div class="field-row" id="city-picker-row" style="align-items:flex-end; margin-bottom:24px;">
-          <div class="field" style="flex:0 0 260px;">
-            <label for="city-picker">City</label>
-            <select id="city-picker"></select>
+        <div class="city-bar" id="city-bar" style="display:none;">
+          <div class="city-bar-main">
+            <div id="city-picker-row">
+              <label class="city-bar-label" for="city-picker">Editing</label>
+              <select id="city-picker"></select>
+            </div>
+            <div id="city-bar-status"></div>
+          </div>
+          <div class="city-bar-actions">
+            <a id="city-public-link" href="/cities/" target="_blank" rel="noopener">View public page &#8599;</a>
+            <button type="button" class="btn btn-small btn-secondary staff-only" id="new-city-btn">+ New city</button>
           </div>
         </div>
 
-        <div class="admin-form staff-only" id="add-city-block">
+        <div class="admin-form staff-only" id="add-city-block" style="display:none;">
           <h3 style="margin-top:0;">Add a city</h3>
           <p class="mono" style="font-size:12px; color:var(--ink-400); margin-top:0;">
-            No deploy needed &mdash; a new city is live at /cities/&lt;slug&gt; as soon as you tick it published.
+            No deploy needed &mdash; a new city is live at /cities/&lt;slug&gt; as soon as you tick it published in Settings.
           </p>
           <form id="add-city-form">
             <div class="field-row">
@@ -182,143 +226,171 @@
             </div>
             <div class="field"><label for="nc-blurb">One-line description</label><input type="text" id="nc-blurb" placeholder="Coverage of the City of Coral Gables government, run by students in Coral Gables."></div>
             <button type="submit" class="btn btn-primary">Add city</button>
+            <button type="button" class="btn btn-secondary" id="cancel-city-btn">Cancel</button>
             <div id="add-city-status" class="district-status" style="margin-top:12px;"></div>
           </form>
         </div>
 
         <div id="city-workspace" style="display:none;">
-          <p class="mono" style="font-size:13px; color:var(--ink-400);">
-            Public page: <a id="city-public-link" href="/cities/" target="_blank" rel="noopener">/cities/</a>
-          </p>
+          <nav class="city-nav" id="city-nav" aria-label="City sections">
+            <button type="button" class="city-nav-btn active" data-view="overview">Overview</button>
+            <button type="button" class="city-nav-btn" data-view="meetings">Meetings<span class="count" data-count="meetings"></span></button>
+            <button type="button" class="city-nav-btn" data-view="officials">Officials<span class="count" data-count="officials"></span></button>
+            <button type="button" class="city-nav-btn" data-view="government">Government<span class="count" data-count="government"></span></button>
+            <button type="button" class="city-nav-btn" data-view="sources">Sources<span class="count" data-count="sources"></span></button>
+            <button type="button" class="city-nav-btn" data-view="team">Team<span class="count" data-count="team"></span></button>
+            <button type="button" class="city-nav-btn staff-only" data-view="settings">Settings</button>
+          </nav>
 
-          <form id="city-settings-form" class="admin-form staff-only">
-            <h3 style="margin-top:0;">City settings</h3>
-            <div class="field-row">
-              <div class="field"><label for="cs-name">Name</label><input type="text" id="cs-name" required></div>
-              <div class="field"><label for="cs-slug">URL slug</label><input type="text" id="cs-slug" required></div>
-            </div>
-            <div class="field"><label for="cs-blurb">One-line description (shown on /cities/)</label><input type="text" id="cs-blurb"></div>
-            <div class="field-row">
-              <div class="field"><label for="cs-status">Team status</label>
-                <select id="cs-status">
-                  <option value="team-needed">Student team needed</option>
-                  <option value="forming">Team forming</option>
-                  <option value="active">Active coverage</option>
-                </select>
-              </div>
-              <div class="field"><label for="cs-website">Official city website</label><input type="url" id="cs-website" placeholder="https://"></div>
-              <div class="field" style="flex:0 0 120px;"><label for="cs-order">Sort order</label><input type="number" id="cs-order" value="0"></div>
-            </div>
-            <div class="field">
-              <label style="display:flex; align-items:center; gap:8px; font-weight:600;">
-                <input type="checkbox" id="cs-published" style="width:auto; margin:0;"> Live on the public site
-              </label>
-            </div>
-            <button type="submit" class="btn btn-primary">Save settings</button>
-            <div id="city-settings-status" class="district-status" style="margin-top:12px;"></div>
-          </form>
+          <div class="city-view" id="view-overview">
+            <p class="city-view-intro" id="overview-intro"></p>
+            <div class="overview-grid" id="overview-grid"></div>
+          </div>
 
-          <div class="admin-form">
-            <h3 style="margin-top:0;">Team</h3>
-            <p class="mono" style="font-size:12px; color:var(--ink-400); margin-top:0;">
-              Adding an email invites that person as a city editor for this city only. They can draft
-              everything below and publish none of it. If they already have an account, they&rsquo;re just added
-              to the team.
-            </p>
-            <form id="city-invite-form">
-              <div class="field-row" style="align-items:flex-end;">
-                <div class="field"><label for="city-invite-email">Email</label><input type="email" id="city-invite-email" required></div>
-                <div class="field" style="flex:0;"><button type="submit" class="btn btn-primary">Add to team</button></div>
-              </div>
-              <div id="city-invite-status" class="district-status" style="margin-bottom:12px;"></div>
-            </form>
+          <div class="city-view" id="view-meetings" style="display:none;">
+            <div class="city-view-head">
+              <h3>Meeting summaries</h3>
+              <button type="button" class="btn btn-small btn-primary city-add-toggle" data-form="city-meeting-form-block" data-label="+ Add a meeting">+ Add a meeting</button>
+            </div>
+            <p class="city-view-intro">A plain-language recap of what the governing body discussed and decided, with a source link for every claim.</p>
+            <div class="admin-form" id="city-meeting-form-block" style="display:none;">
+              <form id="city-meeting-form">
+                <div class="field-row">
+                  <div class="field"><label for="cm-date">Meeting date</label><input type="date" id="cm-date" required></div>
+                  <div class="field"><label for="cm-type">Meeting type</label><input type="text" id="cm-type" value="Regular Meeting" required></div>
+                </div>
+                <div class="field"><label for="cm-title">Headline</label><input type="text" id="cm-title" required></div>
+                <div class="field"><label for="cm-summary">Summary</label><textarea id="cm-summary" rows="3" required></textarea></div>
+                <h4 style="margin-top:24px; margin-bottom:0;">Agenda items</h4>
+                <div id="city-meeting-items"></div>
+                <button type="button" class="btn btn-secondary btn-small" id="city-add-item-btn" style="margin-top:12px;">+ Add agenda item</button>
+                <div style="margin-top:20px;"><button type="submit" class="btn btn-primary">Save draft</button></div>
+                <div id="city-meeting-status" class="district-status" style="margin-top:12px;"></div>
+              </form>
+            </div>
+            <div id="city-meetings-list"></div>
+          </div>
+
+          <div class="city-view" id="view-officials" style="display:none;">
+            <div class="city-view-head">
+              <h3>Officials</h3>
+              <button type="button" class="btn btn-small btn-primary city-add-toggle" data-form="city-official-form-block" data-label="+ Add an official">+ Add an official</button>
+            </div>
+            <p class="city-view-intro">Officeholders are public figures, so full names and office contact details belong here. Use the address from the city&rsquo;s own directory, never a personal one.</p>
+            <div class="admin-form" id="city-official-form-block" style="display:none;">
+              <form id="city-official-form">
+                <div class="field-row">
+                  <div class="field"><label for="off-name">Name</label><input type="text" id="off-name" required></div>
+                  <div class="field"><label for="off-seat">Seat</label><input type="text" id="off-seat" placeholder="Commissioner" required></div>
+                </div>
+                <div class="field-row">
+                  <div class="field" style="flex:0 0 160px;"><label for="off-seat-type">Seat type</label>
+                    <select id="off-seat-type">
+                      <option value="district">District</option>
+                      <option value="at-large">At large</option>
+                      <option value="appointed">Appointed</option>
+                    </select>
+                  </div>
+                  <div class="field" style="flex:0 0 120px;"><label for="off-district">District</label><input type="text" id="off-district"></div>
+                  <div class="field"><label for="off-term">Term ends</label><input type="text" id="off-term" placeholder="Nov. 2027"></div>
+                  <div class="field" style="flex:0 0 120px;"><label for="off-order">Sort order</label><input type="number" id="off-order" value="0"></div>
+                </div>
+                <div class="field-row">
+                  <div class="field"><label for="off-email">Office email</label><input type="email" id="off-email"></div>
+                  <div class="field"><label for="off-url">Official profile URL</label><input type="url" id="off-url" placeholder="https://"></div>
+                </div>
+                <button type="submit" class="btn btn-primary">Save draft</button>
+                <div id="city-official-status" class="district-status" style="margin-top:12px;"></div>
+              </form>
+            </div>
+            <div id="city-officials-list"></div>
+          </div>
+
+          <div class="city-view" id="view-government" style="display:none;">
+            <div class="city-view-head">
+              <h3>Government at a glance</h3>
+              <button type="button" class="btn btn-small btn-primary city-add-toggle" data-form="city-gov-form-block" data-label="+ Add a version">+ Add a version</button>
+            </div>
+            <p class="city-view-intro">How this city&rsquo;s government is structured. Only one version is public at a time; publishing a new one retires the old.</p>
+            <div class="admin-form" id="city-gov-form-block" style="display:none;">
+              <form id="city-gov-form">
+                <div class="field"><label for="gov-body">Governing body</label><input type="text" id="gov-body" placeholder="Coral Gables City Commission" required></div>
+                <div class="field"><label for="gov-form-of">Form of government</label><input type="text" id="gov-form-of" placeholder="Commission&ndash;City Manager"></div>
+                <div class="field"><label for="gov-note">One sentence on how it&rsquo;s structured</label><textarea id="gov-note" rows="2" placeholder="Seats, at-large vs. districts, anything that differs from the county."></textarea></div>
+                <button type="submit" class="btn btn-primary">Save draft</button>
+                <div id="city-gov-status" class="district-status" style="margin-top:12px;"></div>
+              </form>
+            </div>
+            <div id="city-gov-list"></div>
+          </div>
+
+          <div class="city-view" id="view-sources" style="display:none;">
+            <div class="city-view-head">
+              <h3>Official sources</h3>
+              <button type="button" class="btn btn-small btn-primary city-add-toggle" data-form="city-source-form-block" data-label="+ Add a source">+ Add a source</button>
+            </div>
+            <p class="city-view-intro">Only add a link you have actually opened and checked.</p>
+            <div class="admin-form" id="city-source-form-block" style="display:none;">
+              <form id="city-source-form">
+                <div class="field-row">
+                  <div class="field"><label for="src-label">Label</label><input type="text" id="src-label" placeholder="City of Coral Gables &mdash; official website" required></div>
+                  <div class="field"><label for="src-url">URL</label><input type="url" id="src-url" placeholder="https://" required></div>
+                  <div class="field" style="flex:0 0 120px;"><label for="src-order">Sort order</label><input type="number" id="src-order" value="0"></div>
+                </div>
+                <button type="submit" class="btn btn-primary">Save draft</button>
+                <div id="city-source-status" class="district-status" style="margin-top:12px;"></div>
+              </form>
+            </div>
+            <div id="city-sources-list"></div>
+          </div>
+
+          <div class="city-view" id="view-team" style="display:none;">
+            <div class="city-view-head">
+              <h3>Team</h3>
+            </div>
+            <p class="city-view-intro">Adding an email invites that person as a city editor for this city only. They can draft everything here and publish none of it. If they already have an account, they&rsquo;re just added to the team.</p>
+            <div class="admin-form staff-only">
+              <form id="city-invite-form">
+                <div class="field-row" style="align-items:flex-end;">
+                  <div class="field"><label for="city-invite-email">Email</label><input type="email" id="city-invite-email" required></div>
+                  <div class="field" style="flex:0;"><button type="submit" class="btn btn-primary">Add to team</button></div>
+                </div>
+                <div id="city-invite-status" class="district-status"></div>
+              </form>
+            </div>
             <div id="city-team-list"></div>
           </div>
 
-          <div class="admin-form">
-            <h3 style="margin-top:0;">Government at a glance</h3>
-            <form id="city-gov-form">
-              <div class="field"><label for="gov-body">Governing body</label><input type="text" id="gov-body" placeholder="Coral Gables City Commission" required></div>
+          <div class="city-view staff-only" id="view-settings" style="display:none;">
+            <div class="city-view-head">
+              <h3>Settings</h3>
+            </div>
+            <p class="city-view-intro">Name, URL, and whether this city is visible on the public site.</p>
+            <form id="city-settings-form" class="admin-form">
               <div class="field-row">
-                <div class="field"><label for="gov-form-of">Form of government</label><input type="text" id="gov-form-of" placeholder="Commission&ndash;City Manager"></div>
+                <div class="field"><label for="cs-name">Name</label><input type="text" id="cs-name" required></div>
+                <div class="field"><label for="cs-slug">URL slug</label><input type="text" id="cs-slug" required></div>
               </div>
-              <div class="field"><label for="gov-note">One sentence on how it&rsquo;s structured</label><textarea id="gov-note" rows="2" placeholder="Seats, at-large vs. districts, anything that differs from the county."></textarea></div>
-              <button type="submit" class="btn btn-secondary">Save draft</button>
-              <div id="city-gov-status" class="district-status" style="margin-top:12px;"></div>
-            </form>
-            <div id="city-gov-list" style="margin-top:20px;"></div>
-          </div>
-
-          <div class="admin-form">
-            <h3 style="margin-top:0;">Officials</h3>
-            <p class="mono" style="font-size:12px; color:var(--ink-400); margin-top:0;">
-              Officeholders are public figures, so full names and office contact details belong here.
-              Use the office address from the city&rsquo;s own directory, never a personal one.
-            </p>
-            <form id="city-official-form">
+              <div class="field"><label for="cs-blurb">One-line description (shown on /cities/)</label><input type="text" id="cs-blurb"></div>
               <div class="field-row">
-                <div class="field"><label for="off-name">Name</label><input type="text" id="off-name" required></div>
-                <div class="field"><label for="off-seat">Seat</label><input type="text" id="off-seat" placeholder="Commissioner" required></div>
-              </div>
-              <div class="field-row">
-                <div class="field" style="flex:0 0 160px;"><label for="off-seat-type">Seat type</label>
-                  <select id="off-seat-type">
-                    <option value="district">District</option>
-                    <option value="at-large">At large</option>
-                    <option value="appointed">Appointed</option>
+                <div class="field"><label for="cs-status">Team status</label>
+                  <select id="cs-status">
+                    <option value="team-needed">Student team needed</option>
+                    <option value="forming">Team forming</option>
+                    <option value="active">Active coverage</option>
                   </select>
                 </div>
-                <div class="field" style="flex:0 0 120px;"><label for="off-district">District</label><input type="text" id="off-district"></div>
-                <div class="field"><label for="off-term">Term ends</label><input type="text" id="off-term" placeholder="Nov. 2027"></div>
-                <div class="field" style="flex:0 0 120px;"><label for="off-order">Sort order</label><input type="number" id="off-order" value="0"></div>
+                <div class="field"><label for="cs-website">Official city website</label><input type="url" id="cs-website" placeholder="https://"></div>
+                <div class="field" style="flex:0 0 120px;"><label for="cs-order">Sort order</label><input type="number" id="cs-order" value="0"></div>
               </div>
-              <div class="field-row">
-                <div class="field"><label for="off-email">Office email</label><input type="email" id="off-email"></div>
-                <div class="field"><label for="off-url">Official profile URL</label><input type="url" id="off-url" placeholder="https://"></div>
+              <div class="field">
+                <label style="display:flex; align-items:center; gap:8px; font-weight:600;">
+                  <input type="checkbox" id="cs-published" style="width:auto; margin:0;"> Live on the public site
+                </label>
               </div>
-              <button type="submit" class="btn btn-secondary">Save draft</button>
-              <div id="city-official-status" class="district-status" style="margin-top:12px;"></div>
+              <button type="submit" class="btn btn-primary">Save settings</button>
+              <div id="city-settings-status" class="district-status" style="margin-top:12px;"></div>
             </form>
-            <div id="city-officials-list" style="margin-top:20px;"></div>
-          </div>
-
-          <div class="admin-form">
-            <h3 style="margin-top:0;">Official sources</h3>
-            <p class="mono" style="font-size:12px; color:var(--ink-400); margin-top:0;">
-              Only add a link you have actually opened and checked.
-            </p>
-            <form id="city-source-form">
-              <div class="field-row">
-                <div class="field"><label for="src-label">Label</label><input type="text" id="src-label" placeholder="City of Coral Gables &mdash; official website" required></div>
-                <div class="field"><label for="src-url">URL</label><input type="url" id="src-url" placeholder="https://" required></div>
-                <div class="field" style="flex:0 0 120px;"><label for="src-order">Sort order</label><input type="number" id="src-order" value="0"></div>
-              </div>
-              <button type="submit" class="btn btn-secondary">Save draft</button>
-              <div id="city-source-status" class="district-status" style="margin-top:12px;"></div>
-            </form>
-            <div id="city-sources-list" style="margin-top:20px;"></div>
-          </div>
-
-          <div class="admin-form">
-            <h3 style="margin-top:0;">Meeting summaries</h3>
-            <form id="city-meeting-form">
-              <div class="field-row">
-                <div class="field"><label for="cm-date">Meeting date</label><input type="date" id="cm-date" required></div>
-                <div class="field"><label for="cm-type">Meeting type</label><input type="text" id="cm-type" value="Regular Meeting" required></div>
-              </div>
-              <div class="field"><label for="cm-title">Headline</label><input type="text" id="cm-title" required></div>
-              <div class="field"><label for="cm-summary">Summary</label><textarea id="cm-summary" rows="3" required></textarea></div>
-
-              <h4 style="margin-top:24px; margin-bottom:0;">Agenda items</h4>
-              <div id="city-meeting-items"></div>
-              <button type="button" class="btn btn-secondary btn-small" id="city-add-item-btn" style="margin-top:12px;">+ Add agenda item</button>
-
-              <div style="margin-top:20px;">
-                <button type="submit" class="btn btn-secondary">Save draft</button>
-              </div>
-              <div id="city-meeting-status" class="district-status" style="margin-top:12px;"></div>
-            </form>
-            <div id="city-meetings-list" style="margin-top:20px;"></div>
           </div>
         </div>
       </div>
