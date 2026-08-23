@@ -15,6 +15,11 @@
   ],
   "redirects": [
     {
+      "source": "/cities/index",
+      "destination": "/cities/",
+      "permanent": true
+    },
+    {
       "source": "/find-my-district.html",
       "destination": "/get-involved.html#find-district",
       "permanent": true

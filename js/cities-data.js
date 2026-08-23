@@ -46,6 +46,13 @@
 // team            null until a real team exists. Otherwise { name, editors,
 //                 contributors, advisor, contact, launched, coverage } --
 //                 fill only the parts that are true; renderers skip the rest.
+//                 Team members are minors: editors/contributors may hold full
+//                 names here, but public pages render them through
+//                 publicByline() as "First L." only (see js/public-byline.js),
+//                 same as editorial bylines. contact must be a project alias
+//                 (e.g. a shared cities@ address), never a student's personal
+//                 or school email -- privacy.html promises those are never
+//                 shown publicly.
 
 var MDCW_CITIES = [
   {
@@ -62,7 +69,7 @@ var MDCW_CITIES = [
     officialWebsite: 'https://www.miamibeachfl.gov/',
     sources: [
       { label: 'City of Miami Beach — official website', url: 'https://www.miamibeachfl.gov/' },
-      { label: 'Miami-Dade County Elections Department', url: 'https://www.votemiamidade.gov/' }
+      { label: 'Miami-Dade Supervisor of Elections', url: 'https://www.votemiamidade.gov/' }
     ],
     team: null
   },

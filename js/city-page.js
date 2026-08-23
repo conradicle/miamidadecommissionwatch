@@ -29,6 +29,18 @@
     return '<span class="city-status ' + meta.className + '">' + escapeHtml(meta.label) + '</span>';
   }
 
+  // Team members are Miami-Dade students, i.e. minors, so the same rule as
+  // editorial bylines applies: public pages show first name + last initial
+  // only, via js/public-byline.js (which every city page must load before this
+  // file). If that script is somehow missing, render no names at all -- a
+  // missing credit is a cosmetic miss, a full surname is a leak.
+  function teamNames(names) {
+    if (typeof window.publicByline !== 'function') return '';
+    return names.map(function (n) { return window.publicByline(n); })
+      .filter(function (n) { return n.length > 0; })
+      .join(', ');
+  }
+
   function fill(id, html) {
     var el = document.getElementById(id);
     if (el) el.innerHTML = html;
@@ -51,7 +63,7 @@
     var city = typeof mdcwFindCity === 'function' ? mdcwFindCity(slug) : null;
     if (!city) return;
 
-    // ---- status banner ----
+    // ---------- status banner ----------
     var noticeHtml;
     if (city.status === 'active') {
       noticeHtml = statusBadge(city.status) +
@@ -68,7 +80,7 @@
     }
     fill('city-status-notice', noticeHtml);
 
-    // ---- coverage sections ----
+    // ---------- coverage sections ----------
     var grid = document.getElementById('city-sections');
     if (grid) {
       SECTIONS.forEach(function (s) {
@@ -84,7 +96,7 @@
       });
     }
 
-    // ---- government at a glance ----
+    // ---------- government at a glance ----------
     if (city.government) {
       var g = city.government;
       var rows = '';
@@ -100,7 +112,7 @@
       dropSection('city-government');
     }
 
-    // ---- official sources ----
+    // ---------- official sources ----------
     if (city.sources && city.sources.length > 0) {
       var items = city.sources.map(function (src) {
         return '<li><a href="' + escapeHtml(src.url) + '" target="_blank" rel="noopener">' +
@@ -111,15 +123,17 @@
       dropSection('city-sources');
     }
 
-    // ---- student team ----
+    // ---------- student team ----------
     var team = city.team;
     if (team) {
       var teamHtml = '';
       if (team.name) teamHtml += '<p><strong>' + escapeHtml(team.name) + '</strong></p>';
       if (team.coverage) teamHtml += '<p>' + escapeHtml(team.coverage) + '</p>';
       var facts = '';
-      if (team.editors && team.editors.length) facts += '<li><strong>Editors:</strong> ' + escapeHtml(team.editors.join(', ')) + '</li>';
-      if (team.contributors && team.contributors.length) facts += '<li><strong>Contributors:</strong> ' + escapeHtml(team.contributors.join(', ')) + '</li>';
+      var editors = team.editors && team.editors.length ? teamNames(team.editors) : '';
+      var contributors = team.contributors && team.contributors.length ? teamNames(team.contributors) : '';
+      if (editors) facts += '<li><strong>Editors:</strong> ' + escapeHtml(editors) + '</li>';
+      if (contributors) facts += '<li><strong>Contributors:</strong> ' + escapeHtml(contributors) + '</li>';
       if (team.advisor) facts += '<li><strong>Advisor:</strong> ' + escapeHtml(team.advisor) + '</li>';
       if (team.launched) facts += '<li><strong>Launched:</strong> ' + escapeHtml(team.launched) + '</li>';
       if (team.contact) facts += '<li><strong>Contact:</strong> <a href="mailto:' + escapeHtml(team.contact) + '">' + escapeHtml(team.contact) + '</a></li>';

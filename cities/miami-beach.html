@@ -4,18 +4,18 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Miami Beach - Miami-Dade Commission Watch</title>
-<meta name="description" content="Student-led coverage of the City of Miami Beach government, part of Miami-Dade Commission Watch. No student team runs this city yet — you could start it.">
+<meta name="description" content="Student-led coverage of the City of Miami Beach government, part of Miami-Dade Commission Watch. No student team runs this city yet &mdash; you could start it.">
 <meta property="og:type" content="website">
 <meta property="og:url" content="https://www.miamidadecommissionwatch.com/cities/miami-beach">
 <link rel="canonical" href="https://www.miamidadecommissionwatch.com/cities/miami-beach">
 <meta property="og:title" content="Miami Beach - Miami-Dade Commission Watch">
-<meta property="og:description" content="Student-led coverage of the City of Miami Beach government, part of Miami-Dade Commission Watch. No student team runs this city yet — you could start it.">
+<meta property="og:description" content="Student-led coverage of the City of Miami Beach government, part of Miami-Dade Commission Watch. No student team runs this city yet &mdash; you could start it.">
 <meta property="og:image" content="https://www.miamidadecommissionwatch.com/assets/img/og-image.png">
 <meta property="og:image:width" content="1200">
 <meta property="og:image:height" content="630">
 <meta name="twitter:card" content="summary_large_image">
 <meta name="twitter:title" content="Miami Beach - Miami-Dade Commission Watch">
-<meta name="twitter:description" content="Student-led coverage of the City of Miami Beach government, part of Miami-Dade Commission Watch. No student team runs this city yet — you could start it.">
+<meta name="twitter:description" content="Student-led coverage of the City of Miami Beach government, part of Miami-Dade Commission Watch. No student team runs this city yet &mdash; you could start it.">
 <meta name="twitter:image" content="https://www.miamidadecommissionwatch.com/assets/img/og-image.png">
 <link rel="icon" type="image/png" sizes="32x32" href="/assets/img/favicon-32x32.png">
 <link rel="icon" type="image/png" sizes="16x16" href="/assets/img/favicon-16x16.png">
@@ -83,8 +83,10 @@
     <div class="wrap">
       <span class="eyebrow"><a href="/cities/" style="color:inherit;">Cities</a> &middot; City of Miami Beach</span>
       <h1 style="max-width:20ch;">Miami Beach</h1>
-      <p class="lede">Student-led coverage of Miami Beach's city government — what the City Commission is deciding, and why it matters to the people who live there. Part of Miami-Dade Commission Watch.</p>
-      <div class="notice" id="city-status-notice" style="margin-top:20px;"></div>
+      <p class="lede">Student-led coverage of Miami Beach's city government &mdash; what the City Commission is deciding, and why it matters to the people who live there. Part of Miami-Dade Commission Watch.</p>
+      <!-- Static so the no-team disclosure never depends on JS; js/city-page.js
+           replaces it with the richer registry-driven version. -->
+      <div class="notice" id="city-status-notice" style="margin-top:20px;"><p style="margin:0;"><strong>Miami Beach does not have a student Commission Watch team yet.</strong> <a href="/contact.html">Interested in starting one? Get in touch.</a></p></div>
     </div>
   </section>
 
@@ -94,9 +96,10 @@
         <span class="eyebrow">Coverage</span>
         <h2>What this page will hold</h2>
       </div>
-      <div class="card-grid" id="city-sections">
-        <noscript><p>This page needs JavaScript to display its sections. For official City of Miami Beach information, see the city's own website.</p></noscript>
-      </div>
+      <!-- noscript sits outside the grid: a child element there would shift the
+           cards' nth-child scroll-reveal stagger in css/style.css. -->
+      <noscript><p>This page needs JavaScript to display its sections. For official City of Miami Beach information, see the city's own website.</p></noscript>
+      <div class="card-grid" id="city-sections"></div>
     </div>
   </section>
 
@@ -106,7 +109,7 @@
         <span class="eyebrow">The basics</span>
         <h2>Government at a glance</h2>
       </div>
-      <p class="mt-0" style="max-width:60ch; color:var(--ink-600);">Every municipality is structured differently — Miami Beach's government doesn't work like the county's.</p>
+      <p class="mt-0" style="max-width:60ch; color:var(--ink-600);">Every municipality is structured differently &mdash; Miami Beach's government doesn't work like the county's.</p>
       <div id="city-government"></div>
     </div>
   </section>
@@ -117,7 +120,7 @@
         <span class="eyebrow">Primary sources</span>
         <h2>Official sources</h2>
       </div>
-      <p class="mt-0" style="max-width:60ch; color:var(--ink-600);">The links below go to the government's own records. Anything published on this page by a student team is independent student journalism — clearly ours, never official government information.</p>
+      <p class="mt-0" style="max-width:60ch; color:var(--ink-600);">The links below go to the government's own records. Anything published on this page by a student team is independent student journalism &mdash; clearly ours, never official government information.</p>
       <div id="city-sources"></div>
     </div>
   </section>
@@ -189,6 +192,7 @@
 <script src="/js/main.js?v=20260820"></script>
 <script src="/js/newsletter.js?v=20260820"></script>
 <script src="/js/cities-data.js?v=20260823"></script>
+<script src="/js/public-byline.js?v=20260822"></script>
 <script src="/js/city-page.js?v=20260823"></script>
 <script src="/js/translate.js?v=20260820"></script>
 <script src="https://translate.google.com/translate_a/element.js?cb=googleTranslateElementInit"></script>
