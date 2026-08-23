@@ -27,9 +27,11 @@
      row in the Cities tab of the staff dashboard -- no file, no deploy.
 
      A city that grows into a page worth hand-writing gets its own
-     cities/<slug>.html (the filesystem wins over the rewrite); such a stub
-     sets data-city-shell="static" so this file's metadata pass leaves the
-     hand-written head and hero alone. Root-absolute paths throughout:
+     cities/<slug>.html, and such a stub sets data-city-shell="static" so this
+     file's metadata pass leaves the hand-written head and hero alone. It also
+     needs its own rewrite listed ABOVE the /cities/:slug catch-all in
+     vercel.json -- Vercel takes the first matching rewrite, and without that
+     line the catch-all serves this template instead and the stub never ships. Root-absolute paths throughout:
      relative ones would resolve against /cities/ and break. -->
 <link rel="stylesheet" href="/css/style.css?v=20260823">
 </head>
