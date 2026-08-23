@@ -61,14 +61,47 @@
   }
 
   // ---------- cities list + picker ----------
-  function loadCities(preferSlug) {
-    // RLS narrows this by itself: staff see every city, a city editor sees
-    // only the ones they are on the team for, so there's no filter here.
+  // Which cities this account may work on. Staff get all of them.
+  //
+  // A city editor does NOT, and RLS can't narrow it for us: the "Public can
+  // read published cities" policy has no TO clause, so it applies to any
+  // signed-in user as much as to an anonymous visitor -- which is correct,
+  // since a signed-in editor browsing /cities/ should see the whole section.
+  // The consequence is that a plain select here returns every published city,
+  // so the dashboard has to scope by team membership itself. Their own rows in
+  // city_team_members are readable to them and are the source of truth.
+  //
+  // This is a listing fix, not the access control. Writing to a city they
+  // aren't on is refused by the WITH CHECK on the city-editor policies, which
+  // is what actually stops it; scoping here just means they never see a city
+  // they'd only be able to fail to save.
+  function allowedCityIds() {
+    if (ctx.isStaff) return Promise.resolve(null);
     return supabaseClient
-      .from('cities')
-      .select('*')
-      .order('sort_order', { ascending: true })
+      .from('city_team_members')
+      .select('city_id')
       .then(function (res) {
+        if (res.error) return [];
+        return (res.data || []).map(function (row) { return row.city_id; });
+      });
+  }
+
+  function loadCities(preferSlug) {
+    return allowedCityIds().then(function (ids) {
+      if (ids && ids.length === 0) {
+        el('city-picker').innerHTML = '';
+        el('city-workspace').style.display = 'none';
+        setStatus('cities-status', 'You have not been added to a city team yet. Ask an editor to add you.', '');
+        return;
+      }
+
+      var query = supabaseClient
+        .from('cities')
+        .select('*')
+        .order('sort_order', { ascending: true });
+      if (ids) query = query.in('id', ids);
+
+      return query.then(function (res) {
         var picker = el('city-picker');
         if (res.error) {
           setStatus('cities-status', 'Could not load cities: ' + res.error.message, 'error');
@@ -98,6 +131,7 @@
         el('city-picker-row').style.display = cities.length > 1 ? 'flex' : 'none';
         selectCity(picker.value);
       });
+    });
   }
 
   function selectCity(slug) {
