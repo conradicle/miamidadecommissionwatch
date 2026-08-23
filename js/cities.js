@@ -43,6 +43,13 @@
     }
   }
 
+  // "Miami Beach" -> "Miami Beach’s", but "Coral Gables" -> "Coral Gables’".
+  // Two of the six seeded cities end in s, so this isn't an edge case.
+  function possessive(name) {
+    var clean = String(name == null ? '' : name);
+    return /s$/i.test(clean) ? clean + '\u2019' : clean + '\u2019s';
+  }
+
   function bySortOrder(a, b) {
     return (a.sort_order || 0) - (b.sort_order || 0);
   }
@@ -175,7 +182,7 @@
 
     if (meetings.length === 0) {
       listEl.innerHTML = '<p class="city-section-empty">No meeting summaries yet. ' +
-        'When ' + escapeHtml(city.name) + '’s student team starts publishing, their recaps appear here.</p>';
+        'When ' + escapeHtml(possessive(city.name)) + ' student team starts publishing, their recaps appear here.</p>';
       return;
     }
 
@@ -201,7 +208,7 @@
     var officials = (city.city_officials || []).slice().sort(bySortOrder);
     if (officials.length === 0) {
       gridEl.innerHTML = '<p class="city-section-empty">This directory is empty until ' +
-        escapeHtml(city.name) + '’s student team verifies who holds each seat.</p>';
+        escapeHtml(possessive(city.name)) + ' student team verifies who holds each seat.</p>';
       return;
     }
 
@@ -329,7 +336,7 @@
     if (heading) heading.textContent = city.name;
     var lede = document.getElementById('city-lede');
     if (lede) {
-      lede.textContent = 'Student-led coverage of ' + city.name + '’s city government — what the ' +
+      lede.textContent = 'Student-led coverage of ' + possessive(city.name) + ' city government — what the ' +
         'governing body is deciding, and why it matters to the people who live there. ' +
         'Part of Miami-Dade Commission Watch.';
     }
