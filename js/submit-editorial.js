@@ -1,15 +1,15 @@
 (function () {
-  var PERSONAL_EMAIL_DOMAINS = [
-    'gmail.com', 'yahoo.com', 'hotmail.com', 'outlook.com', 'live.com',
-    'icloud.com', 'me.com', 'aol.com', 'protonmail.com', 'msn.com', 'comcast.net'
-  ];
+  // Miami-Dade County Public Schools issues students <id>@students.dadeschools.net.
+  // Checked here only so the student gets an answer before they lose a draft to a
+  // round trip -- api/submit-editorial.js and the constraint in migration_15 are
+  // what actually enforce it, since this file runs in the browser where anyone
+  // can skip it. If one changes, change all three.
+  var STUDENT_EMAIL = /^[^@\s]+@students\.dadeschools\.net$/i;
 
-  function isSchoolEmail(email) {
-    var at = email.lastIndexOf('@');
-    if (at === -1) return false;
-    var domain = email.slice(at + 1).toLowerCase().trim();
-    return domain.length > 0 && PERSONAL_EMAIL_DOMAINS.indexOf(domain) === -1;
-  }
+  var WRONG_DOMAIN_MESSAGE =
+    'Please use your Miami-Dade County Public Schools student email (it ends in ' +
+    '@students.dadeschools.net) so we can verify enrollment. If you attend a private ' +
+    'or home school, email contact@miamidadecommissionwatch.com and we\'ll take your draft that way.';
 
   document.addEventListener('DOMContentLoaded', function () {
     var form = document.getElementById('editorial-form');
@@ -37,8 +37,8 @@
         return;
       }
 
-      if (!isSchoolEmail(email)) {
-        statusEl.textContent = 'Please use your school-issued email address rather than a personal Gmail, Yahoo, or similar account, so we can verify you\'re a Miami-Dade County student.';
+      if (!STUDENT_EMAIL.test(email)) {
+        statusEl.textContent = WRONG_DOMAIN_MESSAGE;
         statusEl.className = 'district-status error';
         emailInput.focus();
         return;
@@ -54,9 +54,14 @@
       statusEl.className = 'district-status';
       submitBtn.disabled = true;
 
-      supabaseClient
-        .from('editorial_submissions')
-        .insert({
+      // Goes through the API rather than inserting straight into Supabase, so
+      // the submission is rate limited per IP and the table can stay closed to
+      // the public anon key. See supabase/migration_15_editorial_school_email_
+      // and_submit_lockdown.sql.
+      fetch('/api/submit-editorial', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
           name: name,
           grade: grade,
           school: school,
@@ -65,10 +70,19 @@
           topic: topic || null,
           body: body
         })
+      })
         .then(function (res) {
+          return res.json().then(function (data) {
+            return { ok: res.ok, data: data };
+          });
+        })
+        .then(function (result) {
           submitBtn.disabled = false;
-          if (res.error) {
-            statusEl.textContent = 'Something went wrong submitting your editorial. Please try again, or email contact@miamidadecommissionwatch.com directly.';
+          if (!result.ok) {
+            // The API's own message is the useful one for a rejected email
+            // address, a bad grade, or a throttled connection.
+            statusEl.textContent = (result.data && result.data.error) ||
+              'Something went wrong submitting your editorial. Please try again, or email contact@miamidadecommissionwatch.com directly.';
             statusEl.className = 'district-status error';
             return;
           }
