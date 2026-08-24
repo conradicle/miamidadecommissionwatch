@@ -20,7 +20,7 @@
 <link rel="icon" type="image/png" sizes="32x32" href="assets/img/favicon-32x32.png">
 <link rel="icon" type="image/png" sizes="16x16" href="assets/img/favicon-16x16.png">
 <link rel="apple-touch-icon" sizes="180x180" href="assets/img/apple-touch-icon.png">
-<link rel="stylesheet" href="css/style.css?v=20260823">
+<link rel="stylesheet" href="css/style.css?v=20260823b">
 </head>
 <body>
 <a class="skip-link" href="#main">Skip to content</a>
@@ -63,7 +63,6 @@
     <a href="meetings.html" aria-current="page">Meetings</a>
     <a href="officials.html">Officials</a>
     <a href="elections.html">Elections</a>
-    <a href="cities/">Cities</a>
     <a href="get-involved.html">Get Involved</a>
     <a href="news.html">Student Editorials</a>
     <a href="about.html">About</a>
@@ -129,14 +128,67 @@
   <section class="section">
     <div class="wrap">
 
+      <div class="section-head">
+        <span class="eyebrow">The archive</span>
+        <h2>Every item we've tracked</h2>
+      </div>
+
+      <!-- Filters index the rendered DOM, not the query result, so they cover
+           both the database-backed meetings and the hand-written cards below
+           them. See js/meetings-feed.js. -->
+      <div class="filter-bar" role="search" aria-label="Filter tracked agenda items">
+        <div class="filter-search">
+          <label for="filter-q" class="visually-hidden-label" style="position:absolute; width:1px; height:1px; overflow:hidden; clip:rect(0 0 0 0); white-space:nowrap;">Search tracked items</label>
+          <input type="search" id="filter-q" placeholder="Search items, sponsors, ordinance numbers&hellip;" autocomplete="off">
+        </div>
+
+        <div class="filter-group">
+          <span class="label" id="filter-topics-label">Topic</span>
+          <div class="chips" id="filter-topics" role="group" aria-labelledby="filter-topics-label"></div>
+        </div>
+
+        <div class="filter-group">
+          <span class="label" id="filter-statuses-label">Outcome</span>
+          <div class="chips" id="filter-statuses" role="group" aria-labelledby="filter-statuses-label"></div>
+        </div>
+
+        <div class="filter-selects">
+          <label>District
+            <select id="filter-district"></select>
+          </label>
+          <label id="filter-commissioner-wrap">Commissioner
+            <select id="filter-commissioner">
+              <option value="">Any commissioner</option>
+            </select>
+          </label>
+          <label>From
+            <input type="date" id="filter-from">
+          </label>
+          <label>To
+            <input type="date" id="filter-to">
+          </label>
+        </div>
+
+        <div class="filter-meta">
+          <span class="filter-count" id="filter-count"></span>
+          <button type="button" class="filter-clear" id="filter-clear" hidden>Clear all filters</button>
+        </div>
+      </div>
+
+      <div class="filter-empty" id="filter-empty" hidden>
+        No tracked item matches those filters. <button type="button" class="filter-clear" data-clear-filters>Clear them</button> to see the full archive.
+      </div>
+
+      <div id="tracker-body">
+
       <div id="meetings-dynamic"></div>
 
-      <div class="meeting-card">
+      <div class="meeting-card" data-meeting="1" data-date="2026-07-21">
         <div class="meeting-card-date">Regular Meeting &middot; July 21, 2026</div>
         <h3>Board approves $2.5 billion in borrowing, one no vote</h3>
         <p class="meeting-card-summary">Commissioners authorized six separate bond packages totaling more than $2.5 billion in a single meeting, funding everything from transit to the fight over the Fisher Island fuel depot, and gave final approval to new rules for e-bikes and scooters on county streets.</p>
 
-        <div class="item-block">
+        <div class="item-block" data-item="1" data-date="2026-07-21" data-status="passed" data-topic="Taxes &amp; Budget" data-districts="" data-commissioners="">
           <div class="item-head">
             <span class="outcome passed">Passed, 1 dissent</span>
           </div>
@@ -148,7 +200,7 @@
           </div>
         </div>
 
-        <div class="item-block">
+        <div class="item-block" data-item="1" data-date="2026-07-21" data-status="passed" data-topic="Transit" data-districts="" data-commissioners="">
           <div class="item-head">
             <span class="outcome passed">Adopted on second reading</span>
           </div>
@@ -161,12 +213,12 @@
         </div>
       </div>
 
-      <div class="meeting-card">
+      <div class="meeting-card" data-meeting="1" data-date="2026-06-16">
         <div class="meeting-card-date">Regular Meeting &middot; June 16, 2026</div>
         <h3>Mental health center funded, Fisher Island fuel fight escalates</h3>
         <p class="meeting-card-summary">Commissioners unanimously approved funding for Miami-Dade's long-delayed mental health diversion center, and separately voted to let the Mayor pursue eminent domain to take over the Fisher Island fuel depot that supplies PortMiami.</p>
 
-        <div class="item-block">
+        <div class="item-block" data-item="1" data-date="2026-06-16" data-status="passed" data-topic="Other" data-districts="" data-commissioners="">
           <div class="item-head">
             <span class="outcome passed">Passed, unanimous</span>
           </div>
@@ -178,7 +230,7 @@
           </div>
         </div>
 
-        <div class="item-block">
+        <div class="item-block" data-item="1" data-date="2026-06-16" data-status="passed" data-topic="Environment" data-districts="" data-commissioners="">
           <div class="item-head">
             <span class="outcome passed">Passed</span>
           </div>
@@ -191,12 +243,12 @@
         </div>
       </div>
 
-      <div class="meeting-card">
+      <div class="meeting-card" data-meeting="1" data-date="2026-06-02">
         <div class="meeting-card-date">Regular Meeting &middot; June 2, 2026</div>
         <h3>Boat anchoring rules and Live Local Act housing paperwork</h3>
         <p class="meeting-card-summary">A lighter agenda than the two meetings that followed it: commissioners took up new overnight-anchoring rules for boats in county waterways and local procedures for Florida's Live Local Act affordable housing law.</p>
 
-        <div class="item-block">
+        <div class="item-block" data-item="1" data-date="2026-06-02" data-status="" data-topic="Environment" data-districts="" data-commissioners="">
           <div class="item-head">
             <span class="item-code">Item 4B</span>
           </div>
@@ -208,7 +260,7 @@
           </div>
         </div>
 
-        <div class="item-block">
+        <div class="item-block" data-item="1" data-date="2026-06-02" data-status="" data-topic="Housing" data-districts="" data-commissioners="">
           <div class="item-head">
             <span class="item-code">Item 7B</span>
           </div>
@@ -220,6 +272,7 @@
           </div>
         </div>
       </div>
+      </div><!-- /#tracker-body -->
 
     </div>
   </section>
@@ -235,7 +288,6 @@
           <li><a href="meetings.html">Meeting Tracker</a></li>
           <li><a href="officials.html">Officials</a></li>
           <li><a href="elections.html">Elections</a></li>
-          <li><a href="cities/">Cities</a></li>
           <li><a href="get-involved.html">Get Involved</a></li>
           <li><a href="news.html">Student Editorials</a></li>
         </ul>
@@ -282,7 +334,8 @@
 <script src="js/supabase-client.js"></script>
 <script src="js/main.js?v=20260820"></script>
 <script src="js/newsletter.js?v=20260820"></script>
-<script src="js/meetings-feed.js"></script>
+<script src="js/mdcw-format.js?v=20260823"></script>
+<script src="js/meetings-feed.js?v=20260823"></script>
 <script src="js/translate.js?v=20260820"></script>
 <script src="https://translate.google.com/translate_a/element.js?cb=googleTranslateElementInit"></script>
 </body>
