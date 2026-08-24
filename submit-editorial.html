@@ -85,7 +85,7 @@
       <div class="card-grid">
         <div class="card">
           <h3>Who can submit</h3>
-          <p>Any high school student (grades 9&ndash;12) enrolled at a Miami-Dade County public, charter, private, or home school. Use your school-issued email address in the form so we can verify enrollment before publishing. We're not able to accept submissions from middle school or elementary students.</p>
+          <p>Any high school student (grades 9&ndash;12) enrolled at a Miami-Dade County public or charter school. The form needs your MDCPS student email &mdash; the one ending in <strong>@students.dadeschools.net</strong> &mdash; so we can verify enrollment before publishing. If you attend a private or home school, we still want your writing: email it to <a href="mailto:contact@miamidadecommissionwatch.com">contact@miamidadecommissionwatch.com</a> and we'll take it that way. We're not able to accept submissions from middle school or elementary students.</p>
         </div>
         <div class="card">
           <h3>What to write about</h3>
@@ -137,7 +137,8 @@
         </div>
         <div class="field">
           <label for="editorial-email">School email *</label>
-          <input type="email" id="editorial-email" name="email" placeholder="you@yourschool.org" required>
+          <input type="email" id="editorial-email" name="email" placeholder="1234567@students.dadeschools.net" aria-describedby="editorial-email-hint" required>
+          <p id="editorial-email-hint" style="color:var(--ink-600); font-size:13px; margin:6px 0 0;">Your MDCPS student address. Private and home-school students: email <a href="mailto:contact@miamidadecommissionwatch.com">contact@miamidadecommissionwatch.com</a> instead.</p>
         </div>
         <div class="field">
           <label for="editorial-title">Editorial title *</label>
