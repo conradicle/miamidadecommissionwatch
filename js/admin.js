@@ -2,10 +2,45 @@
   var currentUserId = null;
   var currentRole = null;
 
+  // Must stay in sync with public.mdcw_topics() in migration_14, api/_prefs.js
+  // and js/meetings-feed.js. Four copies is three too many, but there is no
+  // build step here to share one.
+  var TOPICS = ['Housing', 'Transit', 'Zoning', 'Public Safety', 'Taxes & Budget', 'Environment', 'Parks', 'Other'];
+  var DISTRICTS = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13];
+
+  // Filled by loadCommissionerRoster() at startup. Stays empty when
+  // migration_14 hasn't been applied, which disables the roll-call UI.
+  var commissionerRoster = [];
+
+  function loadCommissionerRoster() {
+    return supabaseClient
+      .from('commissioners')
+      .select('id, slug, full_name, district')
+      .eq('is_current', true)
+      .order('district', { ascending: true })
+      .then(function (res) {
+        commissionerRoster = (!res.error && res.data) ? res.data : [];
+      })
+      .catch(function () { commissionerRoster = []; });
+  }
+
   function escapeHtml(str) {
     var div = document.createElement('div');
     div.textContent = str == null ? '' : String(str);
     return div.innerHTML.replace(/"/g, '&quot;').replace(/'/g, '&#39;');
+  }
+
+  // Reads one optional field off an item row. Empty means null, not '' and not
+  // 0 -- an empty number input must not save as zero dollars or zero votes,
+  // which would read on the public page as a real recorded figure.
+  function fieldOrNull(row, selector, isText) {
+    var el = row.querySelector(selector);
+    if (!el) return null;
+    var raw = el.value.trim();
+    if (raw === '') return null;
+    if (isText) return raw;
+    var n = Number(raw);
+    return isNaN(n) ? null : n;
   }
 
   function formatDate(iso) {
@@ -170,14 +205,73 @@
         '<label>Description</label>' +
         '<textarea class="mi-description" rows="2" required></textarea>' +
       '</div>' +
-      '<div class="field-row">' +
-        '<div class="field"><label>Source label (optional)</label><input type="text" class="mi-source-label" placeholder="e.g. Miami Herald"></div>' +
-        '<div class="field"><label>Source URL (optional)</label><input type="url" class="mi-source-url" placeholder="https://..."></div>' +
-      '</div>' +
       '<div class="field">' +
         '<label>Why it matters</label>' +
         '<textarea class="mi-why" rows="2" required></textarea>' +
       '</div>' +
+
+      // ---- the structured record (migration_14) ----
+      '<fieldset style="border:1px solid #ddd; border-radius:6px; padding:12px; margin:12px 0;">' +
+        '<legend style="font-size:12px; text-transform:uppercase; letter-spacing:.05em;">The record</legend>' +
+        '<div class="field-row">' +
+          '<div class="field"><label>Item code</label><input type="text" class="mi-item-code" placeholder="e.g. 8A1"></div>' +
+          '<div class="field"><label>Legislation number</label><input type="text" class="mi-leg-number" placeholder="e.g. R-123-26"></div>' +
+          '<div class="field"><label>Type</label><select class="mi-leg-type">' +
+            '<option value="">—</option>' +
+            ['Ordinance', 'Resolution', 'Report', 'Appointment', 'Public Hearing', 'Discussion Item', 'Other']
+              .map(function (t) { return '<option value="' + t + '">' + t + '</option>'; }).join('') +
+          '</select></div>' +
+        '</div>' +
+        '<div class="field-row">' +
+          '<div class="field"><label>Dollar amount (plain number)</label><input type="number" step="0.01" class="mi-amount" placeholder="e.g. 31000000"></div>' +
+          '<div class="field"><label>Sponsor</label><input type="text" class="mi-sponsor" placeholder="Commissioner name, exactly as on the roster"></div>' +
+          '<div class="field"><label>Topic</label><select class="mi-topic">' +
+            '<option value="">— none (won\'t match topic filters or alerts) —</option>' +
+            TOPICS.map(function (t) { return '<option value="' + t + '">' + t + '</option>'; }).join('') +
+          '</select></div>' +
+        '</div>' +
+        '<div class="field">' +
+          '<label>Districts affected <span style="font-weight:400;">(tick none for countywide)</span></label>' +
+          '<div class="mi-districts" style="display:flex; flex-wrap:wrap; gap:8px;">' +
+            DISTRICTS.map(function (d) {
+              return '<label style="display:flex; align-items:center; gap:4px; font-weight:400;">' +
+                '<input type="checkbox" value="' + d + '"> D' + d + '</label>';
+            }).join('') +
+          '</div>' +
+        '</div>' +
+        '<div class="field-row">' +
+          '<div class="field"><label>Votes yes</label><input type="number" min="0" max="13" class="mi-vote-yes"></div>' +
+          '<div class="field"><label>Votes no</label><input type="number" min="0" max="13" class="mi-vote-no"></div>' +
+          '<div class="field"><label>Absent</label><input type="number" min="0" max="13" class="mi-vote-absent"></div>' +
+        '</div>' +
+      '</fieldset>' +
+
+      // ---- sourcing: official record, then journalism ----
+      '<fieldset style="border:1px solid #ddd; border-radius:6px; padding:12px; margin:12px 0;">' +
+        '<legend style="font-size:12px; text-transform:uppercase; letter-spacing:.05em;">Official record</legend>' +
+        '<div class="field-row">' +
+          '<div class="field"><label>County record URL</label><input type="url" class="mi-official-url" placeholder="https://www.miamidade.gov/govaction/..."></div>' +
+          '<div class="field"><label>Link label</label><input type="text" class="mi-official-label" placeholder="County legislative record"></div>' +
+        '</div>' +
+        '<div class="field-row">' +
+          '<div class="field"><label>Agenda document URL</label><input type="url" class="mi-agenda-url" placeholder="https://..."></div>' +
+          '<div class="field"><label>Vote record URL</label><input type="url" class="mi-voterec-url" placeholder="https://..."></div>' +
+        '</div>' +
+        '<p style="font-size:13px; color:#666; margin:4px 0 0;">The public page says "Primary county record not yet linked" when the first field is empty. News coverage belongs below, not here.</p>' +
+      '</fieldset>' +
+
+      '<fieldset style="border:1px solid #ddd; border-radius:6px; padding:12px; margin:12px 0;">' +
+        '<legend style="font-size:12px; text-transform:uppercase; letter-spacing:.05em;">Additional reporting</legend>' +
+        '<div class="mi-sources"></div>' +
+        '<button type="button" class="btn btn-secondary btn-small mi-add-source">Add a source</button>' +
+      '</fieldset>' +
+
+      '<fieldset style="border:1px solid #ddd; border-radius:6px; padding:12px; margin:12px 0;">' +
+        '<legend style="font-size:12px; text-transform:uppercase; letter-spacing:.05em;">Roll call</legend>' +
+        '<p style="font-size:13px; color:#666; margin:0 0 8px;">Optional. Leave every row on "not recorded" to publish only the tally above. Set them and the public page shows who voted which way.</p>' +
+        '<div class="mi-rollcall"></div>' +
+      '</fieldset>' +
+
       '<button type="button" class="btn btn-danger btn-small mi-remove">Remove item</button>' +
       '<hr>';
 
@@ -189,8 +283,56 @@
     row.querySelector('.mi-remove').addEventListener('click', function () {
       row.remove();
     });
+    row.querySelector('.mi-add-source').addEventListener('click', function () {
+      row.querySelector('.mi-sources').appendChild(createSourceRow());
+    });
+
+    renderRollCall(row.querySelector('.mi-rollcall'));
 
     return row;
+  }
+
+  function createSourceRow(source) {
+    var el = document.createElement('div');
+    el.className = 'mi-source-row field-row';
+    el.innerHTML =
+      '<div class="field"><label>Outlet</label><input type="text" class="ms-outlet" placeholder="e.g. WLRN"></div>' +
+      '<div class="field"><label>Headline / label</label><input type="text" class="ms-label" placeholder="e.g. County OKs $2.5B in borrowing"></div>' +
+      '<div class="field"><label>URL</label><input type="url" class="ms-url" placeholder="https://..."></div>' +
+      '<button type="button" class="btn btn-danger btn-small ms-remove" style="align-self:flex-end;">Remove</button>';
+    el.querySelector('.ms-remove').addEventListener('click', function () { el.remove(); });
+
+    if (source) {
+      el.querySelector('.ms-outlet').value = source.outlet || '';
+      el.querySelector('.ms-label').value = source.label || '';
+      el.querySelector('.ms-url').value = source.url || '';
+    }
+    return el;
+  }
+
+  // commissionerRoster is loaded once at dashboard start. Empty means
+  // migration_14 hasn't been applied, in which case roll call is unavailable
+  // and we say so rather than rendering an empty box.
+  function renderRollCall(container) {
+    if (!container) return;
+    if (!commissionerRoster.length) {
+      container.innerHTML = '<p style="font-size:13px; color:#666; margin:0;">' +
+        'Roll call needs the commissioners table from migration_14. Apply it in the Supabase SQL editor to enable this.</p>';
+      return;
+    }
+    container.innerHTML = commissionerRoster.map(function (c) {
+      return '<div class="field-row" style="align-items:center; gap:8px;">' +
+        '<div class="field" style="flex:1;"><label style="font-weight:400;">D' + c.district + ' · ' + escapeHtml(c.full_name) + '</label></div>' +
+        '<div class="field"><select class="mv-vote" data-commissioner="' + escapeHtml(c.id) + '">' +
+          '<option value="">not recorded</option>' +
+          '<option value="yes">yes</option>' +
+          '<option value="no">no</option>' +
+          '<option value="abstain">abstain</option>' +
+          '<option value="absent">absent</option>' +
+          '<option value="recused">recused</option>' +
+        '</select></div>' +
+      '</div>';
+    }).join('');
   }
 
   function renderMeetingAdmin(meeting) {
@@ -284,9 +426,49 @@
       row.querySelector('.mi-tag-label').value = item.tag_label;
       row.querySelector('.mi-heading').value = item.heading;
       row.querySelector('.mi-description').value = item.description;
-      row.querySelector('.mi-source-label').value = item.source_label || '';
-      row.querySelector('.mi-source-url').value = item.source_url || '';
       row.querySelector('.mi-why').value = item.why_it_matters;
+
+      // Carrying the id through the form is what keeps an edit from deleting
+      // and re-creating the row -- which would cascade away its sources and
+      // its roll call. See saveItems().
+      row.setAttribute('data-item-id', item.id || '');
+
+      setVal(row, '.mi-item-code', item.item_code);
+      setVal(row, '.mi-leg-number', item.legislation_number);
+      setVal(row, '.mi-leg-type', item.legislation_type);
+      setVal(row, '.mi-amount', item.amount_usd);
+      setVal(row, '.mi-sponsor', item.sponsor);
+      setVal(row, '.mi-topic', item.topic);
+      setVal(row, '.mi-vote-yes', item.vote_yes);
+      setVal(row, '.mi-vote-no', item.vote_no);
+      setVal(row, '.mi-vote-absent', item.vote_absent);
+      setVal(row, '.mi-official-url', item.official_url);
+      setVal(row, '.mi-official-label', item.official_label);
+      setVal(row, '.mi-agenda-url', item.agenda_document_url);
+      setVal(row, '.mi-voterec-url', item.vote_record_url);
+
+      var wanted = (item.districts || []).map(String);
+      Array.prototype.forEach.call(row.querySelectorAll('.mi-districts input'), function (cb) {
+        cb.checked = wanted.indexOf(cb.value) !== -1;
+      });
+
+      var sourcesEl = row.querySelector('.mi-sources');
+      sourcesEl.innerHTML = '';
+      (item.item_sources || []).slice().sort(function (a, b) {
+        return (a.sort_order || 0) - (b.sort_order || 0);
+      }).forEach(function (s) {
+        sourcesEl.appendChild(createSourceRow(s));
+      });
+
+      (item.item_votes || []).forEach(function (v) {
+        var sel = row.querySelector('.mv-vote[data-commissioner="' + v.commissioner_id + '"]');
+        if (sel) sel.value = v.vote;
+      });
+    }
+
+    function setVal(row, selector, value) {
+      var el = row.querySelector(selector);
+      if (el) el.value = (value === null || value === undefined) ? '' : value;
     }
 
     function enterEditMode(meeting) {
@@ -315,11 +497,105 @@
       form.scrollIntoView({ behavior: 'smooth', block: 'start' });
     }
 
-    function saveItems(meetingId, items) {
-      var itemsWithMeetingId = items.map(function (item) {
-        return Object.assign({ meeting_id: meetingId }, item);
+    // Saves agenda items WITHOUT destroying their ids.
+    //
+    // The old implementation deleted every meeting_item on the meeting and
+    // re-inserted them, which was harmless when an item was just text. It is
+    // not harmless now: item_sources and item_votes reference meeting_items(id)
+    // on delete cascade, so re-inserting would wipe every roll-call vote on the
+    // meeting every time an editor fixed a typo in the summary.
+    //
+    // So: update rows that already have an id, insert the ones that don't,
+    // and delete only the ones the editor actually removed from the form.
+    function saveItems(meetingId, items, keepIds) {
+      var updates = [];
+      var inserts = [];
+
+      items.forEach(function (entry) {
+        var fields = Object.assign({ meeting_id: meetingId }, entry.fields);
+        if (entry.id) updates.push({ id: entry.id, fields: fields, entry: entry });
+        else inserts.push({ fields: fields, entry: entry });
       });
-      return supabaseClient.from('meeting_items').insert(itemsWithMeetingId);
+
+      // Remove items the editor deleted from the form.
+      var deletion = keepIds.length
+        ? supabaseClient.from('meeting_items').delete()
+            .eq('meeting_id', meetingId)
+            .not('id', 'in', '(' + keepIds.join(',') + ')')
+        : supabaseClient.from('meeting_items').delete().eq('meeting_id', meetingId);
+
+      return deletion.then(function (delRes) {
+        if (delRes.error) return { error: delRes.error };
+
+        var work = updates.map(function (u) {
+          return supabaseClient.from('meeting_items').update(u.fields).eq('id', u.id)
+            .then(function (res) {
+              if (res.error) return res;
+              return saveItemChildren(u.id, u.entry);
+            });
+        });
+
+        if (inserts.length) {
+          work.push(
+            supabaseClient.from('meeting_items')
+              .insert(inserts.map(function (i) { return i.fields; }))
+              .select('id, sort_order')
+              .then(function (res) {
+                if (res.error) return res;
+                // Match inserted rows back to their form entries by sort_order.
+                var bySort = {};
+                (res.data || []).forEach(function (r) { bySort[r.sort_order] = r.id; });
+                return Promise.all(inserts.map(function (i) {
+                  var newId = bySort[i.fields.sort_order];
+                  return newId ? saveItemChildren(newId, i.entry) : { error: null };
+                })).then(function (results) {
+                  return firstError(results) || { error: null };
+                });
+              })
+          );
+        }
+
+        return Promise.all(work).then(function (results) {
+          return firstError(results) || { error: null };
+        });
+      });
+    }
+
+    function firstError(results) {
+      for (var i = 0; i < results.length; i++) {
+        if (results[i] && results[i].error) return results[i];
+      }
+      return null;
+    }
+
+    // item_sources and item_votes are leaf rows keyed only by item_id, so
+    // replacing them wholesale is safe -- nothing references them.
+    function saveItemChildren(itemId, entry) {
+      return supabaseClient.from('item_sources').delete().eq('item_id', itemId)
+        .then(function () {
+          if (!entry.sources.length) return { error: null };
+          return supabaseClient.from('item_sources').insert(
+            entry.sources.map(function (s, i) {
+              return Object.assign({ item_id: itemId, sort_order: i }, s);
+            })
+          );
+        })
+        .then(function (res) {
+          if (res && res.error) return res;
+          return supabaseClient.from('item_votes').delete().eq('item_id', itemId);
+        })
+        .then(function (res) {
+          if (res && res.error) return res;
+          if (!entry.votes.length) return { error: null };
+          return supabaseClient.from('item_votes').insert(
+            entry.votes.map(function (v) {
+              return { item_id: itemId, commissioner_id: v.commissioner_id, vote: v.vote };
+            })
+          );
+        })
+        // migration_14 not applied: the item itself saved fine, the extras
+        // simply have nowhere to go yet. Don't fail the whole save over it.
+        .catch(function () { return { error: null }; });
     }
 
     form.addEventListener('submit', function (e) {
@@ -333,19 +609,65 @@
       }
 
       var items = [];
+      var keepIds = [];
+
       for (var i = 0; i < rows.length; i++) {
         var r = rows[i];
         var tagType = r.querySelector('.mi-tag-type').value;
+        var existingId = r.getAttribute('data-item-id') || null;
+        if (existingId) keepIds.push(existingId);
+
+        var districts = Array.prototype.slice
+          .call(r.querySelectorAll('.mi-districts input:checked'))
+          .map(function (cb) { return Number(cb.value); });
+
+        var sources = Array.prototype.slice
+          .call(r.querySelectorAll('.mi-source-row'))
+          .map(function (sr) {
+            return {
+              outlet: sr.querySelector('.ms-outlet').value.trim(),
+              label: sr.querySelector('.ms-label').value.trim(),
+              url: sr.querySelector('.ms-url').value.trim()
+            };
+          })
+          // All three columns are NOT NULL, so a half-filled row would fail
+          // the whole save. Drop the blanks instead.
+          .filter(function (s) { return s.outlet && s.label && s.url; });
+
+        var votes = Array.prototype.slice
+          .call(r.querySelectorAll('.mv-vote'))
+          .filter(function (sel) { return sel.value; })
+          .map(function (sel) {
+            return { commissioner_id: sel.getAttribute('data-commissioner'), vote: sel.value };
+          });
+
         items.push({
-          sort_order: i,
-          tag_type: tagType,
-          tag_label: r.querySelector('.mi-tag-label').value.trim(),
-          tag_status: tagType === 'outcome' ? r.querySelector('.mi-tag-status').value : null,
-          heading: r.querySelector('.mi-heading').value.trim(),
-          description: r.querySelector('.mi-description').value.trim(),
-          source_label: r.querySelector('.mi-source-label').value.trim() || null,
-          source_url: r.querySelector('.mi-source-url').value.trim() || null,
-          why_it_matters: r.querySelector('.mi-why').value.trim()
+          id: existingId,
+          sources: sources,
+          votes: votes,
+          fields: {
+            sort_order: i,
+            tag_type: tagType,
+            tag_label: r.querySelector('.mi-tag-label').value.trim(),
+            tag_status: tagType === 'outcome' ? r.querySelector('.mi-tag-status').value : null,
+            heading: r.querySelector('.mi-heading').value.trim(),
+            description: r.querySelector('.mi-description').value.trim(),
+            why_it_matters: r.querySelector('.mi-why').value.trim(),
+            item_code: fieldOrNull(r, '.mi-item-code', true),
+            legislation_number: fieldOrNull(r, '.mi-leg-number', true),
+            legislation_type: fieldOrNull(r, '.mi-leg-type', true),
+            amount_usd: fieldOrNull(r, '.mi-amount'),
+            sponsor: fieldOrNull(r, '.mi-sponsor', true),
+            topic: fieldOrNull(r, '.mi-topic', true),
+            districts: districts,
+            vote_yes: fieldOrNull(r, '.mi-vote-yes'),
+            vote_no: fieldOrNull(r, '.mi-vote-no'),
+            vote_absent: fieldOrNull(r, '.mi-vote-absent'),
+            official_url: fieldOrNull(r, '.mi-official-url', true),
+            official_label: fieldOrNull(r, '.mi-official-label', true),
+            agenda_document_url: fieldOrNull(r, '.mi-agenda-url', true),
+            vote_record_url: fieldOrNull(r, '.mi-voterec-url', true)
+          }
         });
       }
 
@@ -373,18 +695,11 @@
               submitBtn.disabled = false;
               return;
             }
-            supabaseClient
-              .from('meeting_items')
-              .delete()
-              .eq('meeting_id', meetingId)
-              .then(function (delRes) {
-                if (delRes.error) {
-                  statusEl.textContent = 'Meeting saved, but could not replace agenda items: ' + delRes.error.message;
-                  statusEl.className = 'district-status error';
-                  submitBtn.disabled = false;
-                  return;
-                }
-                saveItems(meetingId, items).then(function (itemsRes) {
+            // saveItems does its own targeted deletion now -- the blanket
+            // delete that used to sit here took the roll call with it.
+            Promise.resolve()
+              .then(function () {
+                return saveItems(meetingId, items, keepIds).then(function (itemsRes) {
                   submitBtn.disabled = false;
                   if (itemsRes.error) {
                     statusEl.textContent = 'Meeting saved, but agenda items failed: ' + itemsRes.error.message;
@@ -411,7 +726,7 @@
               submitBtn.disabled = false;
               return;
             }
-            saveItems(res.data.id, items).then(function (itemsRes) {
+            saveItems(res.data.id, items, []).then(function (itemsRes) {
               submitBtn.disabled = false;
               if (itemsRes.error) {
                 statusEl.textContent = 'Meeting saved, but agenda items failed: ' + itemsRes.error.message;
@@ -433,9 +748,19 @@
         var editId = editBtn.getAttribute('data-id');
         supabaseClient
           .from('meetings')
-          .select('*, meeting_items(*)')
+          .select('*, meeting_items(*, item_sources(*), item_votes(commissioner_id, vote))')
           .eq('id', editId)
           .single()
+          .then(function (res) {
+            if (!res.error && res.data) return res;
+            // migration_14 not applied: item_sources / item_votes don't exist.
+            // Editing must still work, just without those sub-forms.
+            return supabaseClient
+              .from('meetings')
+              .select('*, meeting_items(*)')
+              .eq('id', editId)
+              .single();
+          })
           .then(function (res) {
             if (res.error || !res.data) {
               window.alert('Could not load meeting for editing.');
@@ -981,7 +1306,7 @@
 
           if (isStaff) {
             initEditorials();
-            initMeetings();
+            loadCommissionerRoster().then(initMeetings);
             initNewsletterStats();
             initLinkStats();
           } else {

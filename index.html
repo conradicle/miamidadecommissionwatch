@@ -27,7 +27,7 @@
 <link rel="icon" type="image/png" sizes="32x32" href="assets/img/favicon-32x32.png">
 <link rel="icon" type="image/png" sizes="16x16" href="assets/img/favicon-16x16.png">
 <link rel="apple-touch-icon" sizes="180x180" href="assets/img/apple-touch-icon.png">
-<link rel="stylesheet" href="css/style.css?v=20260823">
+<link rel="stylesheet" href="css/style.css?v=20260823b">
 </head>
 <body>
 <a class="skip-link" href="#main">Skip to content</a>
@@ -70,7 +70,6 @@
     <a href="meetings.html">Meetings</a>
     <a href="officials.html">Officials</a>
     <a href="elections.html">Elections</a>
-    <a href="cities/">Cities</a>
     <a href="get-involved.html">Get Involved</a>
     <a href="news.html">Student Editorials</a>
     <a href="about.html">About</a>
@@ -88,10 +87,13 @@
         <p class="lede">Thirteen commissioners, one per district, vote on the things that touch your block directly: zoning, transit, rent, permits, the budget. Miami-Dade Commission Watch reads the agendas and reports back in plain language. No spin, no endorsements.</p>
         <div class="btn-row">
           <a class="btn btn-primary" href="meetings.html">See the latest meeting</a>
-          <a class="btn btn-secondary" href="get-involved.html#find-district">Find your commissioner</a>
+          <a class="btn btn-secondary" href="#find-district">Find your commissioner</a>
         </div>
         <div class="next-meeting">
-          <div>
+          <!-- Filled from the meetings table by js/home.js. The markup below is
+               the no-JS fallback; it is deliberately the only hard-coded date
+               left on this page. -->
+          <div id="next-meeting-live">
             <div class="label">Next regular BCC meeting</div>
             <div class="date">Tuesday, September 1, 2026 &middot; 9:30 AM</div>
           </div>
@@ -106,30 +108,49 @@
           <div class="seal-float sf-1"><div class="n">13</div><div class="l">Districts</div></div>
           <div class="seal-float sf-2"><div class="n">3</div><div class="l">Languages</div></div>
         </div>
-        <p class="text-center" style="margin-top:22px; margin-bottom:0;"><a class="btn btn-secondary" href="get-involved.html#find-district">Find your district &#8599;</a></p>
+        <p class="text-center" style="margin-top:22px; margin-bottom:0;"><a class="btn btn-secondary" href="#find-district">Find your district &#8599;</a></p>
       </div>
     </div>
   </section>
 
-  <section class="stat-strip">
+  <!-- The stat strip that used to sit here repeated the 13-districts and
+       3-languages figures already shown on the seal above it, and told a
+       returning visitor nothing they didn't know. What changed since they last
+       looked is more useful, so that goes here instead. -->
+  <section class="section" id="briefing" aria-labelledby="briefing-heading">
     <div class="wrap">
-      <div class="stat-grid">
-        <div class="stat-item">
-          <div class="stat-number">13</div>
-          <div class="stat-label">Commission Districts</div>
-        </div>
-        <div class="stat-item">
-          <div class="stat-number">3</div>
-          <div class="stat-label">Languages: EN &middot; ES &middot; HT</div>
-        </div>
-        <div class="stat-item">
-          <div class="stat-number">2026</div>
-          <div class="stat-label">Founded</div>
-        </div>
-        <div class="stat-item">
-          <div class="stat-number">Free</div>
-          <div class="stat-label">Nonpartisan, always</div>
-        </div>
+      <div class="section-head">
+        <span class="eyebrow">The short version</span>
+        <h2 id="briefing-heading">What the Board just did</h2>
+      </div>
+
+      <div class="briefing">
+        <span class="label">Since the last meeting</span>
+        <p class="briefing-line" id="briefing-line">Loading the latest meeting&hellip;</p>
+        <div class="briefing-foot" id="briefing-foot"></div>
+      </div>
+    </div>
+  </section>
+
+  <section class="section section-alt" id="find-district">
+    <div class="wrap">
+      <div class="section-head">
+        <span class="eyebrow">Start here</span>
+        <h2>What does this mean for your address?</h2>
+      </div>
+
+      <div class="hero-finder">
+        <h2>Find your district</h2>
+        <p class="finder-sub">One address gets you your commissioner, the next meeting, and the recent votes tagged to your district.</p>
+
+        <form class="district-search-form" id="home-district-form">
+          <label for="home-district-input" class="mt-0" style="display:block; font-weight:600; margin-bottom:6px; width:100%;">Enter your address</label>
+          <input type="text" id="home-district-input" name="address" placeholder="e.g. 111 NW 1st St, Miami, FL 33128" autocomplete="street-address">
+          <button type="submit" class="btn btn-primary">Find my district</button>
+        </form>
+
+        <div id="home-district-status" class="district-status" role="status" aria-live="polite"></div>
+        <div class="district-panel" id="home-district-panel" hidden></div>
       </div>
     </div>
   </section>
@@ -195,7 +216,6 @@
           <li><a href="meetings.html">Meeting Tracker</a></li>
           <li><a href="officials.html">Officials</a></li>
           <li><a href="elections.html">Elections</a></li>
-          <li><a href="cities/">Cities</a></li>
           <li><a href="get-involved.html">Get Involved</a></li>
           <li><a href="news.html">Student Editorials</a></li>
         </ul>
@@ -238,8 +258,13 @@
 </footer>
 
 <div id="google_translate_element"></div>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.112.3" integrity="sha384-l8ah+VgaWtk1mvOe9VC+OirC6qHFF4yH7l7mKRidV9MSti3E9F463bMp6ZVN4kuC" crossorigin="anonymous"></script>
+<script src="js/supabase-client.js"></script>
 <script src="js/main.js?v=20260820"></script>
 <script src="js/newsletter.js?v=20260820"></script>
+<script src="js/mdcw-format.js?v=20260823"></script>
+<script src="js/find-district.js?v=20260823"></script>
+<script src="js/home.js?v=20260823"></script>
 <script src="js/translate.js?v=20260820"></script>
 <script src="https://translate.google.com/translate_a/element.js?cb=googleTranslateElementInit"></script>
 </body>

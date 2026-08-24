@@ -1147,3 +1147,642 @@ a.city-card .city-card-cta { color: var(--green-700); }
 /* .city-card is a column flex container, which would stretch the inline-block
    badge to full card width; pin it to its content size instead. */
 .city-card .city-status { align-self: flex-start; }
+
+/* =========================================================================
+   Last-verified badge
+   -------------------------------------------------------------------------
+   Every data-heavy page already recorded when its facts were last checked,
+   but buried in a paragraph of prose at the bottom. Surfacing it as a badge
+   near the heading is the cheapest credibility win on the site: the reader
+   sees the freshness of the data before they read the data.
+   ========================================================================= */
+.page-badges {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  margin-top: 16px;
+}
+.verified-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  font-family: var(--font-mono);
+  font-size: 11px;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  font-weight: 700;
+  color: var(--green-900);
+  background: var(--green-100);
+  border: 1px solid rgba(20, 102, 82, 0.28);
+  padding: 5px 12px;
+  border-radius: 999px;
+}
+.verified-badge::before {
+  content: "";
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background: var(--green-600);
+  flex: 0 0 auto;
+}
+.verified-badge .vb-date { font-weight: 400; letter-spacing: 0.03em; }
+/* For a page whose data has a known review cadence that has lapsed. Set by
+   hand in the markup -- nothing here computes staleness. */
+.verified-badge.stale {
+  background: var(--gold-100);
+  color: var(--gold-700);
+  border-color: rgba(192, 138, 46, 0.4);
+}
+.verified-badge.stale::before { background: var(--gold-600); }
+/* On a dark hero the paper-toned badge needs its own treatment. */
+.hero .verified-badge {
+  background: rgba(255, 255, 255, 0.12);
+  border-color: rgba(255, 255, 255, 0.3);
+  color: rgba(255, 255, 255, 0.92);
+}
+.hero .verified-badge::before { background: var(--gold-600); }
+
+/* =========================================================================
+   Structured agenda-item record
+   -------------------------------------------------------------------------
+   The one-line fingerprint above every item:
+     8A1 · Ordinance · $31M · Sponsored by Higgins · Passed 12-1 · Transit
+   Fields are individually optional -- an item with none of them renders the
+   same prose card it always did.
+   ========================================================================= */
+.item-record {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 7px 9px;
+  font-family: var(--font-mono);
+  font-size: 12px;
+  color: var(--ink-600);
+  margin-bottom: 10px;
+}
+.item-record .sep {
+  opacity: 0.4;
+  user-select: none;
+}
+.item-record .rec-amount {
+  color: var(--gold-700);
+  font-weight: 700;
+}
+.item-record .rec-leg {
+  color: var(--ink-900);
+  font-weight: 700;
+}
+.rec-topic {
+  display: inline-block;
+  background: var(--navy-800);
+  color: #fff;
+  padding: 2px 9px;
+  border-radius: 3px;
+  font-size: 11px;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  font-weight: 700;
+}
+.rec-district {
+  display: inline-block;
+  border: 1px solid var(--line);
+  background: var(--paper);
+  color: var(--ink-600);
+  padding: 1px 7px;
+  border-radius: 3px;
+  font-size: 11px;
+}
+
+/* =========================================================================
+   Sourcing: official record above, additional reporting below
+   -------------------------------------------------------------------------
+   The policy is that every item is anchored to the county's own record.
+   Journalism sits underneath it, attributed to its outlet, never in place of
+   it -- and an item missing its official record says so out loud rather than
+   quietly showing a news link as though it were the primary source.
+   ========================================================================= */
+.sources {
+  margin-top: 12px;
+  border-top: 1px dashed var(--line);
+  padding-top: 12px;
+  font-size: 14px;
+}
+.source-group + .source-group { margin-top: 10px; }
+.source-group > .label {
+  font-family: var(--font-mono);
+  font-size: 11px;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: var(--ink-400);
+  display: block;
+  margin-bottom: 5px;
+  font-weight: 700;
+}
+.source-group.official > .label { color: var(--green-700); }
+.source-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px 16px;
+}
+.source-list li { margin: 0; }
+.source-list .outlet {
+  color: var(--ink-400);
+  font-family: var(--font-mono);
+  font-size: 11px;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  margin-right: 5px;
+}
+.source-missing {
+  color: var(--red-600);
+  font-style: italic;
+  font-size: 13px;
+}
+
+/* =========================================================================
+   Meeting Tracker filters
+   -------------------------------------------------------------------------
+   Not sticky on purpose: .site-header is sticky and animates its own height
+   as the newsletter bar collapses, so any fixed top offset here would drift.
+   ========================================================================= */
+.filter-bar {
+  background: var(--paper-raised);
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  padding: 18px 20px;
+  margin-bottom: 28px;
+}
+.filter-search {
+  display: flex;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+.filter-search input[type="search"] {
+  flex: 1 1 280px;
+  padding: 12px 14px;
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  font-size: 16px;
+  font-family: inherit;
+  background: var(--paper);
+}
+.filter-search input[type="search"]:focus { border-color: var(--green-700); }
+.filter-group { margin-top: 16px; }
+.filter-group > .label {
+  font-family: var(--font-mono);
+  font-size: 11px;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: var(--ink-400);
+  display: block;
+  margin-bottom: 7px;
+  font-weight: 700;
+}
+.chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+.chip {
+  font-family: var(--font-mono);
+  font-size: 12px;
+  padding: 6px 13px;
+  border-radius: 999px;
+  border: 1px solid var(--line);
+  background: var(--paper);
+  color: var(--ink-600);
+  cursor: pointer;
+  transition: background-color .15s, border-color .15s, color .15s;
+}
+.chip:hover { border-color: var(--green-700); color: var(--green-900); }
+.chip[aria-pressed="true"] {
+  background: var(--green-700);
+  border-color: var(--green-700);
+  color: #fff;
+}
+.filter-selects {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+  margin-top: 16px;
+}
+.filter-selects label {
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+  font-family: var(--font-mono);
+  font-size: 11px;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: var(--ink-400);
+  font-weight: 700;
+}
+.filter-selects select,
+.filter-selects input[type="date"] {
+  padding: 9px 11px;
+  border: 1px solid var(--line);
+  border-radius: var(--radius-sm);
+  background: var(--paper);
+  font-family: inherit;
+  font-size: 15px;
+  text-transform: none;
+  letter-spacing: normal;
+  font-weight: 400;
+  color: var(--ink-900);
+}
+.filter-meta {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  flex-wrap: wrap;
+  margin-top: 16px;
+  padding-top: 14px;
+  border-top: 1px solid var(--line);
+  font-size: 14px;
+  color: var(--ink-600);
+}
+.filter-count strong { color: var(--ink-900); }
+.filter-clear {
+  background: none;
+  border: none;
+  padding: 0;
+  color: var(--green-700);
+  text-decoration: underline;
+  cursor: pointer;
+  font-family: inherit;
+  font-size: 14px;
+}
+.filter-empty {
+  padding: 32px 20px;
+  text-align: center;
+  color: var(--ink-600);
+  background: var(--paper-raised);
+  border: 1px dashed var(--line);
+  border-radius: var(--radius);
+}
+
+/* =========================================================================
+   Roll call
+   -------------------------------------------------------------------------
+   Collapsed by default: thirteen names is a lot of vertical space to spend
+   on every item, and most readers want the tally, not the names.
+   ========================================================================= */
+.rollcall-toggle {
+  margin-top: 10px;
+  background: none;
+  border: 1px solid var(--line);
+  border-radius: 999px;
+  padding: 5px 13px;
+  font-family: var(--font-mono);
+  font-size: 11px;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: var(--ink-600);
+  cursor: pointer;
+}
+.rollcall-toggle:hover { border-color: var(--green-700); color: var(--green-900); }
+.rollcall {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+  gap: 5px;
+  margin-top: 12px;
+}
+.rollcall[hidden] { display: none; }
+.rollcall-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  font-size: 13px;
+  padding: 6px 10px;
+  border-radius: var(--radius-sm);
+  background: var(--paper);
+  border: 1px solid var(--line);
+}
+.rollcall-row .rc-name { color: var(--ink-900); }
+.rollcall-row .rc-name .rc-district {
+  color: var(--ink-400);
+  font-family: var(--font-mono);
+  font-size: 11px;
+  margin-right: 6px;
+}
+.rc-vote {
+  font-family: var(--font-mono);
+  font-size: 10px;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  font-weight: 700;
+  padding: 2px 7px;
+  border-radius: 3px;
+  flex: 0 0 auto;
+}
+.rc-vote.yes { background: rgba(26,125,100,0.14); color: var(--green-700); }
+.rc-vote.no { background: rgba(179,69,44,0.12); color: var(--red-600); }
+.rc-vote.abstain,
+.rc-vote.recused { background: var(--gold-100); color: var(--gold-700); }
+.rc-vote.absent { background: var(--paper); color: var(--ink-400); border: 1px solid var(--line); }
+
+/* =========================================================================
+   Homepage briefing
+   -------------------------------------------------------------------------
+   Replaces the "what this project is" block above the fold. The mission
+   statement moves further down the page; what a returning visitor wants at
+   the top is what changed since they last looked.
+   ========================================================================= */
+.briefing {
+  background: var(--paper-raised);
+  border: 1px solid var(--line);
+  border-left: 5px solid var(--gold-600);
+  border-radius: var(--radius);
+  padding: 22px 24px;
+  box-shadow: var(--shadow-sm);
+}
+.briefing .label {
+  font-family: var(--font-mono);
+  font-size: 11px;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: var(--gold-700);
+  font-weight: 700;
+  display: block;
+  margin-bottom: 10px;
+}
+.briefing-line {
+  font-family: var(--font-display);
+  font-size: clamp(19px, 2.2vw, 25px);
+  line-height: 1.45;
+  color: var(--ink-900);
+  margin: 0;
+}
+.briefing-line .sep { color: var(--gold-600); margin: 0 6px; }
+.briefing-foot {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 10px 18px;
+  margin-top: 18px;
+  padding-top: 14px;
+  border-top: 1px solid var(--line);
+  font-size: 15px;
+  color: var(--ink-600);
+}
+.briefing-next {
+  font-family: var(--font-mono);
+  font-size: 12px;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  background: var(--green-100);
+  color: var(--green-900);
+  padding: 5px 12px;
+  border-radius: 999px;
+  font-weight: 700;
+}
+.briefing-empty { color: var(--ink-600); font-size: 15px; margin: 0; }
+
+/* =========================================================================
+   Homepage district finder
+   -------------------------------------------------------------------------
+   Same geocode + point-in-polygon core as the Get Involved map, without
+   Leaflet: an address in, a personal briefing out.
+   ========================================================================= */
+.hero-finder {
+  background: var(--paper-raised);
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  padding: 22px 24px;
+  box-shadow: var(--shadow-sm);
+  text-align: left;
+}
+.hero-finder h2 {
+  font-size: 21px;
+  margin: 0 0 6px;
+}
+.hero-finder .finder-sub {
+  color: var(--ink-600);
+  font-size: 15px;
+  margin: 0 0 16px;
+}
+.district-panel {
+  margin-top: 18px;
+  padding-top: 18px;
+  border-top: 1px solid var(--line);
+}
+.district-panel[hidden] { display: none; }
+.district-panel-head {
+  display: flex;
+  align-items: baseline;
+  flex-wrap: wrap;
+  gap: 10px;
+  margin-bottom: 16px;
+}
+.district-panel-head .dp-district {
+  font-family: var(--font-mono);
+  font-size: 12px;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  font-weight: 700;
+  background: var(--green-700);
+  color: #fff;
+  padding: 4px 11px;
+  border-radius: 999px;
+}
+.district-panel-head .dp-name {
+  font-family: var(--font-display);
+  font-size: 22px;
+  font-weight: 700;
+  color: var(--ink-900);
+}
+.district-panel-grid {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 16px;
+}
+@media (min-width: 720px) {
+  .district-panel-grid { grid-template-columns: 1fr 1fr; }
+}
+.dp-block > .label {
+  font-family: var(--font-mono);
+  font-size: 11px;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: var(--ink-400);
+  font-weight: 700;
+  display: block;
+  margin-bottom: 6px;
+}
+.dp-block p { margin: 0; font-size: 15px; color: var(--ink-600); }
+.dp-votes { list-style: none; margin: 0; padding: 0; }
+.dp-votes li {
+  padding: 7px 0;
+  border-bottom: 1px solid var(--line);
+  font-size: 14px;
+}
+.dp-votes li:last-child { border-bottom: none; }
+.dp-votes .dp-vote-meta {
+  font-family: var(--font-mono);
+  font-size: 11px;
+  color: var(--ink-400);
+  display: block;
+  margin-top: 2px;
+}
+.dp-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  margin-top: 18px;
+  padding-top: 16px;
+  border-top: 1px solid var(--line);
+}
+
+/* =========================================================================
+   Subscription preferences
+   ========================================================================= */
+.pref-fieldset {
+  border: none;
+  padding: 0;
+  margin: 0 0 18px;
+}
+.pref-fieldset legend {
+  font-family: var(--font-mono);
+  font-size: 11px;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: var(--ink-400);
+  font-weight: 700;
+  padding: 0;
+  margin-bottom: 8px;
+}
+.pref-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+  gap: 8px;
+}
+.pref-check {
+  display: flex;
+  align-items: center;
+  gap: 9px;
+  padding: 9px 11px;
+  border: 1px solid var(--line);
+  border-radius: var(--radius-sm);
+  background: var(--paper-raised);
+  cursor: pointer;
+  font-size: 14px;
+  color: var(--ink-900);
+}
+.pref-check:hover { border-color: var(--green-700); }
+.pref-check input { accent-color: var(--green-700); margin: 0; }
+.pref-check:has(input:checked) {
+  border-color: var(--green-700);
+  background: var(--green-100);
+}
+.pref-check:has(input:focus-visible) { outline: 2px solid var(--gold-600); outline-offset: 2px; }
+.pref-note {
+  font-size: 14px;
+  color: var(--ink-600);
+  margin: 12px 0 0;
+}
+
+/* =========================================================================
+   Commissioner profile
+   ========================================================================= */
+.profile-head {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 22px;
+  align-items: start;
+}
+@media (min-width: 720px) {
+  .profile-head { grid-template-columns: 180px 1fr; }
+}
+.profile-photo {
+  width: 100%;
+  max-width: 180px;
+  aspect-ratio: 1 / 1;
+  object-fit: cover;
+  border-radius: var(--radius);
+  border: 1px solid var(--line);
+  background: var(--green-100);
+}
+.profile-facts {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+  gap: 14px 24px;
+  margin: 0;
+}
+.profile-facts dt {
+  font-family: var(--font-mono);
+  font-size: 11px;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: var(--ink-400);
+  font-weight: 700;
+  margin-bottom: 3px;
+}
+.profile-facts dd {
+  margin: 0 0 10px;
+  font-size: 15px;
+  color: var(--ink-900);
+}
+.vote-history { list-style: none; margin: 0; padding: 0; }
+.vote-history li {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 14px;
+  padding: 12px 0;
+  border-bottom: 1px solid var(--line);
+}
+.vote-history li:last-child { border-bottom: none; }
+.vote-history .vh-item { flex: 1 1 auto; }
+.vote-history .vh-title { color: var(--ink-900); font-size: 15px; display: block; }
+.vote-history .vh-meta {
+  font-family: var(--font-mono);
+  font-size: 11px;
+  color: var(--ink-400);
+  display: block;
+  margin-top: 3px;
+}
+.vote-summary {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  margin: 0 0 20px;
+}
+.vote-summary .vs-stat {
+  background: var(--paper-raised);
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  padding: 12px 16px;
+  min-width: 96px;
+}
+.vote-summary .vs-num {
+  font-family: var(--font-display);
+  font-size: 26px;
+  font-weight: 700;
+  color: var(--green-900);
+  display: block;
+  line-height: 1.1;
+}
+.vote-summary .vs-label {
+  font-family: var(--font-mono);
+  font-size: 10px;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: var(--ink-400);
+  font-weight: 700;
+}
+
+/* A data section that has nothing in it yet says so plainly, rather than
+   rendering an empty container that reads as a broken page. */
+.data-pending {
+  padding: 20px;
+  background: var(--paper);
+  border: 1px dashed var(--line);
+  border-radius: var(--radius);
+  color: var(--ink-600);
+  font-size: 15px;
+}

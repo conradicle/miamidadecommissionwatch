@@ -21,7 +21,7 @@
 <link rel="icon" type="image/png" sizes="32x32" href="assets/img/favicon-32x32.png">
 <link rel="icon" type="image/png" sizes="16x16" href="assets/img/favicon-16x16.png">
 <link rel="apple-touch-icon" sizes="180x180" href="assets/img/apple-touch-icon.png">
-<link rel="stylesheet" href="css/style.css?v=20260823">
+<link rel="stylesheet" href="css/style.css?v=20260823b">
 </head>
 <body>
 <a class="skip-link" href="#main">Skip to content</a>
@@ -64,7 +64,6 @@
     <a href="meetings.html">Meetings</a>
     <a href="officials.html">Officials</a>
     <a href="elections.html">Elections</a>
-    <a href="cities/">Cities</a>
     <a href="get-involved.html" aria-current="page">Get Involved</a>
     <a href="news.html">Student Editorials</a>
     <a href="about.html">About</a>
@@ -120,7 +119,38 @@
     </div>
   </section>
 
-  <section class="section section-alt" id="local-government">
+  <section class="section section-alt" id="alerts">
+    <div class="wrap">
+      <div class="section-head">
+        <span class="eyebrow">Only what you care about</span>
+        <h2>Get alerts for your district and your issues</h2>
+      </div>
+      <p class="mt-0" style="max-width:65ch; color:var(--ink-600);">The general list sends every agenda and every recap. If that&rsquo;s more than you want, pick the districts and topics you actually follow and we&rsquo;ll only email you when a matching item is on an agenda or gets voted on. Leave everything unticked to keep getting the full digest.</p>
+
+      <form id="alerts-form" style="margin-top:24px; max-width:760px;">
+        <fieldset class="pref-fieldset">
+          <legend>Districts</legend>
+          <div class="pref-grid" id="alerts-districts"></div>
+        </fieldset>
+
+        <fieldset class="pref-fieldset">
+          <legend>Topics</legend>
+          <div class="pref-grid" id="alerts-topics"></div>
+        </fieldset>
+
+        <div class="district-search-form" style="margin-bottom:8px;">
+          <label for="alerts-email" class="mt-0" style="display:block; font-weight:600; margin-bottom:6px; width:100%;">Your email</label>
+          <input type="email" id="alerts-email" name="email" placeholder="you@email.com" required autocomplete="email">
+          <button type="submit" class="btn btn-primary">Get these alerts</button>
+        </div>
+
+        <p class="newsletter-status" id="alerts-status" role="status" aria-live="polite"></p>
+        <p class="pref-note">One email per matching meeting, and an unsubscribe link in every one. We don&rsquo;t sell or share the list &mdash; see <a href="privacy.html">Privacy &amp; Terms</a>.</p>
+      </form>
+    </div>
+  </section>
+
+  <section class="section" id="local-government">
     <div class="wrap">
       <div class="section-head">
         <span class="eyebrow">Take action locally</span>
@@ -167,7 +197,7 @@
     </div>
   </section>
 
-  <section class="section" id="join-us">
+  <section class="section section-alt" id="join-us">
     <div class="wrap">
       <div class="section-head">
         <span class="eyebrow">Join the team</span>
@@ -213,6 +243,12 @@
         </div>
 
         <div class="card">
+          <h3>Start a local chapter</h3>
+          <p>The Board of County Commissioners isn&rsquo;t the only body making decisions where you live &mdash; your city commission meets too, and almost nobody covers it. We&rsquo;ve built the structure for student teams to run city-level Commission Watch pages under the same nonpartisan standards, with an editor reviewing everything before it publishes. No city has an active team yet, so the first one is genuinely first.</p>
+          <p><a href="/cities/">See how city coverage works &#8599;</a></p>
+        </div>
+
+        <div class="card">
           <h3>Not in Miami-Dade? Start your own county's site</h3>
           <p>This project inspired a growing network of independent, student-run sites covering county government across Florida. If you're a student elsewhere in the state and want to build the same kind of coverage for your own county, Florida County Commission Watch has a signup that gets you a working site with no coding required.</p>
           <p><a href="https://flcountycommissionwatch.com" target="_blank" rel="noopener">Start your county's site &#8599;</a></p>
@@ -233,7 +269,6 @@
           <li><a href="meetings.html">Meeting Tracker</a></li>
           <li><a href="officials.html">Officials</a></li>
           <li><a href="elections.html">Elections</a></li>
-          <li><a href="cities/">Cities</a></li>
           <li><a href="get-involved.html">Get Involved</a></li>
           <li><a href="news.html">Student Editorials</a></li>
         </ul>
@@ -279,7 +314,8 @@
 <script src="js/main.js?v=20260820"></script>
 <script src="js/newsletter.js?v=20260820"></script>
 <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" integrity="sha384-cxOPjt7s7Iz04uaHJceBmS+qpjv2JkIHNVcuOrM+YHwZOmJGBXI00mdUXEq65HTH" crossorigin="anonymous"></script>
-<script src="js/find-district.js"></script>
+<script src="js/find-district.js?v=20260823"></script>
+<script src="js/alerts.js?v=20260823"></script>
 <script src="js/translate.js?v=20260820"></script>
 <script src="https://translate.google.com/translate_a/element.js?cb=googleTranslateElementInit"></script>
 </body>
