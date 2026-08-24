@@ -29,21 +29,19 @@
 -- junk from arbitrary domains, which is what the scanner used.
 --
 -- Note this narrows who may submit through the form to MDCPS public and
--- charter students. submit-editorial.html, privacy.html, and faq.html have
--- been updated in the same change to route private- and home-school students
--- to contact@miamidadecommissionwatch.com instead, so the site no longer
--- invites people the form will reject.
+-- charter students. submit-editorial.html and faq.html were updated in the
+-- same change to route private- and home-school students to
+-- contact@miamidadecommissionwatch.com instead, so the site no longer
+-- invites people the form will reject. privacy.html needed no change: it
+-- describes what is collected and says we verify Miami-Dade enrollment,
+-- both still true.
 --
--- Added NOT VALID on purpose: the six scanner rows violate this constraint
--- and are deliberately left in place as a record of what was attempted. The
--- constraint is enforced on every new and updated row regardless. Once
--- you're done with them:
---
---   delete from public.editorial_submissions
---    where status = 'rejected'
---      and school_email !~* '^[^@[:space:]]+@students\.dadeschools\.net$';
---   alter table public.editorial_submissions
---     validate constraint editorial_submissions_school_email_domain;
+-- Added NOT VALID because the six scanner rows violated this constraint and
+-- were kept for a while as a record of what was attempted. Applied to
+-- production 2026-08-24; those rows have since been deleted and the
+-- constraint validated, so it now holds for every row in the table, not
+-- just new and updated ones. Against a fresh database the NOT VALID can
+-- simply be dropped.
 
 alter table public.editorial_submissions
   add constraint editorial_submissions_school_email_domain
