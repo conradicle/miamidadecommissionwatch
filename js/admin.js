@@ -1285,9 +1285,10 @@
         .then(function (roleRes) {
           var role = roleRes.data && roleRes.data.role;
           var status = roleRes.data && roleRes.data.status;
-          // Staff only. Municipal editing has moved out of this dashboard
-          // while the city section is rebuilt around per-city subdomains; the
-          // per-city roles that replace 'city_editor' land in Stage 3.
+          // Staff only. City owners and their editors hold per-city roles in
+          // city_memberships rather than a site-wide role here, and their own
+          // editing screens are still to come; for now the Cities tab is the
+          // staff view of every city.
           var isStaff = role === 'owner' || role === 'admin';
           if (roleRes.error || !roleRes.data || status !== 'active' || !isStaff) {
             statusEl.textContent = 'Your account isn’t authorized as staff, or your access has been revoked. Contact the site owner if this is unexpected.';
@@ -1306,6 +1307,10 @@
           loadCommissionerRoster().then(initMeetings);
           initNewsletterStats();
           initLinkStats();
+
+          if (typeof window.initAdminCities === 'function') {
+            window.initAdminCities({ userId: currentUserId, role: role, isStaff: isStaff });
+          }
 
           if (currentRole === 'owner') {
             staffTabBtn.style.display = 'inline-block';
