@@ -1,0 +1,134 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>City commission coverage - Miami-Dade Commission Watch</title>
+<meta name="description" content="Student-led coverage of a Miami-Dade city commission - who serves, what they decide, and how to speak at a meeting.">
+<meta name="robots" content="noindex">
+<link rel="icon" type="image/png" sizes="32x32" href="/assets/img/favicon-32x32.png">
+<link rel="icon" type="image/png" sizes="16x16" href="/assets/img/favicon-16x16.png">
+<link rel="apple-touch-icon" sizes="180x180" href="/assets/img/apple-touch-icon.png">
+<!-- One template for every city site. Each city commission is served from its
+     own subdomain (miamibeach.miamidadecommissionwatch.com); js/city-site.js
+     reads the subdomain off location.hostname, looks the city up, and fills in
+     the title, hero, and every section below.
+
+     noindex is deliberate for now: these subdomains carry placeholder content
+     until the database lands in Stage 3, and an indexed placeholder is worse
+     than no page. Remove the robots meta when a city goes live.
+
+     Root-absolute asset paths throughout - a city subdomain serves the same
+     deployment as the root domain, so /css and /js resolve normally. -->
+<link rel="stylesheet" href="/css/style.css?v=20260826">
+</head>
+<body>
+<a class="skip-link" href="#main">Skip to content</a>
+
+<header class="site-header">
+  <div class="wrap">
+    <a class="wordmark" href="/">
+      <span class="mark"><span id="city-wordmark">City</span> <span class="accent">Commission</span> Watch</span>
+      <span class="tagline">Plain Language</span>
+    </a>
+    <div class="header-actions">
+      <div class="lang-toggle" role="group" aria-label="Language">
+        <button type="button" class="lang-btn" data-lang="en">EN</button>
+        <button type="button" class="lang-btn" data-lang="es">ES</button>
+        <button type="button" class="lang-btn" data-lang="ht">HT</button>
+      </div>
+      <button class="nav-toggle" aria-expanded="false" aria-controls="site-nav">Menu</button>
+    </div>
+  </div>
+
+  <nav class="site-nav" id="site-nav" aria-label="Primary">
+    <a href="#main">Home</a>
+    <a href="#officials">Officials</a>
+    <a href="#map">Map</a>
+    <a href="#meetings">Meetings</a>
+    <a href="#comment">Public Comment</a>
+    <a href="https://www.miamidadecommissionwatch.com/">County site &#8599;</a>
+  </nav>
+</header>
+
+<main id="main">
+
+  <section class="hero" style="padding-bottom:24px;">
+    <div class="wrap">
+      <span class="eyebrow" id="city-eyebrow">Municipal coverage</span>
+      <h1 style="max-width:20ch;" id="city-heading">City commission coverage</h1>
+      <p class="lede" id="city-lede">Loading this city&rsquo;s coverage&hellip;</p>
+      <div class="notice" id="city-notice" style="margin-top:20px; display:none;"><p style="margin:0;" id="city-notice-text"></p></div>
+    </div>
+  </section>
+
+  <section class="section" id="whatitdoes">
+    <div class="wrap">
+      <div class="section-head">
+        <span class="eyebrow">The basics</span>
+        <h2>What this commission does</h2>
+      </div>
+      <div id="city-what"></div>
+    </div>
+  </section>
+
+  <section class="section section-alt" id="officials">
+    <div class="wrap">
+      <div class="section-head">
+        <span class="eyebrow">Who holds office</span>
+        <h2>Officials</h2>
+      </div>
+      <p class="mt-0" style="max-width:60ch; color:var(--ink-600);">Who serves on the commission and how to reach them. Contact details are the officials&rsquo; public offices, taken from the city&rsquo;s own directory.</p>
+      <noscript><p>The officials directory needs JavaScript to display.</p></noscript>
+      <div class="roster-grid" id="city-officials"></div>
+    </div>
+  </section>
+
+  <section class="section" id="map">
+    <div class="wrap">
+      <div class="section-head">
+        <span class="eyebrow">Who represents you</span>
+        <h2 id="map-heading">Map</h2>
+      </div>
+      <div id="city-map-intro"></div>
+      <div id="city-map-mount"></div>
+    </div>
+  </section>
+
+  <section class="section section-alt" id="meetings">
+    <div class="wrap">
+      <div class="section-head">
+        <span class="eyebrow">Coverage</span>
+        <h2>Meetings</h2>
+      </div>
+      <p class="mt-0" style="max-width:60ch; color:var(--ink-600);">Plain-language summaries of what the commission discussed and decided, with a link to the record for every claim.</p>
+      <noscript><p>Meeting summaries need JavaScript to display.</p></noscript>
+      <div id="city-meetings"></div>
+    </div>
+  </section>
+
+  <section class="section" id="comment">
+    <div class="wrap">
+      <div class="section-head">
+        <span class="eyebrow">Take part</span>
+        <h2>How to give public comment</h2>
+      </div>
+      <div id="city-comment"></div>
+    </div>
+  </section>
+
+</main>
+
+<footer class="site-footer">
+  <div class="wrap">
+    <div class="footer-disclaimer">
+      <p style="margin-bottom:8px;" id="city-footer-affil">Miami-Dade Commission Watch is an independent, student-run project. It is <strong>not affiliated with, operated by, or endorsed by any municipal government</strong>. All information is sourced from public records; see the city&rsquo;s own site for authoritative agendas and legislation.</p>
+      <p style="margin-bottom:0;">&copy; 2026 Miami-Dade Commission Watch. <a href="https://www.miamidadecommissionwatch.com/" style="color:inherit; opacity:0.7; text-decoration:underline;">County site</a></p>
+    </div>
+  </div>
+</footer>
+
+<script src="/js/main.js?v=20260826"></script>
+<script src="/js/city-site.js?v=20260826"></script>
+</body>
+</html>

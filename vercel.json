@@ -5,29 +5,17 @@
       "destination": "/links.html"
     },
     {
-      "source": "/cities",
-      "destination": "/cities/index.html"
-    },
-    {
-      "source": "/cities/miami-beach",
-      "destination": "/cities/miami-beach.html"
-    },
-    {
-      "source": "/cities/:slug",
-      "destination": "/cities/city.html"
+      "source": "/(.*)",
+      "has": [
+        {
+          "type": "host",
+          "value": "^(?!www\\.)(?<city>[a-z0-9-]+)\\.miamidadecommissionwatch\\.com$"
+        }
+      ],
+      "destination": "/city/index.html"
     }
   ],
   "redirects": [
-    {
-      "source": "/cities/index",
-      "destination": "/cities/",
-      "permanent": true
-    },
-    {
-      "source": "/cities/city",
-      "destination": "/cities/",
-      "permanent": true
-    },
     {
       "source": "/find-my-district.html",
       "destination": "/get-involved.html#find-district",
