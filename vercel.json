@@ -13,6 +13,10 @@
         }
       ],
       "destination": "/city/index.html"
+    },
+    {
+      "source": "/",
+      "destination": "/home.html"
     }
   ],
   "redirects": [
