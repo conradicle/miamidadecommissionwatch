@@ -47,7 +47,13 @@
         statusEl.textContent = 'Password set. Redirecting...';
         statusEl.className = 'district-status success';
         setTimeout(function () {
-          window.location.href = 'admin.html';
+          // A city owner arriving from an approval email belongs on the city
+          // dashboard, not the staff one.
+          if (typeof window.routeAfterLogin === 'function') {
+            window.routeAfterLogin(statusEl);
+          } else {
+            window.location.href = 'admin.html';
+          }
         }, 1000);
       });
     });

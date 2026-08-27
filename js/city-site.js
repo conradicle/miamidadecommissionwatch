@@ -279,7 +279,7 @@
 
     window.supabaseClient
       .from('cities')
-      .select('id, slug, name, body_name, governance, status, website, next_meeting_at, next_meeting_note, comment_guide')
+      .select('id, slug, name, body_name, governance, status, website, next_meeting_at, next_meeting_note, comment_guide, boundary_geojson')
       .eq('slug', slug)
       .maybeSingle()
       .then(function (res) {

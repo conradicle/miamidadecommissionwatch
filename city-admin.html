@@ -1,0 +1,315 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Your city - Miami-Dade Commission Watch</title>
+<meta name="robots" content="noindex, nofollow">
+<link rel="icon" type="image/png" sizes="32x32" href="/assets/img/favicon-32x32.png">
+<link rel="icon" type="image/png" sizes="16x16" href="/assets/img/favicon-16x16.png">
+<link rel="apple-touch-icon" sizes="180x180" href="/assets/img/apple-touch-icon.png">
+<!-- The city team's dashboard. Deliberately a separate page from admin.html
+     rather than a mode of it: admin.html holds the county editorial queue, the
+     newsletter and the staff roster, and none of that should be one CSS rule
+     away from a student's screen. Nothing on this page can reach county
+     content, and Row Level Security would refuse it even if it tried.
+
+     Editing lives on the root domain, not on the city's own subdomain,
+     because a Supabase session is stored per origin -- one login here beats a
+     separate login per city. -->
+<link rel="stylesheet" href="/css/style.css?v=20260826">
+<style>
+  .city-bar { display: flex; justify-content: space-between; align-items: flex-end; gap: 16px; flex-wrap: wrap; padding: 16px 20px; background: var(--paper-raised); border: 1px solid var(--line); border-radius: var(--radius); margin-bottom: 20px; }
+  .city-bar-main { display: flex; align-items: flex-end; gap: 14px; flex-wrap: wrap; }
+  .city-bar-main select { width: auto; min-width: 200px; margin: 0; }
+  .city-bar-label { font-family: var(--font-mono); font-size: 12px; color: var(--ink-600); display: block; margin-bottom: 4px; }
+  .city-bar-actions { display: flex; align-items: center; gap: 14px; }
+
+  .city-nav { display: flex; gap: 2px; flex-wrap: wrap; border-bottom: 1px solid var(--line); margin-bottom: 22px; }
+  .city-nav-btn { padding: 9px 15px; font-size: 14px; font-weight: 600; background: none; border: none; border-bottom: 2px solid transparent; color: var(--ink-600); cursor: pointer; }
+  .city-nav-btn.active { color: var(--green-700); border-bottom-color: var(--green-700); }
+  .city-nav-btn .count { font-family: var(--font-mono); font-size: 11px; color: var(--ink-400); margin-left: 6px; }
+
+  .ac-row { display: flex; justify-content: space-between; align-items: flex-start; gap: 14px; padding: 14px 0; border-bottom: 1px solid var(--line); flex-wrap: wrap; }
+  .ac-row-main { flex: 1; min-width: 220px; }
+  .ac-row h4 { margin: 0 0 4px; font-size: 15px; }
+  .ac-row .ac-meta { font-family: var(--font-mono); font-size: 12px; color: var(--ink-600); }
+  .ac-badge { display: inline-block; font-family: var(--font-mono); font-size: 11px; padding: 2px 8px; border-radius: 999px; margin-left: 8px; }
+  .ac-badge-draft { background: var(--green-100); color: var(--ink-600); }
+  .ac-badge-published { background: rgba(26,125,100,0.14); color: var(--green-700); }
+
+  .admin-form { background: var(--paper-raised); border: 1px solid var(--line); border-radius: var(--radius); padding: 24px; margin-bottom: 28px; }
+  .field-row { display: flex; gap: 16px; flex-wrap: wrap; }
+  .field-row .field { flex: 1; min-width: 180px; }
+  .submission-actions { display: flex; gap: 10px; flex-wrap: wrap; }
+  .btn-small { padding: 8px 16px; font-size: 14px; }
+  .btn-danger { background: var(--red-600); color: #fff; }
+  .btn-danger:hover { background: #8a341f; color: #fff; }
+
+  /* Hidden for an editor. The DB refuses these writes regardless -- see the
+     triggers in migration_17 -- so this is tidiness, not the control. */
+  body:not(.is-city-owner) .owner-only { display: none !important; }
+</style>
+</head>
+<body>
+<a class="skip-link" href="#main">Skip to content</a>
+
+<header class="site-header">
+  <div class="wrap">
+    <a class="wordmark" href="/">
+      <span class="mark">Miami-Dade <span class="accent">Commission</span> Watch</span>
+      <span class="tagline">City dashboard</span>
+    </a>
+    <div class="header-actions">
+      <button type="button" class="btn btn-secondary btn-small" id="logout-btn" style="display:none;">Log out</button>
+    </div>
+  </div>
+</header>
+
+<main id="main">
+  <section class="section">
+    <div class="wrap">
+      <div class="section-head">
+        <span class="eyebrow">Your city</span>
+        <h1 id="ca-title">City dashboard</h1>
+      </div>
+
+      <div id="ca-status" class="district-status"></div>
+
+      <div id="ca-shell" style="display:none;">
+        <div class="city-bar">
+          <div class="city-bar-main">
+            <div>
+              <label class="city-bar-label" for="ca-city-select">City</label>
+              <select id="ca-city-select"></select>
+            </div>
+            <span class="city-bar-label" id="ca-role-label"></span>
+          </div>
+          <div class="city-bar-actions">
+            <a id="ca-public-link" href="#" target="_blank" rel="noopener">View live site &#8599;</a>
+          </div>
+        </div>
+
+        <div class="notice" id="ca-editor-hint" style="display:none; margin-bottom:20px;">
+          You&rsquo;re an editor on this city. What you save stays a <strong>draft</strong> until the
+          city&rsquo;s owner publishes it &mdash; the database enforces that, so there&rsquo;s no way to
+          publish by accident.
+        </div>
+
+        <div class="city-nav" id="ca-nav">
+          <button type="button" class="city-nav-btn active" data-view="officials">Officials <span class="count" id="ca-count-officials"></span></button>
+          <button type="button" class="city-nav-btn" data-view="meetings">Meetings <span class="count" id="ca-count-meetings"></span></button>
+          <button type="button" class="city-nav-btn owner-only" data-view="about">About &amp; comment</button>
+          <button type="button" class="city-nav-btn owner-only" data-view="map">Map boundaries</button>
+          <button type="button" class="city-nav-btn owner-only" data-view="team">Team <span class="count" id="ca-count-team"></span></button>
+        </div>
+
+        <!-- Officials -->
+        <div class="city-view" id="ca-view-officials">
+          <form class="admin-form" id="ca-official-form">
+            <h3 style="margin:0 0 14px;" id="ca-official-form-title">Add a commissioner</h3>
+            <input type="hidden" id="ca-official-id">
+            <div class="field-row">
+              <div class="field">
+                <label for="ca-official-name">Name</label>
+                <input type="text" id="ca-official-name" required>
+              </div>
+              <div class="field">
+                <label for="ca-official-seat">Seat</label>
+                <input type="text" id="ca-official-seat" required placeholder="Commissioner">
+              </div>
+            </div>
+            <div class="field-row">
+              <div class="field">
+                <label for="ca-official-seat-type">Seat type</label>
+                <select id="ca-official-seat-type">
+                  <option value="at-large">At large</option>
+                  <option value="district">District</option>
+                  <option value="mayor">Mayor</option>
+                  <option value="appointed">Appointed</option>
+                </select>
+              </div>
+              <div class="field" id="ca-official-district-field" style="display:none;">
+                <label for="ca-official-district">District number</label>
+                <input type="number" id="ca-official-district" min="1">
+              </div>
+              <div class="field">
+                <label for="ca-official-term">Term ends</label>
+                <input type="text" id="ca-official-term" placeholder="November 2027">
+              </div>
+            </div>
+            <div class="field-row">
+              <div class="field">
+                <label for="ca-official-email">Office email</label>
+                <input type="email" id="ca-official-email" placeholder="office@city.gov">
+              </div>
+              <div class="field">
+                <label for="ca-official-url">Official profile page</label>
+                <input type="url" id="ca-official-url" placeholder="https://">
+              </div>
+            </div>
+            <div class="field-row">
+              <div class="field">
+                <label for="ca-official-photo">Photo URL</label>
+                <input type="url" id="ca-official-photo" placeholder="https://">
+              </div>
+              <div class="field">
+                <label for="ca-official-order">Order on the page</label>
+                <input type="number" id="ca-official-order" value="0">
+              </div>
+            </div>
+            <p style="font-size:13px; color:var(--ink-600); max-width:64ch;">
+              Use the official&rsquo;s <strong>office</strong> contact details, from the city&rsquo;s own
+              directory &mdash; never a personal address or phone number.
+            </p>
+            <div class="field owner-only">
+              <label><input type="checkbox" id="ca-official-published"> Show on the public site</label>
+            </div>
+            <div class="submission-actions">
+              <button type="submit" class="btn btn-primary btn-small">Save</button>
+              <button type="button" class="btn btn-secondary btn-small" id="ca-official-reset">Clear form</button>
+            </div>
+          </form>
+          <div id="ca-officials-list"></div>
+        </div>
+
+        <!-- Meetings -->
+        <div class="city-view" id="ca-view-meetings" style="display:none;">
+          <form class="admin-form" id="ca-meeting-form">
+            <h3 style="margin:0 0 14px;" id="ca-meeting-form-title">Add a meeting</h3>
+            <input type="hidden" id="ca-meeting-id">
+            <div class="field-row">
+              <div class="field">
+                <label for="ca-meeting-date">Date</label>
+                <input type="date" id="ca-meeting-date" required>
+              </div>
+              <div class="field">
+                <label for="ca-meeting-title">Title</label>
+                <input type="text" id="ca-meeting-title" required value="Regular Meeting">
+              </div>
+            </div>
+            <div class="field-row">
+              <div class="field">
+                <label for="ca-meeting-agenda">Agenda link</label>
+                <input type="url" id="ca-meeting-agenda" placeholder="https://">
+              </div>
+              <div class="field">
+                <label for="ca-meeting-video">Video link</label>
+                <input type="url" id="ca-meeting-video" placeholder="https://">
+              </div>
+            </div>
+            <div class="field">
+              <label for="ca-meeting-summary">What happened</label>
+              <textarea id="ca-meeting-summary" rows="6"
+                placeholder="What the commission decided, in plain language. Link the record for every claim."></textarea>
+            </div>
+            <div class="field owner-only">
+              <label><input type="checkbox" id="ca-meeting-published"> Show on the public site</label>
+            </div>
+            <div class="submission-actions">
+              <button type="submit" class="btn btn-primary btn-small">Save</button>
+              <button type="button" class="btn btn-secondary btn-small" id="ca-meeting-reset">Clear form</button>
+            </div>
+          </form>
+          <div id="ca-meetings-list"></div>
+        </div>
+
+        <!-- About & public comment -->
+        <div class="city-view owner-only" id="ca-view-about" style="display:none;">
+          <form class="admin-form" id="ca-about-form">
+            <h3 style="margin:0 0 14px;">About your commission</h3>
+            <div class="field-row">
+              <div class="field">
+                <label for="ca-body">What the governing body is called</label>
+                <input type="text" id="ca-body" placeholder="Coral Gables City Commission">
+              </div>
+              <div class="field">
+                <label for="ca-website">Official city website</label>
+                <input type="url" id="ca-website" placeholder="https://">
+              </div>
+            </div>
+            <div class="field-row">
+              <div class="field">
+                <label for="ca-next-meeting">Next meeting</label>
+                <input type="datetime-local" id="ca-next-meeting">
+              </div>
+              <div class="field">
+                <label for="ca-next-note">Where / any note</label>
+                <input type="text" id="ca-next-note" placeholder="City Hall, 2nd floor chambers">
+              </div>
+            </div>
+            <div class="field">
+              <label for="ca-comment-guide">How to give public comment</label>
+              <textarea id="ca-comment-guide" rows="8"
+                placeholder="When to arrive, where to sign up, how long you get to speak, whether you can send written comment instead."></textarea>
+            </div>
+            <div class="submission-actions">
+              <button type="submit" class="btn btn-primary btn-small">Save</button>
+            </div>
+          </form>
+        </div>
+
+        <!-- Map boundaries -->
+        <div class="city-view owner-only" id="ca-view-map" style="display:none;">
+          <div class="admin-form">
+            <h3 style="margin:0 0 8px;">Map boundaries</h3>
+            <p id="ca-map-explainer" style="max-width:66ch; color:var(--ink-600);"></p>
+
+            <div class="field">
+              <label for="ca-boundary-file">Upload a .geojson file</label>
+              <input type="file" id="ca-boundary-file" accept=".geojson,.json,application/geo+json,application/json">
+            </div>
+            <div class="field">
+              <label for="ca-boundary-text">&hellip;or paste the GeoJSON</label>
+              <textarea id="ca-boundary-text" rows="8" spellcheck="false"
+                style="font-family:var(--font-mono); font-size:12px;"
+                placeholder='{"type":"FeatureCollection","features":[ ... ]}'></textarea>
+            </div>
+            <p class="district-status" id="ca-boundary-status" role="status" aria-live="polite"></p>
+            <div class="submission-actions">
+              <button type="button" class="btn btn-primary btn-small" id="ca-boundary-save">Save boundaries</button>
+              <button type="button" class="btn btn-danger btn-small" id="ca-boundary-clear">Remove boundaries</button>
+            </div>
+          </div>
+        </div>
+
+        <!-- Team -->
+        <div class="city-view owner-only" id="ca-view-team" style="display:none;">
+          <form class="admin-form" id="ca-invite-form">
+            <h3 style="margin:0 0 8px;">Invite a volunteer</h3>
+            <p style="max-width:66ch; color:var(--ink-600);">
+              They&rsquo;ll be able to write drafts for this city and nothing else. Only you can
+              publish, and only you can invite or remove people.
+            </p>
+            <div class="field-row">
+              <div class="field">
+                <label for="ca-invite-email">Their email</label>
+                <input type="email" id="ca-invite-email" required placeholder="student@school.edu">
+              </div>
+            </div>
+            <div class="submission-actions">
+              <button type="submit" class="btn btn-primary btn-small">Send invite</button>
+            </div>
+            <p class="district-status" id="ca-invite-status" role="status" aria-live="polite"></p>
+          </form>
+          <div id="ca-team-list"></div>
+        </div>
+      </div>
+    </div>
+  </section>
+</main>
+
+<footer class="site-footer">
+  <div class="wrap">
+    <div class="footer-disclaimer">
+      <p style="margin-bottom:0;">&copy; 2026 Miami-Dade Commission Watch. <a href="/" style="color:inherit; opacity:0.7; text-decoration:underline;">County site</a></p>
+    </div>
+  </div>
+</footer>
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.112.3" integrity="sha384-l8ah+VgaWtk1mvOe9VC+OirC6qHFF4yH7l7mKRidV9MSti3E9F463bMp6ZVN4kuC" crossorigin="anonymous"></script>
+<script src="/js/supabase-client.js"></script>
+<script src="/js/main.js?v=20260826"></script>
+<script src="/js/city-admin.js?v=20260826"></script>
+</body>
+</html>

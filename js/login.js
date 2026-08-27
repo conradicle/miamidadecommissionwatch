@@ -4,12 +4,10 @@
     var statusEl = document.getElementById('login-status');
     if (!form) return;
 
-    // If already logged in, skip straight to the admin page.
-    supabaseClient.auth.getSession().then(function (res) {
-      if (res.data && res.data.session) {
-        window.location.href = 'admin.html';
-      }
-    });
+    // If already logged in, skip straight to whichever dashboard is theirs.
+    if (typeof window.routeAfterLogin === 'function') {
+      window.routeAfterLogin(statusEl);
+    }
 
     form.addEventListener('submit', function (e) {
       e.preventDefault();
@@ -26,7 +24,7 @@
             statusEl.className = 'district-status error';
             return;
           }
-          window.location.href = 'admin.html';
+          window.routeAfterLogin(statusEl);
         })
         .catch(function () {
           statusEl.textContent = 'Something went wrong. Please try again.';

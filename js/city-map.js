@@ -243,11 +243,19 @@
     if (typeof L === 'undefined' || !el('city-map')) return;
     officials = officials || [];
 
-    fetch('/assets/data/cities/' + encodeURIComponent(city.slug) + '.geojson')
-      .then(function (res) {
-        if (!res.ok) throw new Error('no boundary file');
-        return res.json();
-      })
+    // A boundary uploaded by the city team wins over one committed to the
+    // repo: the team is closer to the source, and it means they can fix their
+    // own map without waiting for a deploy.
+    var fromDatabase = city.boundary_geojson;
+    var source = fromDatabase
+      ? Promise.resolve(fromDatabase)
+      : fetch('/assets/data/cities/' + encodeURIComponent(city.slug) + '.geojson')
+          .then(function (res) {
+            if (!res.ok) throw new Error('no boundary file');
+            return res.json();
+          });
+
+    source
       .then(function (geojson) {
         if (!geojson || !geojson.features || !geojson.features.length) {
           throw new Error('empty boundary file');
