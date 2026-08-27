@@ -227,13 +227,11 @@
         'Every member of the ' + escapeHtml(city.body_name || 'city commission') + ' is elected citywide, ' +
         'which means <strong>every resident is represented by all of them</strong> — there is no single ' +
         'commissioner assigned to your address, and you may contact any of them.</p>');
-      setHtml('city-map-mount', emptyState('City boundary outline not loaded yet.'));
     } else {
       setText('map-heading', 'Find your district');
       setHtml('city-map-intro',
         '<p style="max-width:66ch;">' + escapeHtml(city.name) + ' elects commissioners from single-member ' +
         'districts. Enter your address to find which district you live in and who represents it.</p>');
-      setHtml('city-map-mount', emptyState('District boundaries not loaded yet.'));
     }
   }
 
@@ -311,8 +309,16 @@
             .order('meeting_date', { ascending: false })
             .limit(20)
         ]).then(function (results) {
-          renderOfficials(city, (results[0] && results[0].data) || []);
+          var roster = (results[0] && results[0].data) || [];
+          renderOfficials(city, roster);
           renderMeetings((results[1] && results[1].data) || []);
+
+          // The map is drawn last because district mode names the
+          // commissioner for whichever district an address falls in, which
+          // needs the roster that just arrived.
+          if (typeof window.initCityMap === 'function') {
+            window.initCityMap(city, roster);
+          }
         });
       })
       .catch(function () { renderError(); });

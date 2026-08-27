@@ -112,6 +112,7 @@
         <button type="button" class="admin-tab" data-tab="newsletter">Newsletter</button>
         <button type="button" class="admin-tab" data-tab="links">Links page</button>
         <button type="button" class="admin-tab" data-tab="cities">Cities</button>
+        <button type="button" class="admin-tab" data-tab="claims">Claims <span class="count" id="claims-count"></span></button>
         <button type="button" class="admin-tab" data-tab="staff" id="staff-tab-btn" style="display:none;">Staff</button>
       </div>
 
@@ -407,6 +408,20 @@
         </div>
       </div>
 
+      <div class="admin-panel" id="panel-claims" style="display:none;">
+        <div class="notice" style="margin-bottom:20px;">
+          Approving a claim creates the city, makes the requester its owner, and emails them a
+          login link. They publish their own city from then on &mdash; you are not in the loop
+          for each post. Suspending the city is the way back.
+        </div>
+        <div class="city-nav" id="claims-nav">
+          <button type="button" class="city-nav-btn active" data-claims="pending">Pending</button>
+          <button type="button" class="city-nav-btn" data-claims="decided">Decided</button>
+        </div>
+        <div id="claims-status" class="district-status"></div>
+        <div id="claims-list"></div>
+      </div>
+
       <div class="admin-panel" id="panel-staff" style="display:none;">
         <div class="notice" style="margin-bottom:24px;">Only the owner can see this tab. Role and access changes here take effect immediately.</div>
 
@@ -435,7 +450,8 @@
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.112.3" integrity="sha384-l8ah+VgaWtk1mvOe9VC+OirC6qHFF4yH7l7mKRidV9MSti3E9F463bMp6ZVN4kuC" crossorigin="anonymous"></script>
 <script src="js/supabase-client.js"></script>
 <script src="js/main.js?v=20260820"></script>
-<script src="js/admin-cities.js?v=20260826"></script>
-<script src="js/admin.js?v=20260826b"></script>
+<script src="js/admin-cities.js?v=20260826b"></script>
+<script src="js/admin-claims.js?v=20260826"></script>
+<script src="js/admin.js?v=20260826c"></script>
 </body>
 </html>

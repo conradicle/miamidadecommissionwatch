@@ -481,4 +481,10 @@
     showView('settings');
     loadCities();
   };
+
+  // Approving a claim creates a city, so the Claims tab calls this to pull the
+  // new one into the dropdown without a page reload.
+  window.reloadAdminCities = function () {
+    if (el('panel-cities')) loadCities();
+  };
 })();
