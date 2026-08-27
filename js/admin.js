@@ -1311,6 +1311,9 @@
           if (typeof window.initAdminCities === 'function') {
             window.initAdminCities({ userId: currentUserId, role: role, isStaff: isStaff });
           }
+          if (typeof window.initAdminClaims === 'function') {
+            window.initAdminClaims({ userId: currentUserId, role: role, isStaff: isStaff });
+          }
 
           if (currentRole === 'owner') {
             staffTabBtn.style.display = 'inline-block';
