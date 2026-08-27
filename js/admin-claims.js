@@ -6,8 +6,8 @@
 //
 // Deciding is NOT done from here. Approving has to create a login, write a
 // membership, flip the city live and send mail, which needs the service role;
-// that all lives in /api/decide-claim. This file collects the decision and
-// posts it.
+// that all lives behind /api/city-platform. This file collects the decision
+// and posts it.
 (function () {
   var ctx = null;
   var claims = [];
@@ -151,13 +151,14 @@
         return;
       }
 
-      return fetch('/api/decide-claim', {
+      return fetch('/api/city-platform', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
           Authorization: 'Bearer ' + token
         },
         body: JSON.stringify({
+          op: 'decide_claim',
           claim_id: claimId,
           action: action,
           governance: governance || undefined,
