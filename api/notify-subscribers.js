@@ -2,6 +2,8 @@
 // (before the vote) or its recap (after). Needs the Supabase service role
 // key and the Resend API key, so this is server-only; verifies the caller
 // is active staff before doing anything, same pattern as admin-invite.js.
+var prefsLib = require("./_prefs");
+
 module.exports = async function handler(req, res) {
   if (req.method !== 'POST') {
     res.status(405).json({ error: 'Method not allowed' });
@@ -67,15 +69,44 @@ module.exports = async function handler(req, res) {
     }
 
     var subsRes = await fetch(
-      SUPABASE_URL + '/rest/v1/subscribers?status=eq.subscribed&select=email,unsubscribe_token',
+      SUPABASE_URL + '/rest/v1/subscribers?status=eq.subscribed&select=email,unsubscribe_token,all_meetings,districts,topics',
       { headers: { Authorization: 'Bearer ' + SERVICE_ROLE_KEY, apikey: SERVICE_ROLE_KEY } }
     );
     var subscribers = await subsRes.json();
+
+    // Pre-migration_14 the preference columns don't exist and the select
+    // above 400s. Fall back to the original column list: everyone gets the
+    // mail, which is exactly the old behaviour.
+    if (!subsRes.ok || !Array.isArray(subscribers)) {
+      var legacyRes = await fetch(
+        SUPABASE_URL + '/rest/v1/subscribers?status=eq.subscribed&select=email,unsubscribe_token',
+        { headers: { Authorization: 'Bearer ' + SERVICE_ROLE_KEY, apikey: SERVICE_ROLE_KEY } }
+      );
+      subscribers = await legacyRes.json();
+    }
     if (!Array.isArray(subscribers)) subscribers = [];
 
+    var totalSubscribers = subscribers.length;
+
+    // Only mail people whose districts or topics this meeting actually
+    // touches. Anyone on all_meetings (the default, and every pre-existing
+    // subscriber) still gets everything.
+    subscribers = subscribers.filter(function (sub) {
+      return prefsLib.meetingMatchesSubscriber(meeting, sub);
+    });
+
     if (subscribers.length === 0) {
-      await markSent(SUPABASE_URL, SERVICE_ROLE_KEY, meetingId, kind);
-      res.status(200).json({ ok: true, sent: 0 });
+      // Nobody matched. Do NOT mark the meeting as sent: an editor who later
+      // tags items with topics and districts should be able to send it for
+      // real, and a "sent" timestamp here would hide that it never went out.
+      res.status(200).json({
+        ok: true,
+        sent: 0,
+        skipped: totalSubscribers,
+        note: totalSubscribers > 0
+          ? 'No subscriber\'s district or topic preferences match any item on this meeting. Tag the items and try again.'
+          : 'There are no active subscribers.'
+      });
       return;
     }
 
@@ -114,7 +145,7 @@ module.exports = async function handler(req, res) {
 
     await markSent(SUPABASE_URL, SERVICE_ROLE_KEY, meetingId, kind);
 
-    res.status(200).json({ ok: true, sent: subscribers.length });
+    res.status(200).json({ ok: true, sent: subscribers.length, skipped: totalSubscribers - subscribers.length });
   } catch (err) {
     res.status(500).json({ error: 'Unexpected error sending subscriber emails' });
   }
@@ -256,13 +287,19 @@ function buildRecapEmail(meeting) {
   };
 }
 
+// Every email offers narrowing before it offers leaving: someone getting mail
+// about districts they don't live in should find "choose what you get" at
+// least as easily as "unsubscribe".
 function unsubscribeFooterHtml(unsubscribeToken) {
   var url = 'https://www.miamidadecommissionwatch.com/api/newsletter-unsubscribe?token=' + unsubscribeToken;
+  var manage = 'https://www.miamidadecommissionwatch.com/manage-subscription.html?token=' + unsubscribeToken;
   return '<div style="max-width:560px;margin:0 auto;padding:16px 24px;border-top:1px solid #ddd;font-family:Arial,sans-serif;font-size:12px;color:#666;">' +
-    'Miami-Dade Commission Watch &middot; <a href="' + url + '" style="color:#666;">Unsubscribe</a>' +
+    'Miami-Dade Commission Watch &middot; <a href="' + manage + '" style="color:#666;">Choose what you get</a>' +
+    ' &middot; <a href="' + url + '" style="color:#666;">Unsubscribe</a>' +
   '</div>';
 }
 
 function unsubscribeFooterText(unsubscribeToken) {
-  return '\n\nUnsubscribe: https://www.miamidadecommissionwatch.com/api/newsletter-unsubscribe?token=' + unsubscribeToken;
+  return '\n\nChoose which districts and topics you hear about: https://www.miamidadecommissionwatch.com/manage-subscription.html?token=' + unsubscribeToken +
+    '\n\nUnsubscribe: https://www.miamidadecommissionwatch.com/api/newsletter-unsubscribe?token=' + unsubscribeToken;
 }

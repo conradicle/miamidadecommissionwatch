@@ -2,6 +2,8 @@
 // server-side (rather than a direct client insert) so the Resend API key
 // never reaches the browser, and so the subscriber table can stay closed to
 // the public anon key entirely -- see supabase/migration_4_newsletter.sql.
+var prefsLib = require("./_prefs");
+
 module.exports = async function handler(req, res) {
   if (req.method !== 'POST') {
     res.status(405).json({ error: 'Method not allowed' });
@@ -22,6 +24,16 @@ module.exports = async function handler(req, res) {
     return;
   }
 
+  // Optional district/topic scoping. Validated here as well as by the check
+  // constraints in migration_14 -- a constraint violation would surface to the
+  // subscriber as a generic "could not save", which is a poor way to say
+  // "district 27 doesn't exist".
+  var prefs = prefsLib.parsePreferences(req.body);
+  if (prefs.error) {
+    res.status(400).json({ error: prefs.error });
+    return;
+  }
+
   try {
     var ip = clientIp(req);
     var allowed = await checkRateLimit(SUPABASE_URL, SERVICE_ROLE_KEY, 'newsletter-subscribe:' + ip, 5, 600);
@@ -38,9 +50,23 @@ module.exports = async function handler(req, res) {
     var existing = existingRows && existingRows[0];
 
     if (existing && existing.status === 'subscribed') {
-      // Already on the list -- respond the same as a fresh signup would,
-      // without sending a second welcome email.
-      res.status(200).json({ ok: true });
+      // Already on the list. If they picked preferences this time, apply them
+      // -- someone re-submitting the form with "District 5" selected means to
+      // narrow what they get, not to be silently ignored. Still no second
+      // welcome email.
+      if (prefs.provided) {
+        await fetch(SUPABASE_URL + '/rest/v1/subscribers?id=eq.' + existing.id, {
+          method: 'PATCH',
+          headers: {
+            Authorization: 'Bearer ' + SERVICE_ROLE_KEY,
+            apikey: SERVICE_ROLE_KEY,
+            'Content-Type': 'application/json',
+            Prefer: 'return=minimal'
+          },
+          body: JSON.stringify(prefs.values)
+        });
+      }
+      res.status(200).json({ ok: true, alreadySubscribed: true });
       return;
     }
 
@@ -56,7 +82,7 @@ module.exports = async function handler(req, res) {
           'Content-Type': 'application/json',
           Prefer: 'return=minimal'
         },
-        body: JSON.stringify({ status: 'subscribed', unsubscribed_at: null })
+        body: JSON.stringify(Object.assign({ status: 'subscribed', unsubscribed_at: null }, prefs.values))
       });
       if (!updateRes.ok) {
         res.status(500).json({ error: 'Could not save your subscription' });
@@ -71,7 +97,7 @@ module.exports = async function handler(req, res) {
           'Content-Type': 'application/json',
           Prefer: 'return=representation'
         },
-        body: JSON.stringify({ email: email })
+        body: JSON.stringify(Object.assign({ email: email }, prefs.values))
       });
       var insertData = await insertRes.json();
       if (!insertRes.ok) {
@@ -95,6 +121,10 @@ module.exports = async function handler(req, res) {
     res.status(500).json({ error: 'Unexpected error saving your subscription' });
   }
 };
+
+function manageUrl(token) {
+  return 'https://www.miamidadecommissionwatch.com/manage-subscription.html?token=' + token;
+}
 
 function unsubscribeUrl(token) {
   return 'https://www.miamidadecommissionwatch.com/api/newsletter-unsubscribe?token=' + token;
@@ -143,7 +173,7 @@ async function sendWelcomeEmail(apiKey, email, unsubscribeToken) {
         '<a href="https://www.miamidadecommissionwatch.com/" style="display:inline-block;margin-top:12px;padding:12px 22px;background:#146652;color:#fff;text-decoration:none;border-radius:6px;font-family:Arial,sans-serif;font-size:15px;">Visit the site</a>' +
       '</div>' +
       '<div style="padding:16px 24px;border-top:1px solid #ddd;font-family:Arial,sans-serif;font-size:12px;color:#666;">' +
-        'Miami-Dade Commission Watch &middot; <a href="' + unsubUrl + '" style="color:#666;">Unsubscribe</a>' +
+        'Miami-Dade Commission Watch &middot; <a href="' + manageUrl(unsubscribeToken) + '" style="color:#666;">Choose what you get</a> &middot; <a href="' + unsubUrl + '" style="color:#666;">Unsubscribe</a>' +
       '</div>' +
     '</div>';
 
@@ -152,6 +182,7 @@ async function sendWelcomeEmail(apiKey, email, unsubscribeToken) {
     'The Miami-Dade Board of County Commissioners meets regularly and decides things that show up in your rent, your commute, and your neighborhood\'s next ten years. We read the agendas and report back in plain language, with a source link for every claim. We\'re an independent, student-run project (Conrad Gelber and Daniel Llobet), not affiliated with county government, any party, or any candidate.\n\n' +
     'From here on, you\'ll get an email when a new meeting\'s agenda is posted, and again after the meeting summarizing what happened.\n\n' +
     'Visit the site: https://www.miamidadecommissionwatch.com/\n\n' +
+    'Choose which districts and topics you hear about: ' + manageUrl(unsubscribeToken) + '\n\n' +
     'Unsubscribe: ' + unsubUrl;
 
   var sendRes = await fetch('https://api.resend.com/emails', {

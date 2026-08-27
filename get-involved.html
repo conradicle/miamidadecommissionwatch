@@ -21,7 +21,7 @@
 <link rel="icon" type="image/png" sizes="32x32" href="assets/img/favicon-32x32.png">
 <link rel="icon" type="image/png" sizes="16x16" href="assets/img/favicon-16x16.png">
 <link rel="apple-touch-icon" sizes="180x180" href="assets/img/apple-touch-icon.png">
-<link rel="stylesheet" href="css/style.css?v=20260823">
+<link rel="stylesheet" href="css/style.css?v=20260823b">
 </head>
 <body>
 <a class="skip-link" href="#main">Skip to content</a>
@@ -119,7 +119,38 @@
     </div>
   </section>
 
-  <section class="section section-alt" id="local-government">
+  <section class="section section-alt" id="alerts">
+    <div class="wrap">
+      <div class="section-head">
+        <span class="eyebrow">Only what you care about</span>
+        <h2>Get alerts for your district and your issues</h2>
+      </div>
+      <p class="mt-0" style="max-width:65ch; color:var(--ink-600);">The general list sends every agenda and every recap. If that&rsquo;s more than you want, pick the districts and topics you actually follow and we&rsquo;ll only email you when a matching item is on an agenda or gets voted on. Leave everything unticked to keep getting the full digest.</p>
+
+      <form id="alerts-form" style="margin-top:24px; max-width:760px;">
+        <fieldset class="pref-fieldset">
+          <legend>Districts</legend>
+          <div class="pref-grid" id="alerts-districts"></div>
+        </fieldset>
+
+        <fieldset class="pref-fieldset">
+          <legend>Topics</legend>
+          <div class="pref-grid" id="alerts-topics"></div>
+        </fieldset>
+
+        <div class="district-search-form" style="margin-bottom:8px;">
+          <label for="alerts-email" class="mt-0" style="display:block; font-weight:600; margin-bottom:6px; width:100%;">Your email</label>
+          <input type="email" id="alerts-email" name="email" placeholder="you@email.com" required autocomplete="email">
+          <button type="submit" class="btn btn-primary">Get these alerts</button>
+        </div>
+
+        <p class="newsletter-status" id="alerts-status" role="status" aria-live="polite"></p>
+        <p class="pref-note">One email per matching meeting, and an unsubscribe link in every one. We don&rsquo;t sell or share the list &mdash; see <a href="privacy.html">Privacy &amp; Terms</a>.</p>
+      </form>
+    </div>
+  </section>
+
+  <section class="section" id="local-government">
     <div class="wrap">
       <div class="section-head">
         <span class="eyebrow">Take action locally</span>
@@ -166,7 +197,7 @@
     </div>
   </section>
 
-  <section class="section" id="join-us">
+  <section class="section section-alt" id="join-us">
     <div class="wrap">
       <div class="section-head">
         <span class="eyebrow">Join the team</span>
@@ -209,6 +240,12 @@
           <h3>Volunteer with us</h3>
           <p>Not ready for the full Watchdog path, but want to help some other way: research, writing, spreading the word? Reach out and tell us what you're interested in.</p>
           <p><a href="contact.html">Get in touch</a></p>
+        </div>
+
+        <div class="card">
+          <h3>Start a local chapter</h3>
+          <p>The Board of County Commissioners isn&rsquo;t the only body making decisions where you live &mdash; your city commission meets too, and almost nobody covers it. We&rsquo;re building the structure for student teams to run their own city&rsquo;s Commission Watch site, on its own address, under the same nonpartisan standards. No city has an active team yet, so the first one is genuinely first.</p>
+          <p><a href="contact.html">Tell us about your city &#8599;</a></p>
         </div>
 
         <div class="card">
@@ -277,7 +314,8 @@
 <script src="js/main.js?v=20260820"></script>
 <script src="js/newsletter.js?v=20260820"></script>
 <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" integrity="sha384-cxOPjt7s7Iz04uaHJceBmS+qpjv2JkIHNVcuOrM+YHwZOmJGBXI00mdUXEq65HTH" crossorigin="anonymous"></script>
-<script src="js/find-district.js"></script>
+<script src="js/find-district.js?v=20260823"></script>
+<script src="js/alerts.js?v=20260823"></script>
 <script src="js/translate.js?v=20260820"></script>
 <script src="https://translate.google.com/translate_a/element.js?cb=googleTranslateElementInit"></script>
 </body>
