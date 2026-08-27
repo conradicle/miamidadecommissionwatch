@@ -3,48 +3,17 @@
 // Each city commission is served from its own subdomain -- for example
 // miamibeach.miamidadecommissionwatch.com -- but there is only one deployment
 // and one copy of this file. The subdomain is the routing key: this script
-// reads it off location.hostname, looks the city up, and renders the page.
+// reads it off location.hostname, loads that city from the database, and
+// renders the page.
 //
-// STAGE 2 SCOPE. The two cities below are hardcoded fixtures whose only job is
-// to prove that subdomain routing works end to end. They deliberately contain
-// no officials, no meetings and no boundary data: inventing a commissioner or a
-// district would be worse than an empty state, so every list renders an honest
-// "not recorded yet" instead. Real content arrives with the database in
-// Stage 3, and the map in Stage 6.
+// Everything on the page comes from Postgres (see
+// supabase/migration_17_city_platform.sql). Row Level Security is what decides
+// what a visitor may see -- the anon key ships in this page, so it is not a
+// secret and is not doing any of the protecting. A city that is unpublished or
+// suspended simply returns no row here.
 //
 // Plain global IIFE, matching the rest of js/ -- no build step, no modules.
 (function () {
-  // ---------- the fixtures ----------
-  // governance is the field the map keys off, and the only one that changes
-  // how the page renders:
-  //   'district'  the city elects commissioners from single-member districts,
-  //               so an address lookup can answer "you are in District 3"
-  //   'at-large'  every commissioner is elected citywide, so there are no
-  //               districts to look up and the map shows the city outline only
-  var CITIES = {
-    'miamibeach': {
-      name: 'Miami Beach',
-      body: 'Miami Beach City Commission',
-      governance: 'at-large',
-      // Verified: the Mayor and six Commissioners are all elected citywide,
-      // unlike the county commission's 13 single-member districts.
-      seatSummary: 'A Mayor and six Commissioners, all elected citywide.',
-      website: 'https://www.miamibeachfl.gov/'
-    },
-    'hialeah': {
-      name: 'Hialeah',
-      body: 'Hialeah City Council',
-      // FLAGGED FOR VERIFICATION before this city goes live: this is set to
-      // 'district' because the rebuild brief lists Hialeah as a district city,
-      // but Hialeah's council seats may in fact be elected citywide. Confirm
-      // against the city charter and correct this field if so -- the whole
-      // point of the two modes is not to show districts a city doesn't have.
-      governance: 'district',
-      seatSummary: 'Seat structure not yet verified against the city charter.',
-      website: null
-    }
-  };
-
   var ROOT_DOMAIN = 'miamidadecommissionwatch.com';
   // Hosts that are the county site, never a city, even though they parse as a
   // subdomain of the root domain.
@@ -92,6 +61,7 @@
   // Only http/https, so a URL entered by a city team can't carry a javascript:
   // URI that runs when a visitor clicks it. Same guard the county pages use.
   function safeHref(url) {
+    if (!url) return null;
     try {
       var parsed = new URL(url, window.location.href);
       return (parsed.protocol === 'http:' || parsed.protocol === 'https:') ? parsed.href : null;
@@ -100,17 +70,48 @@
     }
   }
 
+  function link(url, label) {
+    var href = safeHref(url);
+    if (!href) return '';
+    return '<a href="' + escapeHtml(href) + '" target="_blank" rel="noopener">' +
+      escapeHtml(label) + ' &#8599;</a>';
+  }
+
   function notice(text) {
     var box = el('city-notice');
     setText('city-notice-text', text);
-    if (box) box.style.display = '';
+    if (box) box.style.display = text ? '' : 'none';
   }
 
   function emptyState(message) {
     return '<p style="color:var(--ink-400); font-style:italic;">' + escapeHtml(message) + '</p>';
   }
 
-  // ---------- render ----------
+  function formatDate(value) {
+    if (!value) return null;
+    try {
+      // A date column arrives as YYYY-MM-DD; anchoring at midday avoids the
+      // off-by-one that UTC parsing causes in a US timezone.
+      var d = value.length === 10 ? new Date(value + 'T12:00:00') : new Date(value);
+      return d.toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' });
+    } catch (e) {
+      return String(value);
+    }
+  }
+
+  function formatDateTime(value) {
+    if (!value) return null;
+    try {
+      return new Date(value).toLocaleString('en-US', {
+        weekday: 'long', month: 'long', day: 'numeric', year: 'numeric',
+        hour: 'numeric', minute: '2-digit'
+      });
+    } catch (e) {
+      return String(value);
+    }
+  }
+
+  // ---------- render: not found ----------
   function renderUnknown(slug) {
     document.title = 'City not found - Miami-Dade Commission Watch';
     setText('city-wordmark', 'City');
@@ -121,70 +122,199 @@
       : 'This page is served from a city subdomain. Open it at a city address to see that city’s coverage.');
     notice('If you think this city should be covered, you can request it on the county site.');
 
-    ['city-what', 'city-officials', 'city-map-intro', 'city-meetings', 'city-comment'].forEach(function (id) {
-      setHtml(id, '');
-    });
+    setHtml('city-what', '');
+    setHtml('city-officials', '');
     setHtml('city-map-intro', emptyState('No city selected.'));
+    setHtml('city-map-mount', '');
+    setHtml('city-meetings', '');
+    setHtml('city-comment', '');
   }
 
-  function renderCity(slug, city) {
-    var name = city.name;
+  function renderError() {
+    setText('city-lede', 'Something went wrong loading this city’s coverage.');
+    notice('If this keeps happening, please let us know on the county site.');
+  }
 
-    document.title = name + ' Commission Watch';
-    setText('city-wordmark', name);
-    setText('city-eyebrow', name);
-    setText('city-heading', name + ' Commission Watch');
-    setText('city-lede', 'Student-led coverage of the ' + city.body +
+  // ---------- render: the city ----------
+  function renderHeader(city) {
+    document.title = city.name + ' Commission Watch';
+    setText('city-wordmark', city.name);
+    setText('city-eyebrow', city.name);
+    setText('city-heading', city.name + ' Commission Watch');
+    setText('city-lede', 'Student-led coverage of the ' + (city.body_name || (city.name + ' city commission')) +
       ' — who serves on it, what it decides, and how to be heard at a meeting.');
+    notice('');
+  }
 
-    notice('Placeholder site. This city’s officials, meetings and boundary data have not been entered yet.');
+  function renderWhat(city) {
+    var body = city.body_name || (city.name + ' city commission');
+    var html = '<p style="max-width:66ch;">The ' + escapeHtml(body) +
+      ' is the elected body that sets the city’s budget, passes local ordinances, and ' +
+      'decides land use and zoning inside city limits. It is separate from the Miami-Dade ' +
+      'Board of County Commissioners, which handles countywide services.</p>';
 
-    // What it does
-    var whatHtml = '<p style="max-width:66ch;">The ' + escapeHtml(city.body) +
-      ' is the elected body that sets the city’s budget, passes local ordinances, and decides land use and zoning inside city limits. ' +
-      'It is separate from the Miami-Dade Board of County Commissioners, which handles countywide services.</p>' +
-      '<p style="max-width:66ch;">' + escapeHtml(city.seatSummary) + '</p>';
-    if (city.website) {
-      var href = safeHref(city.website);
-      if (href) {
-        whatHtml += '<p><a href="' + escapeHtml(href) + '" target="_blank" rel="noopener">Official city website &#8599;</a></p>';
-      }
+    if (city.governance === 'at-large') {
+      html += '<p style="max-width:66ch;">Every member is elected citywide rather than by district.</p>';
+    } else {
+      html += '<p style="max-width:66ch;">Members are elected from single-member districts.</p>';
     }
-    whatHtml += '<p style="color:var(--ink-600);"><strong>Next meeting:</strong> not recorded yet.</p>';
-    setHtml('city-what', whatHtml);
 
-    // Officials -- deliberately empty rather than invented.
-    setHtml('city-officials', emptyState('No officials recorded yet for ' + name + '.'));
+    var when = formatDateTime(city.next_meeting_at);
+    html += '<p style="color:var(--ink-600);"><strong>Next meeting:</strong> ' +
+      (when ? escapeHtml(when) : 'not recorded yet');
+    if (city.next_meeting_note) html += ' — ' + escapeHtml(city.next_meeting_note);
+    html += '</p>';
 
-    // Map: the one place the two governance modes diverge.
+    var site = link(city.website, 'Official city website');
+    if (site) html += '<p>' + site + '</p>';
+
+    setHtml('city-what', html);
+  }
+
+  function renderOfficials(city, officials) {
+    if (!officials.length) {
+      setHtml('city-officials', emptyState('No officials recorded yet for ' + city.name + '.'));
+      return;
+    }
+
+    var html = officials.map(function (o) {
+      var card = '<div class="card">';
+      var photo = safeHref(o.photo_url);
+      if (photo) {
+        card += '<img src="' + escapeHtml(photo) + '" alt="" loading="lazy" ' +
+          'style="width:100%; aspect-ratio:1/1; object-fit:cover; border-radius:var(--radius); margin-bottom:12px;">';
+      }
+      card += '<h3 style="margin-bottom:4px;">' + escapeHtml(o.name) + '</h3>';
+
+      var seat = o.seat;
+      if (o.seat_type === 'district' && o.district != null) {
+        seat = seat + ' · District ' + escapeHtml(String(o.district));
+      }
+      card += '<p style="font-family:var(--font-mono); font-size:13px; color:var(--ink-600); margin-bottom:8px;">' +
+        escapeHtml(seat) + '</p>';
+
+      if (o.term_ends) {
+        card += '<p style="font-size:14px; color:var(--ink-600); margin-bottom:6px;">Term ends ' +
+          escapeHtml(o.term_ends) + '</p>';
+      }
+
+      var contacts = [];
+      if (o.contact_email) {
+        contacts.push('<a href="mailto:' + escapeHtml(o.contact_email) + '">' +
+          escapeHtml(o.contact_email) + '</a>');
+      }
+      var profile = link(o.contact_url, 'Official profile');
+      if (profile) contacts.push(profile);
+      if (contacts.length) {
+        card += '<p style="font-size:14px; margin-bottom:0;">' + contacts.join('<br>') + '</p>';
+      }
+
+      card += '</div>';
+      return card;
+    }).join('');
+
+    setHtml('city-officials', html);
+  }
+
+  // The one place the two governance modes diverge, and the reason the field
+  // exists: a district city can answer "you are in District 3", an at-large
+  // city cannot and must say so instead of inventing districts.
+  function renderMap(city) {
     if (city.governance === 'at-large') {
       setText('map-heading', 'Every seat is citywide');
       setHtml('city-map-intro',
-        '<p style="max-width:66ch;">' + escapeHtml(name) + ' has no commission districts. ' +
-        'Every member of the ' + escapeHtml(city.body) + ' is elected citywide, which means ' +
-        '<strong>every resident is represented by all of them</strong> — there is no single ' +
+        '<p style="max-width:66ch;">' + escapeHtml(city.name) + ' has no commission districts. ' +
+        'Every member of the ' + escapeHtml(city.body_name || 'city commission') + ' is elected citywide, ' +
+        'which means <strong>every resident is represented by all of them</strong> — there is no single ' +
         'commissioner assigned to your address, and you may contact any of them.</p>');
-      setHtml('city-map-mount', emptyState('City boundary outline not loaded yet (Stage 6).'));
+      setHtml('city-map-mount', emptyState('City boundary outline not loaded yet.'));
     } else {
       setText('map-heading', 'Find your district');
       setHtml('city-map-intro',
-        '<p style="max-width:66ch;">' + escapeHtml(name) + ' elects commissioners from single-member ' +
+        '<p style="max-width:66ch;">' + escapeHtml(city.name) + ' elects commissioners from single-member ' +
         'districts. Enter your address to find which district you live in and who represents it.</p>');
-      setHtml('city-map-mount', emptyState('District boundaries not loaded yet (Stage 6).'));
+      setHtml('city-map-mount', emptyState('District boundaries not loaded yet.'));
+    }
+  }
+
+  function renderMeetings(meetings) {
+    if (!meetings.length) {
+      setHtml('city-meetings', emptyState('No meeting summaries yet.'));
+      return;
     }
 
-    setHtml('city-meetings', emptyState('No meeting summaries yet.'));
-    setHtml('city-comment', emptyState('Public comment guide not written yet.'));
+    var html = meetings.map(function (m) {
+      var row = '<div class="card" style="margin-bottom:16px;">';
+      row += '<p style="font-family:var(--font-mono); font-size:13px; color:var(--ink-600); margin-bottom:6px;">' +
+        escapeHtml(formatDate(m.meeting_date) || '') + '</p>';
+      row += '<h3 style="margin-bottom:8px;">' + escapeHtml(m.title) + '</h3>';
+      if (m.summary) {
+        row += '<p style="margin-bottom:10px; white-space:pre-wrap;">' + escapeHtml(m.summary) + '</p>';
+      }
+      var links = [link(m.agenda_url, 'Agenda'), link(m.video_url, 'Video')].filter(Boolean);
+      if (links.length) {
+        row += '<p style="font-size:14px; margin-bottom:0;">' + links.join(' &nbsp;·&nbsp; ') + '</p>';
+      }
+      row += '</div>';
+      return row;
+    }).join('');
+
+    setHtml('city-meetings', html);
+  }
+
+  function renderComment(city) {
+    if (!city.comment_guide) {
+      setHtml('city-comment', emptyState('Public comment guide not written yet.'));
+      return;
+    }
+    setHtml('city-comment',
+      '<div style="max-width:66ch; white-space:pre-wrap;">' + escapeHtml(city.comment_guide) + '</div>');
   }
 
   // ---------- boot ----------
   document.addEventListener('DOMContentLoaded', function () {
     var slug = resolveSlug();
-    var city = slug ? CITIES[slug] : null;
-    if (city) {
-      renderCity(slug, city);
-    } else {
+    if (!slug || typeof window.supabaseClient === 'undefined') {
       renderUnknown(slug);
+      return;
     }
+
+    window.supabaseClient
+      .from('cities')
+      .select('id, slug, name, body_name, governance, status, website, next_meeting_at, next_meeting_note, comment_guide')
+      .eq('slug', slug)
+      .maybeSingle()
+      .then(function (res) {
+        var city = res && res.data;
+        if (res && res.error) { renderError(); return; }
+        if (!city || city.status !== 'active') { renderUnknown(slug); return; }
+
+        renderHeader(city);
+        renderWhat(city);
+        renderMap(city);
+        renderComment(city);
+
+        // Child content is fetched after the city resolves, because both
+        // queries key off its id.
+        return Promise.all([
+          window.supabaseClient
+            .from('city_officials')
+            .select('id, name, seat, seat_type, district, photo_url, contact_email, contact_url, term_ends, sort_order')
+            .eq('city_id', city.id)
+            .eq('status', 'published')
+            .order('sort_order', { ascending: true }),
+          window.supabaseClient
+            .from('city_meetings')
+            .select('id, meeting_date, title, agenda_url, video_url, summary')
+            .eq('city_id', city.id)
+            .eq('status', 'published')
+            .order('meeting_date', { ascending: false })
+            .limit(20)
+        ]).then(function (results) {
+          renderOfficials(city, (results[0] && results[0].data) || []);
+          renderMeetings((results[1] && results[1].data) || []);
+        });
+      })
+      .catch(function () { renderError(); });
   });
 })();
