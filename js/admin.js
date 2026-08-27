@@ -1106,13 +1106,13 @@
             window.alert('Your session has expired. Log out and log back in, then try again.');
             return;
           }
-          fetch('/api/admin-generate-link', {
+          fetch('/api/admin-users', {
             method: 'POST',
             headers: {
               'Content-Type': 'application/json',
               Authorization: 'Bearer ' + session.access_token
             },
-            body: JSON.stringify({ email: email })
+            body: JSON.stringify({ action: 'generate_link', email: email })
           })
             .then(function (r) { return r.json().then(function (data) { return { ok: r.ok, data: data }; }); })
             .then(function (result) {
@@ -1167,13 +1167,13 @@
             window.alert('Your session has expired. Log out and log back in, then try again.');
             return;
           }
-          fetch('/api/admin-delete-user', {
+          fetch('/api/admin-users', {
             method: 'POST',
             headers: {
               'Content-Type': 'application/json',
               Authorization: 'Bearer ' + session.access_token
             },
-            body: JSON.stringify({ user_id: deleteId })
+            body: JSON.stringify({ action: 'delete', user_id: deleteId })
           })
             .then(function (r) { return r.json().then(function (data) { return { ok: r.ok, data: data }; }); })
             .then(function (result) {
@@ -1229,13 +1229,13 @@
           inviteStatus.className = 'district-status error';
           return;
         }
-        fetch('/api/admin-invite', {
+        fetch('/api/admin-users', {
           method: 'POST',
           headers: {
             'Content-Type': 'application/json',
             Authorization: 'Bearer ' + session.access_token
           },
-          body: JSON.stringify({ email: emailInput.value.trim() })
+          body: JSON.stringify({ action: 'invite', email: emailInput.value.trim() })
         })
           .then(function (r) { return r.json().then(function (data) { return { ok: r.ok, data: data }; }); })
           .then(function (result) {

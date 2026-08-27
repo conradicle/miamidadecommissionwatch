@@ -5,7 +5,7 @@
 // active ones, which is exactly this list.
 //
 // Submitting a claim does NOT go through the anon key. It posts to
-// /api/submit-claim, which runs server-side with the service role so it can
+// /api/city-platform, which runs server-side with the service role so it can
 // rate limit and send the notification email. migration_18 revokes anon's
 // INSERT on claim_requests precisely so this is the only way in.
 (function () {
@@ -102,10 +102,10 @@
       has_team: el('claim-has-team').checked
     };
 
-    fetch('/api/submit-claim', {
+    fetch('/api/city-platform', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(payload)
+      body: JSON.stringify(Object.assign({ op: 'submit_claim' }, payload))
     })
       .then(function (res) {
         return res.json().then(function (body) { return { ok: res.ok, body: body }; });

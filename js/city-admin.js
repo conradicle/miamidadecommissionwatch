@@ -541,13 +541,13 @@
     statusNode.textContent = 'Sending…';
     statusNode.className = 'district-status';
 
-    fetch('/api/city-invite', {
+    fetch('/api/city-platform', {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
         Authorization: 'Bearer ' + session.access_token
       },
-      body: JSON.stringify({ city_id: current.id, email: email })
+      body: JSON.stringify({ op: 'invite_editor', city_id: current.id, email: email })
     })
       .then(function (res) { return res.json().then(function (b) { return { ok: res.ok, body: b }; }); })
       .then(function (result) {

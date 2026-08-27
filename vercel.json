@@ -21,6 +21,11 @@
   ],
   "redirects": [
     {
+      "source": "/index.html",
+      "destination": "/",
+      "permanent": true
+    },
+    {
       "source": "/find-my-district.html",
       "destination": "/get-involved.html#find-district",
       "permanent": true
