@@ -81,6 +81,18 @@ module.exports = async function handler(req, res) {
       return;
     }
 
+    // Each invite creates a real auth account, so an owner gets 10 a day.
+    // Generous for a student newsroom, and a ceiling on the damage if an
+    // owner account is ever taken over.
+    var withinLimit = await checkRateLimit(SUPABASE_URL, SERVICE_ROLE_KEY,
+      'cityinvite:' + caller.id, 10, 86400);
+    if (!withinLimit) {
+      res.status(429).json({
+        error: 'That is a lot of invites for one day. Try again tomorrow, or ask staff.'
+      });
+      return;
+    }
+
     var cityRes = await fetch(
       SUPABASE_URL + '/rest/v1/cities?id=eq.' + encodeURIComponent(cityId) + '&select=id,name,slug,status',
       { headers: serviceHeaders }
@@ -246,7 +258,7 @@ async function emailInvite(email, city, loginLink) {
         'Content-Type': 'application/json'
       },
       body: JSON.stringify({
-        from: 'Commission Watch <noreply@miamidadecommissionwatch.com>',
+        from: process.env.MAIL_FROM || 'Miami-Dade Commission Watch <news@miamidadecommissionwatch.com>',
         to: [email],
         subject: 'You’re on the ' + city.name + ' team',
         html: html
@@ -261,4 +273,24 @@ function escapeHtml(str) {
   return String(str == null ? '' : str)
     .replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;')
     .replace(/"/g, '&quot;').replace(/'/g, '&#39;');
+}
+
+// Shared with the claim intake: a Postgres-side counter, so it holds across
+// the many short-lived instances a serverless function runs in.
+async function checkRateLimit(SUPABASE_URL, SERVICE_ROLE_KEY, key, limit, windowSeconds) {
+  try {
+    var r = await fetch(SUPABASE_URL + '/rest/v1/rpc/check_rate_limit', {
+      method: 'POST',
+      headers: {
+        Authorization: 'Bearer ' + SERVICE_ROLE_KEY,
+        apikey: SERVICE_ROLE_KEY,
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify({ p_key: key, p_limit: limit, p_window_seconds: windowSeconds })
+    });
+    if (!r.ok) return true; // fail open -- a rate-limit outage shouldn't block real invites
+    return await r.json();
+  } catch (err) {
+    return true;
+  }
 }

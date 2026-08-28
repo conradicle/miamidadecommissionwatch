@@ -12,6 +12,7 @@
   var ctx = null;
   var claims = [];
   var view = 'pending';
+  var invites = [];
 
   function el(id) { return document.getElementById(id); }
 
@@ -51,7 +52,83 @@
         var counter = el('claims-count');
         if (counter) counter.textContent = pending ? pending : '';
         render();
+        return loadInvites();
       });
+  }
+
+  // Only ever non-empty when REQUIRE_STAFF_APPROVAL_FOR_INVITES is on. With
+  // the flag off a city owner's invite goes straight out, which is why this
+  // list is usually empty and that is not a bug.
+  function loadInvites() {
+    return window.supabaseClient
+      .from('city_invites')
+      .select('id, city_id, email, role, status, created_at, cities(name)')
+      .order('created_at', { ascending: false })
+      .then(function (res) {
+        if (res.error) { invites = []; renderInvites(); return; }
+        invites = res.data || [];
+        var pending = invites.filter(function (i) { return i.status === 'pending'; }).length;
+        var counter = el('invites-count');
+        if (counter) counter.textContent = pending ? pending : '';
+        renderInvites();
+      });
+  }
+
+  function renderInvites() {
+    var host = el('invites-list');
+    if (!host) return;
+
+    var pending = invites.filter(function (i) { return i.status === 'pending'; });
+    if (!pending.length) {
+      host.innerHTML = '<p style="color:var(--ink-400); font-style:italic;">' +
+        'No volunteer invites waiting. City owners invite their own editors directly ' +
+        'unless REQUIRE_STAFF_APPROVAL_FOR_INVITES is turned on.</p>';
+      return;
+    }
+
+    host.innerHTML = pending.map(function (i) {
+      var cityName = (i.cities && i.cities.name) || 'a city';
+      return '<div class="admin-form" style="margin-bottom:18px;">' +
+        '<h4 style="margin:0 0 4px;">' + escapeHtml(i.email) + '</h4>' +
+        '<div class="ac-meta">editor on ' + escapeHtml(cityName) +
+          ' &middot; requested ' + formatDate(i.created_at) + '</div>' +
+        '<div class="submission-actions" style="margin-top:12px;">' +
+          '<button type="button" class="btn btn-primary btn-small" data-invite-approve="' + escapeHtml(i.id) + '">Approve</button>' +
+          '<button type="button" class="btn btn-danger btn-small" data-invite-deny="' + escapeHtml(i.id) + '">Deny</button>' +
+        '</div></div>';
+    }).join('');
+  }
+
+  function decideInvite(inviteId, decision) {
+    var invite = invites.filter(function (i) { return i.id === inviteId; })[0];
+    if (!invite) return;
+    if (decision === 'approve' &&
+        !window.confirm('Add ' + invite.email + ' as an editor? They will be emailed a login.')) return;
+
+    setStatus(decision === 'approve' ? 'Approving…' : 'Denying…');
+
+    window.supabaseClient.auth.getSession().then(function (sessionRes) {
+      var token = sessionRes && sessionRes.data && sessionRes.data.session &&
+        sessionRes.data.session.access_token;
+      if (!token) { setStatus('Your session expired. Reload and sign in again.', 'error'); return; }
+
+      return fetch('/api/city-platform', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', Authorization: 'Bearer ' + token },
+        body: JSON.stringify({ op: 'decide_invite', invite_id: inviteId, decision: decision })
+      })
+        .then(function (r) { return r.json().then(function (b) { return { ok: r.ok, body: b }; }); })
+        .then(function (result) {
+          if (!result.ok) {
+            setStatus((result.body && result.body.error) || 'That did not work.', 'error');
+            return;
+          }
+          setStatus(decision === 'approve'
+            ? invite.email + ' has been added and emailed a login.'
+            : 'Invite denied.', 'success');
+          loadInvites();
+        });
+    });
   }
 
   function render() {
@@ -194,7 +271,10 @@
         Array.prototype.forEach.call(document.querySelectorAll('#claims-nav .city-nav-btn'), function (b) {
           b.classList.toggle('active', b === btn);
         });
-        render();
+        var showingInvites = view === 'invites';
+        el('claims-list').style.display = showingInvites ? 'none' : '';
+        el('invites-list').style.display = showingInvites ? '' : 'none';
+        if (showingInvites) { renderInvites(); } else { render(); }
       });
     });
 
@@ -203,6 +283,8 @@
       var t = e.target;
       if (t.hasAttribute('data-approve')) decide(t.getAttribute('data-approve'), 'approve');
       if (t.hasAttribute('data-deny')) decide(t.getAttribute('data-deny'), 'deny');
+      if (t.hasAttribute('data-invite-approve')) decideInvite(t.getAttribute('data-invite-approve'), 'approve');
+      if (t.hasAttribute('data-invite-deny')) decideInvite(t.getAttribute('data-invite-deny'), 'deny');
     });
 
     load();

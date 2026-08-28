@@ -17,6 +17,8 @@
 // leaves the city pending and the claim still open.
 //
 // Denying returns the city to 'unclaimed' so somebody else can ask for it.
+var provisionSubdomain = require('./_provision-domain.js');
+
 module.exports = async function handler(req, res) {
   if (req.method !== 'POST') {
     res.status(405).json({ error: 'Method not allowed' });
@@ -184,10 +186,21 @@ module.exports = async function handler(req, res) {
         reviewed_at: new Date().toISOString()
       });
 
+    // Create the subdomain. Deliberately AFTER the city is live and the owner
+    // is written: if Cloudflare or Vercel is down, the approval still stands
+    // and staff can re-run provisioning from the Cities tab. Refusing to
+    // approve because an API call failed would leave the student with nothing.
+    var provisioned = await provisionSubdomain(city.slug);
+
     var loginLink = await generateLoginLink(SUPABASE_URL, serviceHeaders, claim.requester_email);
     await emailApproval(claim, city, loginLink);
 
-    res.status(200).json({ ok: true, action: 'approve', city_id: city.id });
+    res.status(200).json({
+      ok: true,
+      action: 'approve',
+      city_id: city.id,
+      domain: provisioned
+    });
   } catch (err) {
     res.status(500).json({ error: 'Unexpected error deciding that claim.' });
   }
@@ -305,7 +318,7 @@ async function send(to, subject, html) {
         'Content-Type': 'application/json'
       },
       body: JSON.stringify({
-        from: 'Commission Watch <noreply@miamidadecommissionwatch.com>',
+        from: process.env.MAIL_FROM || 'Miami-Dade Commission Watch <news@miamidadecommissionwatch.com>',
         to: [to],
         subject: subject,
         html: html

@@ -298,6 +298,43 @@
                 <button type="submit" class="btn btn-primary btn-small">Save settings</button>
               </div>
             </form>
+
+            <!-- Subdomain. Creating the Cloudflare record and the Vercel
+                 domain is automatic on claim approval; this is the retry, and
+                 the way to give an older city its address. Both calls are
+                 idempotent, so pressing it twice is harmless. -->
+            <div class="admin-form">
+              <h4 style="margin:0 0 8px;">Subdomain</h4>
+              <p style="max-width:66ch; color:var(--ink-600); font-size:14px;">
+                Creates the DNS record in Cloudflare and adds the domain in Vercel.
+                Safe to run again &mdash; it skips whatever already exists.
+                DNS can take a few minutes to resolve afterwards.
+              </p>
+              <p class="mono" style="font-size:13px;" id="ac-domain-host"></p>
+              <div class="submission-actions">
+                <button type="button" class="btn btn-primary btn-small" id="ac-provision">Set up subdomain</button>
+              </div>
+              <p class="district-status" id="ac-domain-status" role="status" aria-live="polite"></p>
+            </div>
+
+            <!-- Transfer ownership. Demote-then-promote happens server side;
+                 the one-owner-per-city index makes any other order fail. -->
+            <div class="admin-form">
+              <h4 style="margin:0 0 8px;">Transfer ownership</h4>
+              <p style="max-width:66ch; color:var(--ink-600); font-size:14px;">
+                Hands this city to a different person. The current owner is demoted to
+                editor and keeps access; the new owner is emailed a login link. If they
+                have no account yet, one is created.
+              </p>
+              <div class="field" style="max-width:380px;">
+                <label for="ac-transfer-email">New owner&rsquo;s email</label>
+                <input type="email" id="ac-transfer-email" placeholder="student@school.edu">
+              </div>
+              <div class="submission-actions">
+                <button type="button" class="btn btn-danger btn-small" id="ac-transfer">Transfer ownership</button>
+              </div>
+              <p class="district-status" id="ac-transfer-status" role="status" aria-live="polite"></p>
+            </div>
           </div>
 
           <!-- Officials -->
@@ -417,9 +454,15 @@
         <div class="city-nav" id="claims-nav">
           <button type="button" class="city-nav-btn active" data-claims="pending">Pending</button>
           <button type="button" class="city-nav-btn" data-claims="decided">Decided</button>
+          <button type="button" class="city-nav-btn" data-claims="invites">Volunteer invites <span class="count" id="invites-count"></span></button>
         </div>
         <div id="claims-status" class="district-status"></div>
         <div id="claims-list"></div>
+
+        <!-- Only ever populated when REQUIRE_STAFF_APPROVAL_FOR_INVITES is on.
+             With the flag off, a city owner's invite goes straight out and
+             nothing lands here. -->
+        <div id="invites-list" style="display:none;"></div>
       </div>
 
       <div class="admin-panel" id="panel-staff" style="display:none;">
@@ -450,8 +493,8 @@
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.112.3" integrity="sha384-l8ah+VgaWtk1mvOe9VC+OirC6qHFF4yH7l7mKRidV9MSti3E9F463bMp6ZVN4kuC" crossorigin="anonymous"></script>
 <script src="js/supabase-client.js"></script>
 <script src="js/main.js?v=20260820"></script>
-<script src="js/admin-cities.js?v=20260826b"></script>
-<script src="js/admin-claims.js?v=20260826"></script>
+<script src="js/admin-cities.js?v=20260827"></script>
+<script src="js/admin-claims.js?v=20260827"></script>
 <script src="js/admin.js?v=20260826c"></script>
 </body>
 </html>

@@ -155,7 +155,7 @@ async function notifyStaff(city, requester) {
         'Content-Type': 'application/json'
       },
       body: JSON.stringify({
-        from: 'Commission Watch <noreply@miamidadecommissionwatch.com>',
+        from: process.env.MAIL_FROM || 'Miami-Dade Commission Watch <news@miamidadecommissionwatch.com>',
         to: [to],
         reply_to: requester.email,
         subject: 'City claim: ' + city.name,

@@ -17,11 +17,18 @@
 var submitClaim = require('./_submit-claim.js');
 var decideClaim = require('./_decide-claim.js');
 var cityInvite = require('./_city-invite.js');
+var staffOps = require('./_staff-ops.js');
 
 var OPS = {
   submit_claim: submitClaim,
   decide_claim: decideClaim,
-  invite_editor: cityInvite
+  invite_editor: cityInvite,
+
+  // Staff-only, all three handled by one module because they share the same
+  // "is this an active staff member" preamble.
+  provision_domain: staffOps,
+  transfer_ownership: staffOps,
+  decide_invite: staffOps
 };
 
 module.exports = async function handler(req, res) {

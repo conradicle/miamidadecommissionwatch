@@ -14,9 +14,10 @@
      reads the subdomain off location.hostname, looks the city up, and fills in
      the title, hero, and every section below.
 
-     noindex is deliberate for now: these subdomains carry placeholder content
-     until the database lands in Stage 3, and an indexed placeholder is worse
-     than no page. Remove the robots meta when a city goes live.
+     The robots noindex below is the SAFE DEFAULT, not a permanent setting: a
+     subdomain can resolve before its city exists, and an indexed empty page is
+     worse than no page. js/city-site.js removes the tag as soon as a real city
+     loads, so a live city is indexable and only the empty state is not.
 
      Root-absolute asset paths throughout - a city subdomain serves the same
      deployment as the root domain, so /css and /js resolve normally. -->
@@ -149,6 +150,6 @@
 <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" integrity="sha384-cxOPjt7s7Iz04uaHJceBmS+qpjv2JkIHNVcuOrM+YHwZOmJGBXI00mdUXEq65HTH" crossorigin="anonymous"></script>
 <script src="/js/main.js?v=20260826"></script>
 <script src="/js/city-map.js?v=20260826"></script>
-<script src="/js/city-site.js?v=20260826c"></script>
+<script src="/js/city-site.js?v=20260827"></script>
 </body>
 </html>
