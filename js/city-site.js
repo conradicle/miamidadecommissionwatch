@@ -138,6 +138,12 @@
   // ---------- render: the city ----------
   function renderHeader(city) {
     document.title = city.name + ' Commission Watch';
+
+    // The template ships noindex so a subdomain that resolves before its city
+    // exists cannot be indexed as an empty page. A city that actually loaded
+    // is real, so the tag comes off here rather than being edited per city.
+    var robots = document.querySelector('meta[name="robots"]');
+    if (robots && robots.parentNode) robots.parentNode.removeChild(robots);
     setText('city-wordmark', city.name);
     setText('city-eyebrow', city.name);
     setText('city-heading', city.name + ' Commission Watch');

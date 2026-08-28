@@ -101,6 +101,13 @@
     var link = el('ac-public-link');
     if (link) link.href = publicUrl(city.slug);
 
+    var hostLabel = el('ac-domain-host');
+    if (hostLabel) hostLabel.textContent = city.slug + '.miamidadecommissionwatch.com';
+    var domainStatus = el('ac-domain-status');
+    if (domainStatus) { domainStatus.textContent = ''; domainStatus.className = 'district-status'; }
+    var transferStatus = el('ac-transfer-status');
+    if (transferStatus) { transferStatus.textContent = ''; transferStatus.className = 'district-status'; }
+
     el('ac-workspace').style.display = '';
     fillSettings(city);
     loadOfficials();
@@ -192,11 +199,14 @@
         if (res.error) { reportError('Could not create the city', res.error); return; }
         el('ac-new-form').reset();
         el('ac-new-form').style.display = 'none';
-        setStatus('Created. It is not visible to the public until you tick "Visible to the public", ' +
-          'and the subdomain needs a CNAME in Cloudflare plus a domain in Vercel before it loads.', 'success');
+        setStatus('Created. Setting up its subdomain…', 'success');
         return loadCities().then(function () {
           var made = cities.filter(function (c) { return c.id === res.data.id; })[0];
           if (made) selectCity(made);
+          // A city with no address is not much use, so provisioning runs on
+          // creation rather than waiting to be asked. It is idempotent, and a
+          // failure here is reported without undoing the city.
+          provisionDomain();
         });
       });
   }
@@ -420,6 +430,78 @@
       });
   }
 
+
+  // ---------- staff operations ----------
+  // Provisioning and ownership transfer need the service role, so they go
+  // through /api/city-platform rather than PostgREST.
+  function staffOp(payload, statusId, onDone) {
+    var node = el(statusId);
+    if (node) { node.textContent = 'Working…'; node.className = 'district-status'; }
+
+    window.supabaseClient.auth.getSession().then(function (sessionRes) {
+      var token = sessionRes && sessionRes.data && sessionRes.data.session &&
+        sessionRes.data.session.access_token;
+      if (!token) {
+        if (node) { node.textContent = 'Your session expired. Reload and sign in again.'; node.className = 'district-status error'; }
+        return;
+      }
+      return fetch('/api/city-platform', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', Authorization: 'Bearer ' + token },
+        body: JSON.stringify(payload)
+      })
+        .then(function (r) { return r.json().then(function (b) { return { ok: r.ok, body: b }; }); })
+        .then(function (result) { onDone(result, node); })
+        .catch(function () {
+          if (node) { node.textContent = 'Could not reach the server.'; node.className = 'district-status error'; }
+        });
+    });
+  }
+
+  function provisionDomain() {
+    if (!current) return;
+    staffOp({ op: 'provision_domain', city_id: current.id }, 'ac-domain-status',
+      function (result, node) {
+        var b = result.body || {};
+        if (!result.ok) {
+          // "not configured" is the common case before the API tokens are set,
+          // and deserves its own sentence rather than a generic failure.
+          node.textContent = b.configured === false
+            ? b.error
+            : (b.error || 'Could not set up the subdomain.');
+          node.className = 'district-status error';
+          return;
+        }
+        node.textContent = 'Done — DNS record ' + (b.dns && b.dns.state) +
+          ', Vercel domain ' + (b.domain && b.domain.state) +
+          '. It can take a few minutes to resolve.';
+        node.className = 'district-status success';
+      });
+  }
+
+  function transferOwnership() {
+    if (!current) return;
+    var email = val('ac-transfer-email');
+    if (!email) {
+      setStatus('Enter the new owner’s email address first.', 'error');
+      return;
+    }
+    if (!window.confirm('Transfer ' + current.name + ' to ' + email + '?\n\n' +
+        'The current owner becomes an editor and keeps access. This takes effect immediately.')) return;
+
+    staffOp({ op: 'transfer_ownership', city_id: current.id, email: email }, 'ac-transfer-status',
+      function (result, node) {
+        if (!result.ok) {
+          node.textContent = (result.body && result.body.error) || 'Could not transfer ownership.';
+          node.className = 'district-status error';
+          return;
+        }
+        el('ac-transfer-email').value = '';
+        node.textContent = 'Transferred. ' + email + ' has been emailed a login link.';
+        node.className = 'district-status success';
+      });
+  }
+
   // ---------- wiring ----------
   function showView(view) {
     ['settings', 'officials', 'meetings'].forEach(function (v) {
@@ -454,6 +536,8 @@
     el('ac-new-slug').addEventListener('input', function () { this.dataset.touched = '1'; });
 
     el('ac-settings-form').addEventListener('submit', saveSettings);
+    el('ac-provision').addEventListener('click', provisionDomain);
+    el('ac-transfer').addEventListener('click', transferOwnership);
     el('ac-official-form').addEventListener('submit', saveOfficial);
     el('ac-official-reset').addEventListener('click', resetOfficialForm);
     el('ac-official-seat-type').addEventListener('change', syncDistrictField);
