@@ -73,7 +73,12 @@ module.exports = async function handler(req, res) {
         return;
       }
 
-      var inviteRes = await fetch(SUPABASE_URL + '/auth/v1/invite', {
+      // /invite takes the landing page as a QUERY parameter, not a body
+      // field. Without it the invite mail's link goes to the project's Site
+      // URL -- the homepage, which has no password form and cannot spend the
+      // token, so the invitee lands on an error in the address bar.
+      var inviteRes = await fetch(SUPABASE_URL + '/auth/v1/invite?redirect_to=' +
+        encodeURIComponent('https://www.miamidadecommissionwatch.com/set-password.html'), {
         method: 'POST',
         headers: serviceHeaders,
         body: JSON.stringify({ email: email })

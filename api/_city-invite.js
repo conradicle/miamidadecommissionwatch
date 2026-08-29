@@ -12,6 +12,8 @@
 //                    and nothing else happens
 // The flag is read per request, so flipping it in Vercel takes effect on the
 // next deploy without a code change.
+var createOrFindAccount = require('./_account-link.js');
+
 module.exports = async function handler(req, res) {
   if (req.method !== 'POST') {
     res.status(405).json({ error: 'Method not allowed' });
@@ -131,7 +133,8 @@ module.exports = async function handler(req, res) {
     }
 
     // ---------- invite now ----------
-    var userId = await inviteOrFindUser(SUPABASE_URL, serviceHeaders, email);
+    var account = await createOrFindAccount(SUPABASE_URL, serviceHeaders, email);
+    var userId = account.userId;
     if (!userId) {
       res.status(500).json({ error: 'Could not create a login for that address.' });
       return;
@@ -167,8 +170,7 @@ module.exports = async function handler(req, res) {
       return;
     }
 
-    var loginLink = await generateLoginLink(SUPABASE_URL, serviceHeaders, email);
-    await emailInvite(email, city, loginLink);
+    await emailInvite(email, city, account.link);
 
     res.status(200).json({ ok: true, pending: false });
   } catch (err) {
@@ -190,48 +192,6 @@ async function callerIsStaff(SUPABASE_URL, headers, userId) {
   }
 }
 
-async function inviteOrFindUser(SUPABASE_URL, headers, email) {
-  var inviteRes = await fetch(SUPABASE_URL + '/auth/v1/invite', {
-    method: 'POST',
-    headers: headers,
-    body: JSON.stringify({ email: email })
-  });
-  var inviteData = await inviteRes.json().catch(function () { return {}; });
-  if (inviteRes.ok && inviteData.id) return inviteData.id;
-
-  var byAuth = await fetch(
-    SUPABASE_URL + '/auth/v1/admin/users?filter=' + encodeURIComponent(email),
-    { headers: headers }
-  );
-  if (!byAuth.ok) return null;
-  var authData = await byAuth.json().catch(function () { return {}; });
-  var users = (authData && authData.users) || [];
-  for (var i = 0; i < users.length; i++) {
-    if (users[i].email && users[i].email.toLowerCase() === email.toLowerCase()) {
-      return users[i].id;
-    }
-  }
-  return null;
-}
-
-async function generateLoginLink(SUPABASE_URL, headers, email) {
-  try {
-    var r = await fetch(SUPABASE_URL + '/auth/v1/admin/generate_link', {
-      method: 'POST',
-      headers: headers,
-      body: JSON.stringify({
-        type: 'recovery',
-        email: email,
-        options: { redirect_to: 'https://www.miamidadecommissionwatch.com/set-password.html' }
-      })
-    });
-    if (!r.ok) return null;
-    var data = await r.json();
-    return data.action_link || (data.properties && data.properties.action_link) || null;
-  } catch (err) {
-    return null;
-  }
-}
 
 async function emailInvite(email, city, loginLink) {
   var RESEND_API_KEY = process.env.RESEND_API_KEY;
