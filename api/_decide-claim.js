@@ -18,6 +18,7 @@
 //
 // Denying returns the city to 'unclaimed' so somebody else can ask for it.
 var provisionSubdomain = require('./_provision-domain.js');
+var createOrFindAccount = require('./_account-link.js');
 
 module.exports = async function handler(req, res) {
   if (req.method !== 'POST') {
@@ -135,8 +136,11 @@ module.exports = async function handler(req, res) {
     }
 
     // ---------- approve ----------
-    // An account first, because the membership needs a user id.
-    var userId = await inviteOrFindUser(SUPABASE_URL, serviceHeaders, claim.requester_email);
+    // An account first, because the membership needs a user id. The same call
+    // mints the set-password link the email below carries, and sends no mail
+    // of its own -- ours is the only one they get.
+    var account = await createOrFindAccount(SUPABASE_URL, serviceHeaders, claim.requester_email);
+    var userId = account.userId;
     if (!userId) {
       res.status(500).json({ error: 'Could not create a login for that address.' });
       return;
@@ -192,8 +196,7 @@ module.exports = async function handler(req, res) {
     // approve because an API call failed would leave the student with nothing.
     var provisioned = await provisionSubdomain(city.slug);
 
-    var loginLink = await generateLoginLink(SUPABASE_URL, serviceHeaders, claim.requester_email);
-    await emailApproval(claim, city, loginLink);
+    await emailApproval(claim, city, account.link);
 
     res.status(200).json({
       ok: true,
@@ -213,61 +216,6 @@ async function patch(SUPABASE_URL, headers, path, payload) {
     headers: Object.assign({}, headers, { Prefer: 'return=minimal' }),
     body: JSON.stringify(payload)
   });
-}
-
-// Returns the user id for this address, creating an account if there isn't
-// one. An address that already has a login (a student who volunteered on
-// another city first) is reused rather than rejected.
-async function inviteOrFindUser(SUPABASE_URL, headers, email) {
-  var inviteRes = await fetch(SUPABASE_URL + '/auth/v1/invite', {
-    method: 'POST',
-    headers: headers,
-    body: JSON.stringify({ email: email })
-  });
-  var inviteData = await inviteRes.json().catch(function () { return {}; });
-  if (inviteRes.ok && inviteData.id) return inviteData.id;
-
-  var byRole = await fetch(
-    SUPABASE_URL + '/rest/v1/user_roles?email=eq.' + encodeURIComponent(email) + '&select=user_id',
-    { headers: headers }
-  );
-  var rows = await byRole.json().catch(function () { return []; });
-  if (rows && rows[0] && rows[0].user_id) return rows[0].user_id;
-
-  var byAuth = await fetch(
-    SUPABASE_URL + '/auth/v1/admin/users?filter=' + encodeURIComponent(email),
-    { headers: headers }
-  );
-  if (!byAuth.ok) return null;
-  var authData = await byAuth.json().catch(function () { return {}; });
-  var users = (authData && authData.users) || [];
-  for (var i = 0; i < users.length; i++) {
-    if (users[i].email && users[i].email.toLowerCase() === email.toLowerCase()) {
-      return users[i].id;
-    }
-  }
-  return null;
-}
-
-// A recovery link doubles as a set-password link for a brand new account, and
-// unlike the invite email it can be embedded in our own message.
-async function generateLoginLink(SUPABASE_URL, headers, email) {
-  try {
-    var r = await fetch(SUPABASE_URL + '/auth/v1/admin/generate_link', {
-      method: 'POST',
-      headers: headers,
-      body: JSON.stringify({
-        type: 'recovery',
-        email: email,
-        options: { redirect_to: 'https://www.miamidadecommissionwatch.com/set-password.html' }
-      })
-    });
-    if (!r.ok) return null;
-    var data = await r.json();
-    return data.action_link || (data.properties && data.properties.action_link) || null;
-  } catch (err) {
-    return null;
-  }
 }
 
 async function emailApproval(claim, city, loginLink) {

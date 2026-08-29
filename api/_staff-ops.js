@@ -7,6 +7,7 @@
 // verifies the caller is active staff first; none of them trusts an id from
 // the request body without checking what it points at.
 var provisionSubdomain = require('./_provision-domain.js');
+var createOrFindAccount = require('./_account-link.js');
 
 module.exports = async function handler(req, res) {
   var SUPABASE_URL = process.env.SUPABASE_URL;
@@ -81,7 +82,8 @@ module.exports = async function handler(req, res) {
         return;
       }
 
-      var newOwnerId = await findOrCreateUser(SUPABASE_URL, serviceHeaders, email);
+      var newOwner = await createOrFindAccount(SUPABASE_URL, serviceHeaders, email);
+      var newOwnerId = newOwner.userId;
       if (!newOwnerId) {
         res.status(500).json({ error: 'Could not find or create a login for that address.' });
         return;
@@ -116,7 +118,7 @@ module.exports = async function handler(req, res) {
         return;
       }
 
-      var link = await generateLoginLink(SUPABASE_URL, serviceHeaders, email);
+      var link = newOwner.link;
       await send(email, 'You now run ' + targetCity.name + ' Commission Watch', [
         '<p>You’ve been made the owner of <strong>' + escapeHtml(targetCity.name) +
           '</strong> on Miami-Dade Commission Watch.</p>',
@@ -163,7 +165,8 @@ module.exports = async function handler(req, res) {
       var inviteCity = await getCity(SUPABASE_URL, serviceHeaders, invite.city_id);
       if (!inviteCity) { res.status(404).json({ error: 'That city no longer exists.' }); return; }
 
-      var editorId = await findOrCreateUser(SUPABASE_URL, serviceHeaders, invite.email);
+      var editor = await createOrFindAccount(SUPABASE_URL, serviceHeaders, invite.email);
+      var editorId = editor.userId;
       if (!editorId) {
         res.status(500).json({ error: 'Could not create a login for that address.' });
         return;
@@ -186,7 +189,7 @@ module.exports = async function handler(req, res) {
         '/rest/v1/city_invites?id=eq.' + encodeURIComponent(invite.id),
         { status: 'sent', reviewed_by: caller.id, reviewed_at: new Date().toISOString() });
 
-      var editorLink = await generateLoginLink(SUPABASE_URL, serviceHeaders, invite.email);
+      var editorLink = editor.link;
       await send(invite.email, 'You’re on the ' + inviteCity.name + ' team', [
         '<p>You’ve been added to the student team covering <strong>' +
           escapeHtml(inviteCity.name) + '</strong>.</p>',
@@ -224,48 +227,6 @@ async function patch(SUPABASE_URL, headers, path, payload) {
   });
 }
 
-async function findOrCreateUser(SUPABASE_URL, headers, email) {
-  var inviteRes = await fetch(SUPABASE_URL + '/auth/v1/invite', {
-    method: 'POST',
-    headers: headers,
-    body: JSON.stringify({ email: email })
-  });
-  var inviteData = await inviteRes.json().catch(function () { return {}; });
-  if (inviteRes.ok && inviteData.id) return inviteData.id;
-
-  var byAuth = await fetch(
-    SUPABASE_URL + '/auth/v1/admin/users?filter=' + encodeURIComponent(email),
-    { headers: headers }
-  );
-  if (!byAuth.ok) return null;
-  var authData = await byAuth.json().catch(function () { return {}; });
-  var users = (authData && authData.users) || [];
-  for (var i = 0; i < users.length; i++) {
-    if (users[i].email && users[i].email.toLowerCase() === email.toLowerCase()) {
-      return users[i].id;
-    }
-  }
-  return null;
-}
-
-async function generateLoginLink(SUPABASE_URL, headers, email) {
-  try {
-    var r = await fetch(SUPABASE_URL + '/auth/v1/admin/generate_link', {
-      method: 'POST',
-      headers: headers,
-      body: JSON.stringify({
-        type: 'recovery',
-        email: email,
-        options: { redirect_to: 'https://www.miamidadecommissionwatch.com/set-password.html' }
-      })
-    });
-    if (!r.ok) return null;
-    var data = await r.json();
-    return data.action_link || (data.properties && data.properties.action_link) || null;
-  } catch (err) {
-    return null;
-  }
-}
 
 async function send(to, subject, html) {
   var RESEND_API_KEY = process.env.RESEND_API_KEY;
