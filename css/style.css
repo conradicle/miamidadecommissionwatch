@@ -922,6 +922,92 @@ iframe.skiptranslate { display: none !important; }
 .follow-section .social-icon svg { width: 20px; height: 20px; }
 .follow-section .social-icon:hover { background: var(--green-700); color: #fff; }
 
+/* ---------- team roster ----------
+   Deliberately lighter than .founder-card: a monogram-sized avatar, a name and
+   a role. Twenty founder-sized cards would bury the two actual founders, and a
+   round avatar crops forgivingly enough that a phone snapshot still works. */
+.team-group + .team-group { margin-top: 36px; }
+.team-group-name {
+  display: flex;
+  align-items: baseline;
+  gap: 10px;
+  flex-wrap: wrap;
+  margin-bottom: 6px;
+}
+.team-group-count {
+  font-family: var(--font-mono);
+  font-size: 12px;
+  font-weight: 400;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: var(--green-700);
+}
+.team-group-blurb {
+  color: var(--ink-600);
+  font-size: 15px;
+  max-width: 60ch;
+  margin-bottom: 18px;
+}
+.team-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
+  gap: 16px;
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+.team-member {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  background: var(--paper-raised);
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  padding: 14px 16px;
+  transition: transform .4s var(--ease), box-shadow .4s var(--ease), border-color .4s;
+}
+.team-member:hover { border-color: transparent; transform: translateY(-3px); box-shadow: var(--shadow); }
+.team-avatar {
+  width: 56px;
+  height: 56px;
+  flex: 0 0 56px;
+  border-radius: 50%;
+  object-fit: cover;
+  display: block;
+  background: var(--green-100);
+}
+.team-avatar-monogram {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-family: var(--font-mono);
+  font-size: 16px;
+  letter-spacing: 0.03em;
+  color: var(--green-700);
+}
+.team-member-text { min-width: 0; }
+.team-name {
+  display: block;
+  font-family: var(--font-display);
+  font-weight: 700;
+  font-size: 16px;
+  line-height: 1.3;
+}
+.team-role {
+  display: block;
+  font-family: var(--font-mono);
+  font-size: 11px;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: var(--green-700);
+  margin-top: 3px;
+}
+.team-bio {
+  font-size: 14px;
+  color: var(--ink-600);
+  margin: 8px 0 0;
+}
+
 /* ---------- partner card ---------- */
 .partner-card {
   display: grid;
@@ -961,6 +1047,7 @@ iframe.skiptranslate { display: none !important; }
 .animate-on .roster-card,
 .animate-on .founder-card,
 .animate-on .partner-card,
+.animate-on .team-member,
 .animate-on .stat-item,
 .animate-on .faq-item {
   opacity: 0;
@@ -972,6 +1059,7 @@ iframe.skiptranslate { display: none !important; }
 .animate-on .roster-card.in,
 .animate-on .founder-card.in,
 .animate-on .partner-card.in,
+.animate-on .team-member.in,
 .animate-on .stat-item.in,
 .animate-on .faq-item.in {
   opacity: 1;

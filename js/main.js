@@ -98,7 +98,7 @@ document.addEventListener('DOMContentLoaded', function () {
   // visible (the CSS only hides elements once .animate-on is added below).
   if ('IntersectionObserver' in window) {
     document.body.classList.add('animate-on');
-    var revealSelector = '.card, .meeting-card, .roster-card, .founder-card, .partner-card, .stat-item, .faq-item';
+    var revealSelector = '.card, .meeting-card, .roster-card, .founder-card, .partner-card, .team-member, .stat-item, .faq-item';
     var io = new IntersectionObserver(function (entries) {
       entries.forEach(function (entry) {
         if (entry.isIntersecting) {

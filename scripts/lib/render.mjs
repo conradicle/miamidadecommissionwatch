@@ -346,4 +346,58 @@ export function renderMunicipalities(cities) {
   }).join('');
 }
 
+// ---------------------------------------------------------------------
+// Team roster
+// ---------------------------------------------------------------------
+
+// Initials for the monogram shown when a member has no photo. Requiring a
+// headshot before someone can be listed makes every addition wait on a photo
+// nobody has yet, so the fallback is the default path, not the error path.
+function initials(displayName) {
+  const tokens = String(displayName).split(/\s+/).filter(Boolean);
+  if (!tokens.length) return '';
+  const first = tokens[0][0] || '';
+  const last = tokens.length > 1 ? tokens[tokens.length - 1][0] || '' : '';
+  return (first + last).toUpperCase().replace(/[^A-Z\u00C0-\u024F]/g, '');
+}
+
+// `byline` is js/public-byline.js, the one copy of how a minor's name may
+// appear publicly. Running every roster name through it means a full name
+// pasted into contributors.json still reaches the page as "First L." -- the
+// same guarantee the editorials already get, enforced in one place.
+export function renderTeam(teams, byline) {
+  return teams.map((team) => {
+    const members = team.members.map((member) => {
+      const name = byline(member.name);
+      const face = member.photo
+        ? '<img class="team-avatar" src="' + esc(member.photo) + '" alt="" loading="lazy">'
+        : '<span class="team-avatar team-avatar-monogram" aria-hidden="true">' + esc(initials(name)) + '</span>';
+      const bio = member.bio
+        ? '<p class="team-bio">' + esc(member.bio) + '</p>'
+        : '';
+
+      return '<li class="team-member">' + face +
+        '<div class="team-member-text">' +
+          '<span class="team-name">' + esc(name) + '</span>' +
+          '<span class="team-role">' + esc(member.role) + '</span>' +
+          bio +
+        '</div>' +
+      '</li>';
+    }).join('');
+
+    const blurb = team.blurb ? '<p class="team-group-blurb">' + esc(team.blurb) + '</p>' : '';
+    // A team's size and the members named on the page are different numbers on
+    // purpose: appearing here is opt-in, and most of the roster are minors. An
+    // unnamed member still counts toward the team, so `size` wins when it is set.
+    const count = typeof team.size === 'number' ? team.size : team.members.length;
+    const size = '<span class="team-group-count">' + count + (count === 1 ? ' person' : ' people') + '</span>';
+
+    return '<div class="team-group">' +
+      '<h3 class="team-group-name">' + esc(team.name) + size + '</h3>' +
+      blurb +
+      '<ul class="team-grid">' + members + '</ul>' +
+    '</div>';
+  }).join('');
+}
+
 export { esc, clip };
