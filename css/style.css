@@ -922,6 +922,45 @@ iframe.skiptranslate { display: none !important; }
 .follow-section .social-icon svg { width: 20px; height: 20px; }
 .follow-section .social-icon:hover { background: var(--green-700); color: #fff; }
 
+/* ---------- founder bio disclosure ----------
+   The founder bios run five paragraphs each, which pushed the roster and
+   everything under it far down the page. The opening two paragraphs stay
+   visible and the rest sits behind a native <details>: no JS to fail, the
+   text is still in the markup for crawlers, and Conrad's disclosure stays
+   outside the fold-away on purpose. */
+.founder-more {
+  margin-bottom: 12px;
+}
+.founder-more summary {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  cursor: pointer;
+  font-family: var(--font-mono);
+  font-size: 12px;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: var(--green-700);
+  list-style: none;
+  transition: color .3s var(--ease);
+}
+.founder-more summary::-webkit-details-marker { display: none; }
+.founder-more summary:hover { color: var(--ink-900); }
+.founder-more summary::after {
+  content: "";
+  width: 6px;
+  height: 6px;
+  border-right: 1.5px solid currentColor;
+  border-bottom: 1.5px solid currentColor;
+  transform: translateY(-2px) rotate(45deg);
+  transition: transform .3s var(--ease);
+}
+.founder-more[open] summary::after { transform: translateY(1px) rotate(-135deg); }
+.founder-more:not([open]) .founder-more-close { display: none; }
+.founder-more[open] .founder-more-open { display: none; }
+.founder-more p:first-of-type { margin-top: 14px; }
+.founder-more p:last-child { margin-bottom: 0; }
+
 /* ---------- team roster ----------
    Deliberately lighter than .founder-card: a monogram-sized avatar, a name and
    a role. Twenty founder-sized cards would bury the two actual founders, and a
