@@ -2,6 +2,19 @@
   "_comment": "The team roster rendered into about.html by scripts/build.mjs. Names are run through js/public-byline.js at render time, so a full name here still reaches the page as 'First L.'. Photo is optional: leave it null and the card falls back to an initials monogram. Appearing here is opt-in, so 'size' is the team's real headcount and 'members' is only those cleared to be named.",
   "teams": [
     {
+      "id": "leadership",
+      "name": "Leadership",
+      "blurb": null,
+      "members": [
+        {
+          "name": "Gabriela R.",
+          "role": "Chief of Staff",
+          "photo": "assets/img/team/gabriela-r.jpg",
+          "bio": null
+        }
+      ]
+    },
+    {
       "id": "outreach",
       "name": "Outreach",
       "blurb": "Brings Commission Watch to schools, community meetings and partner organizations, and recruits the Watchdogs who show up at the BCC.",

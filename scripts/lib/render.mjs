@@ -390,7 +390,11 @@ export function renderTeam(teams, byline) {
     // purpose: appearing here is opt-in, and most of the roster are minors. An
     // unnamed member still counts toward the team, so `size` wins when it is set.
     const count = typeof team.size === 'number' ? team.size : team.members.length;
-    const size = '<span class="team-group-count">' + count + (count === 1 ? ' person' : ' people') + '</span>';
+    // "1 person" next to a heading that already names one role is noise, so a
+    // single-member group wears no count.
+    const size = count > 1
+      ? '<span class="team-group-count">' + count + ' people</span>'
+      : '';
 
     return '<div class="team-group">' +
       '<h3 class="team-group-name">' + esc(team.name) + size + '</h3>' +
