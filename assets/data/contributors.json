@@ -45,6 +45,19 @@
         }
       ],
       "size": 3
+    },
+    {
+      "id": "social-media",
+      "name": "Social Media",
+      "blurb": null,
+      "members": [
+        {
+          "name": "Veronika V.",
+          "role": "Social Media",
+          "photo": "assets/img/team/veronika-v.jpg",
+          "bio": null
+        }
+      ]
     }
   ]
 }
