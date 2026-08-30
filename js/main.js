@@ -106,7 +106,14 @@ document.addEventListener('DOMContentLoaded', function () {
           io.unobserve(entry.target);
         }
       });
-    }, { threshold: 0.12, rootMargin: '0px 0px -6% 0px' });
+      // threshold must stay 0. A ratio threshold is a fraction of the
+      // ELEMENT, so an element taller than the viewport can never reach it:
+      // a meeting card with a full agenda runs to ~13,500px, and 12% of that
+      // is ~1,600px of a ~800px screen. It would sit at opacity:0 forever,
+      // visible for one frame before .animate-on lands and then fading out.
+      // The reveal is delayed by the rootMargin below instead, which is a
+      // fraction of the VIEWPORT and so behaves the same at any card height.
+    }, { threshold: 0, rootMargin: '0px 0px -6% 0px' });
     document.querySelectorAll(revealSelector).forEach(function (el) {
       io.observe(el);
     });
