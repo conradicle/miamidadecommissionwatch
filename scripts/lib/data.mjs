@@ -96,3 +96,26 @@ export function loadPublicByline() {
   }
   return scope.window.publicByline;
 }
+
+// The team roster. Unlike meetings and editorials this is a checked-in file,
+// not a Supabase table: it is a dozen-odd people that change a few times a
+// year, and every change wants a human look before it is public. Git already
+// gives that review, the history and the rollback, so a table plus an admin
+// screen plus an upload path would be machinery bought for nothing.
+export function loadContributors() {
+  const raw = JSON.parse(readFileSync(join(ROOT, 'assets', 'data', 'contributors.json'), 'utf8'));
+  const teams = Array.isArray(raw.teams) ? raw.teams : [];
+  for (const team of teams) {
+    if (!team.id || !team.name) throw new Error('contributors.json: every team needs an id and a name');
+    if (!Array.isArray(team.members)) throw new Error(`contributors.json: team ${team.id} has no members array`);
+    if (team.size != null && team.size < team.members.length) {
+      throw new Error(`contributors.json: team ${team.id} declares size ${team.size} but names ${team.members.length}`);
+    }
+    for (const member of team.members) {
+      if (!member.name || !member.role) {
+        throw new Error(`contributors.json: every member of ${team.id} needs a name and a role`);
+      }
+    }
+  }
+  return teams;
+}

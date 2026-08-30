@@ -12,6 +12,7 @@
 //   meetings.html          tracker list, prerendered
 //   news.html              approved editorials, prerendered
 //   municipalities.html    city registry, prerendered
+//   about.html             the team roster, prerendered
 //   sitemap.xml            every indexable URL, with real lastmod values
 //   <every public page>    Organization / WebSite / page-level JSON-LD
 //
@@ -24,11 +25,11 @@ import { readFileSync, writeFileSync, readdirSync, mkdirSync, statSync } from 'n
 import { join } from 'node:path';
 import { execFileSync } from 'node:child_process';
 
-import { ROOT, fetchMeetings, fetchEditorials, fetchCities, loadPublicByline } from './lib/data.mjs';
+import { ROOT, fetchMeetings, fetchEditorials, fetchCities, loadPublicByline, loadContributors } from './lib/data.mjs';
 import { SITE_ORIGIN, formatDate, formatDateShort, isoDay, clip, escapeHtml } from './lib/fmt.mjs';
 import {
   assignMeetingPaths, meetingTouchedAt, renderMeetingList, renderItems,
-  renderEditorials, renderMunicipalities, makeCounter
+  renderEditorials, renderMunicipalities, renderTeam, makeCounter
 } from './lib/render.mjs';
 import { setHead, setJsonLd, upsertRegion, rewriteToRootRelative, splitShell } from './lib/page.mjs';
 import * as schema from './lib/schema.mjs';
@@ -256,6 +257,7 @@ async function main() {
     fetchMeetings(), fetchEditorials(), fetchCities()
   ]);
   const publicByline = loadPublicByline();
+  const teams = loadContributors();
   const meetings = assignMeetingPaths(rawMeetings);
 
   console.log(`fetched  ${meetings.length} meetings, ${editorials.length} editorials, ${cities.length} cities`);
@@ -338,8 +340,16 @@ async function main() {
     write('municipalities.html', html);
   }
 
+  // --- about.html ----------------------------------------------------------
+  {
+    let html = read('about.html');
+    html = upsertRegion(html, 'team', renderTeam(teams, publicByline), '</main>');
+    html = setJsonLd(html, 'jsonld', [schema.organization(), schema.website()]);
+    write('about.html', html);
+  }
+
   // --- Organization JSON-LD on every remaining public page -----------------
-  const handled = new Set(['meetings.html', 'news.html', 'municipalities.html']);
+  const handled = new Set(['meetings.html', 'news.html', 'municipalities.html', 'about.html']);
   const pages = publicPages();
   let plainCount = 0;
 
