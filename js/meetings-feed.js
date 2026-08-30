@@ -469,7 +469,14 @@
 
     var listEl = document.getElementById('meetings-dynamic');
 
-    if (!listEl || typeof supabaseClient === 'undefined') {
+    // scripts/build.mjs prerenders the whole tracker from Supabase at deploy
+    // time, so the cards are in the HTML before this file runs. Fetching again
+    // would append a second copy of every meeting, and because the filter
+    // indexes the DOM rather than the query result those duplicates would be
+    // real rows in every count, not just a cosmetic repeat. Wire the controls
+    // up over the markup that's already there and leave it alone.
+    if (!listEl || listEl.getAttribute('data-prerendered') === '1' ||
+        typeof supabaseClient === 'undefined') {
       applyFilters();
       return;
     }
@@ -481,7 +488,7 @@
           listEl.appendChild(renderMeeting(meeting));
         });
       })
-      .catch(function () { /* static cards below still render */ })
+      .catch(function () { /* leave the page as-is rather than half-rendered */ })
       .then(function () { applyFilters(); });
   });
 })();

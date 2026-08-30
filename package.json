@@ -1,0 +1,13 @@
+{
+  "name": "miamidadecommissionwatch",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Static site for Miami-Dade Commission Watch. The build step prerenders Supabase-backed content into the HTML so crawlers see it without running JavaScript.",
+  "scripts": {
+    "build": "node scripts/build.mjs",
+    "build:check": "node scripts/build.mjs --dry-run"
+  },
+  "engines": {
+    "node": ">=20"
+  }
+}
