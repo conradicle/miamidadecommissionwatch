@@ -1194,13 +1194,13 @@ a.city-card .city-card-cta { color: var(--green-700); }
   border-color: rgba(192, 138, 46, 0.4);
 }
 .verified-badge.stale::before { background: var(--gold-600); }
-/* On a dark hero the paper-toned badge needs its own treatment. */
-.hero .verified-badge {
-  background: rgba(255, 255, 255, 0.12);
-  border-color: rgba(255, 255, 255, 0.3);
-  color: rgba(255, 255, 255, 0.92);
-}
-.hero .verified-badge::before { background: var(--gold-600); }
+/* There is deliberately no .hero override here. One used to paint the badge
+   white-on-translucent-white "for a dark hero", but .hero has never had a
+   background of its own -- it is padding and a bottom rule, so it sits on the
+   paper. That put white at 92% on #f7f4ec, about 1.06:1, on all nine pages
+   that pair a hero with this badge. The default green pill above is readable
+   on paper; if a genuinely dark hero ever ships, give it its own class and
+   scope the light treatment to that, not to .hero. */
 
 /* =========================================================================
    Structured agenda-item record
