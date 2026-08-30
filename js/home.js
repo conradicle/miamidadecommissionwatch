@@ -123,9 +123,17 @@
   function loadBriefing() {
     if (!haveSupabase()) return;
 
+    // On or before today. The panel is headed "What the Board just did" and
+    // labelled "Since the last meeting", so a meeting that has not happened
+    // yet does not belong in it -- and a meeting page published ahead of the
+    // date, which is how agenda previews work, would otherwise take this slot
+    // and describe an agenda as though it were a result. Mirrors the .gte()
+    // on the next-meeting query below; a meeting today is the newest thing
+    // the Board has done and also the next one up, so it can be both.
     supabaseClient
       .from('meetings')
       .select('*, meeting_items(*)')
+      .lte('meeting_date', fmt.todayISO())
       .order('meeting_date', { ascending: false })
       .limit(1)
       .then(function (res) {
