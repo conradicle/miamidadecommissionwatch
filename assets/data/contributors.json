@@ -58,6 +58,19 @@
           "bio": null
         }
       ]
+    },
+    {
+      "id": "other",
+      "name": "Other",
+      "blurb": null,
+      "members": [
+        {
+          "name": "Sebastian G.",
+          "role": "Technical Advisor",
+          "photo": "assets/img/team/sebastian-g.jpg",
+          "bio": null
+        }
+      ]
     }
   ]
 }
