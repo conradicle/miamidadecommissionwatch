@@ -1,0 +1,349 @@
+// Server-side twin of the render functions in js/meetings-feed.js,
+// js/editorials-feed.js and js/municipalities.js.
+//
+// The markup here is deliberately identical to what those files build in the
+// browser, down to the attribute order, because the same filter code in
+// meetings-feed.js has to walk both. js/meetings.html's filter indexes the DOM
+// rather than the query result, so a prerendered card that carries different
+// data-* attributes than a client-rendered one would silently drop out of
+// every filter.
+
+import { escapeHtml as esc, safeHref, formatDate, formatMoney, clip } from './fmt.mjs';
+
+// ---------------------------------------------------------------------
+// Per-meeting URLs
+// ---------------------------------------------------------------------
+
+function slugifyType(type) {
+  return String(type || '')
+    .toLowerCase()
+    .replace(/[^a-z0-9]+/g, '-')
+    .replace(/^-+|-+$/g, '') || 'meeting';
+}
+
+// One page per meeting, addressed by date. Two meetings can legitimately share
+// a date (a regular meeting and a budget hearing often do), so a collision
+// falls back to date + meeting type rather than letting one page overwrite the
+// other on disk.
+export function assignMeetingPaths(meetings) {
+  const byDate = new Map();
+  for (const m of meetings) {
+    const d = m.meeting_date || 'undated';
+    if (!byDate.has(d)) byDate.set(d, []);
+    byDate.get(d).push(m);
+  }
+
+  for (const [date, group] of byDate) {
+    for (const m of group) {
+      m.__slug = group.length === 1 ? date : `${date}-${slugifyType(m.meeting_type)}`;
+      m.__path = `/meetings/${m.__slug}.html`;
+      m.__url = `https://www.miamidadecommissionwatch.com${m.__path}`;
+    }
+    // A date whose meetings share a type too would still collide. Disambiguate
+    // by position so the build can never drop a meeting on the floor.
+    const seen = new Set();
+    for (const m of group) {
+      let slug = m.__slug;
+      let n = 2;
+      while (seen.has(slug)) slug = `${m.__slug}-${n++}`;
+      seen.add(slug);
+      m.__slug = slug;
+      m.__path = `/meetings/${slug}.html`;
+      m.__url = `https://www.miamidadecommissionwatch.com${m.__path}`;
+    }
+  }
+  return meetings;
+}
+
+// The freshest timestamp anywhere in the meeting, for <lastmod>. Items carry
+// updated_at; the meeting row itself only has created_at.
+export function meetingTouchedAt(meeting) {
+  const stamps = [meeting.created_at];
+  for (const it of meeting.meeting_items || []) {
+    stamps.push(it.updated_at, it.published_at);
+  }
+  const usable = stamps.filter(Boolean).sort();
+  return usable.length ? usable[usable.length - 1] : null;
+}
+
+// ---------------------------------------------------------------------
+// Meeting items -- ports of js/meetings-feed.js
+// ---------------------------------------------------------------------
+
+function recordLine(item) {
+  const bits = [];
+
+  if (item.item_code) bits.push('<span class="item-code">' + esc(item.item_code) + '</span>');
+  if (item.legislation_number) bits.push('<span class="rec-leg">' + esc(item.legislation_number) + '</span>');
+  if (item.legislation_type) bits.push('<span>' + esc(item.legislation_type) + '</span>');
+
+  const money = item.amount_usd ? formatMoney(item.amount_usd) : '';
+  if (money) bits.push('<span class="rec-amount">' + esc(money) + '</span>');
+  if (item.sponsor) bits.push('<span>Sponsored by ' + esc(item.sponsor) + '</span>');
+
+  const tally = voteTally(item);
+  if (tally) bits.push('<span>' + esc(tally) + '</span>');
+
+  if (!bits.length && !item.topic && !(item.districts && item.districts.length)) return '';
+
+  let html = bits.join('<span class="sep">&middot;</span>');
+
+  if (item.topic) {
+    html += (html ? '<span class="sep">&middot;</span>' : '') +
+      '<span class="rec-topic">' + esc(item.topic) + '</span>';
+  }
+  if (item.districts && item.districts.length) {
+    html += '<span class="rec-district">D' +
+      item.districts.map((d) => esc(String(d))).join(', D') + '</span>';
+  } else if (item.topic || bits.length) {
+    html += '<span class="rec-district">Countywide</span>';
+  }
+
+  return '<div class="item-record">' + html + '</div>';
+}
+
+function voteTally(item) {
+  let yes = item.vote_yes;
+  let no = item.vote_no;
+
+  if (typeof yes !== 'number' && item.item_votes && item.item_votes.length) {
+    yes = item.item_votes.filter((v) => v.vote === 'yes').length;
+    no = item.item_votes.filter((v) => v.vote === 'no').length;
+  }
+  if (typeof yes !== 'number' || typeof no !== 'number') return '';
+
+  const verb = item.tag_status === 'failed' ? 'Failed'
+    : item.tag_status === 'deferred' ? 'Deferred' : 'Passed';
+  return verb + ' ' + yes + '–' + no;
+}
+
+function sourcesBlock(item) {
+  const out = [];
+  const officialLinks = [];
+
+  [
+    { url: item.official_url, label: item.official_label || 'County legislative record' },
+    { url: item.agenda_document_url, label: 'Agenda document' },
+    { url: item.vote_record_url, label: 'Vote record' }
+  ].forEach((s) => {
+    if (!s.url) return;
+    const href = safeHref(s.url);
+    if (!href) return;
+    officialLinks.push('<li><a href="' + esc(href) + '" target="_blank" rel="noopener">' +
+      esc(s.label) + ' &#8599;</a></li>');
+  });
+
+  if (officialLinks.length) {
+    out.push('<div class="source-group official"><span class="label">Official record</span>' +
+      '<ul class="source-list">' + officialLinks.join('') + '</ul></div>');
+  } else {
+    out.push('<div class="source-group official"><span class="label">Official record</span>' +
+      '<p class="source-missing" style="margin:0;">Primary county record not yet linked for this item.</p></div>');
+  }
+
+  let extra = (item.item_sources || []).slice()
+    .sort((a, b) => (a.sort_order || 0) - (b.sort_order || 0))
+    .map((s) => {
+      const href = safeHref(s.url);
+      if (!href) return '';
+      return '<li><span class="outlet">' + esc(s.outlet) + '</span>' +
+        '<a href="' + esc(href) + '" target="_blank" rel="noopener">' + esc(s.label) + ' &#8599;</a></li>';
+    })
+    .filter(Boolean);
+
+  if (!extra.length && item.source_url) {
+    const legacyHref = safeHref(item.source_url);
+    if (legacyHref) {
+      extra.push('<li><a href="' + esc(legacyHref) + '" target="_blank" rel="noopener">' +
+        esc(item.source_label || 'Source') + ' &#8599;</a></li>');
+    }
+  }
+
+  if (extra.length) {
+    out.push('<div class="source-group"><span class="label">Additional reporting</span>' +
+      '<ul class="source-list">' + extra.join('') + '</ul></div>');
+  }
+
+  return '<div class="sources">' + out.join('') + '</div>';
+}
+
+function rollCallBlock(item, idx) {
+  const votes = item.item_votes || [];
+  if (!votes.length) return '';
+
+  const id = 'rollcall-' + idx;
+  const rows = votes.slice()
+    .sort((a, b) => {
+      const da = a.commissioners ? a.commissioners.district : 99;
+      const db = b.commissioners ? b.commissioners.district : 99;
+      return da - db;
+    })
+    .map((v) => {
+      const c = v.commissioners || {};
+      return '<div class="rollcall-row">' +
+        '<span class="rc-name"><span class="rc-district">D' + esc(String(c.district || '?')) + '</span>' +
+        esc(c.full_name || 'Unknown') + '</span>' +
+        '<span class="rc-vote ' + esc(v.vote) + '">' + esc(v.vote) + '</span>' +
+        '</div>';
+    });
+
+  return '<button type="button" class="rollcall-toggle" aria-expanded="false" aria-controls="' + id + '">' +
+    'Show roll call (' + votes.length + ')</button>' +
+    '<div class="rollcall" id="' + id + '" hidden>' + rows.join('') + '</div>';
+}
+
+function renderItem(item, meeting, idx) {
+  const tagHtml = item.tag_type === 'outcome'
+    ? '<span class="outcome ' + esc(item.tag_status || 'passed') + '">' + esc(item.tag_label) + '</span>'
+    : '<span class="item-code">' + esc(item.tag_label) + '</span>';
+
+  const attrs = [
+    'class="item-block"',
+    'data-item="1"',
+    'data-date="' + esc(meeting.meeting_date || '') + '"',
+    'data-status="' + esc(item.tag_status || '') + '"',
+    'data-topic="' + esc(item.topic || '') + '"',
+    'data-districts="' + esc((item.districts || []).join(',')) + '"',
+    'data-commissioners="' + esc((item.item_votes || [])
+      .map((v) => (v.commissioners ? v.commissioners.slug : ''))
+      .filter(Boolean).join(',')) + '"'
+  ];
+
+  return '<div ' + attrs.join(' ') + '>' +
+    recordLine(item) +
+    '<div class="item-head">' + tagHtml + '</div>' +
+    '<h4 style="margin-bottom:6px;">' + esc(item.heading) + '</h4>' +
+    '<p style="color:var(--ink-600); margin-bottom:0;">' + esc(item.description) + '</p>' +
+    '<div class="why-matters"><span class="label">Why it matters</span>' + esc(item.why_it_matters) + '</div>' +
+    sourcesBlock(item) +
+    rollCallBlock(item, idx) +
+    '</div>';
+}
+
+// The card as it appears in the tracker list on meetings.html. `linkTitle`
+// turns the heading into a link to the meeting's own page; the meeting page
+// itself renders the same card with the heading plain, since linking a page
+// to itself helps nobody.
+export function renderMeetingCard(meeting, counter, { linkTitle = true } = {}) {
+  const items = meeting.meeting_items || [];
+
+  const heading = linkTitle
+    ? '<h3><a class="meeting-card-link" href="' + esc(meeting.__path) + '">' + esc(meeting.title) + '</a></h3>'
+    : '<h3>' + esc(meeting.title) + '</h3>';
+
+  const permalink = linkTitle
+    ? '<p class="meeting-card-more"><a href="' + esc(meeting.__path) + '">Full recap: ' +
+      esc(formatDate(meeting.meeting_date)) + ' &#8594;</a></p>'
+    : '';
+
+  return '<div class="meeting-card" data-meeting="1" data-date="' + esc(meeting.meeting_date || '') + '">' +
+    '<div class="meeting-card-date">' + esc(meeting.meeting_type) + ' &middot; ' +
+      esc(formatDate(meeting.meeting_date)) + '</div>' +
+    heading +
+    '<p class="meeting-card-summary">' + esc(meeting.summary) + '</p>' +
+    items.map((it) => renderItem(it, meeting, counter.next())).join('') +
+    permalink +
+    '</div>';
+}
+
+// The items alone, for a meeting's own page. That page puts the meeting title
+// in the <h1> and the summary in the lede, so rendering the whole card there
+// too would print both twice.
+export function renderItems(meeting, counter) {
+  return (meeting.meeting_items || [])
+    .map((it) => renderItem(it, meeting, counter.next()))
+    .join('');
+}
+
+export function makeCounter() {
+  let n = 0;
+  return { next: () => n++ };
+}
+
+export function renderMeetingList(meetings) {
+  const counter = makeCounter();
+  return meetings.map((m) => renderMeetingCard(m, counter, { linkTitle: true })).join('\n');
+}
+
+// ---------------------------------------------------------------------
+// Editorials -- port of js/editorials-feed.js
+// ---------------------------------------------------------------------
+
+const CHEVRON =
+  '<svg class="editorial-chevron" width="12" height="12" viewBox="0 0 12 12" aria-hidden="true" focusable="false">' +
+  '<path d="M2 4.5 6 8.5 10 4.5" fill="none" stroke="currentColor" stroke-width="1.6" ' +
+  'stroke-linecap="round" stroke-linejoin="round"/></svg>';
+
+function editorialDate(iso) {
+  const m = /^(\d{4})-(\d{2})/.exec(String(iso || ''));
+  if (!m) return '';
+  const MONTHS = ['January', 'February', 'March', 'April', 'May', 'June',
+    'July', 'August', 'September', 'October', 'November', 'December'];
+  return `${MONTHS[Number(m[2]) - 1]} ${m[1]}`;
+}
+
+// Same slug rules as the browser, including the used-slug counter, so
+// news.html#ed-my-title keeps pointing at the same card after prerendering.
+export function makeEditorialSlugger() {
+  const used = Object.create(null);
+  return function slugify(title) {
+    let base = String(title == null ? '' : title)
+      .toLowerCase()
+      .replace(/[^a-z0-9]+/g, '-')
+      .replace(/^-+|-+$/g, '')
+      .slice(0, 50)
+      .replace(/-+$/, '');
+    if (!base) base = 'editorial';
+    let slug = base;
+    let n = 2;
+    while (used[slug]) slug = base + '-' + n++;
+    used[slug] = true;
+    return 'ed-' + slug;
+  };
+}
+
+export function renderEditorials(rows, publicByline) {
+  const slugify = makeEditorialSlugger();
+  return rows.map((row) => {
+    const id = slugify(row.title);
+    const bodyId = id + '-body';
+    return '<div class="meeting-card editorial-card" id="' + esc(id) + '">' +
+      '<div class="meeting-card-date">Editorial &middot; ' + esc(editorialDate(row.submitted_at)) + '</div>' +
+      '<h3>' + esc(row.title) + '</h3>' +
+      '<p class="editorial-byline">By ' + esc(publicByline(row.name)) + '</p>' +
+      '<p class="editorial-body" id="' + esc(bodyId) + '">' + esc(row.body) + '</p>' +
+      '<button class="editorial-toggle" type="button" aria-expanded="false" aria-controls="' + esc(bodyId) + '">' +
+      '<span class="editorial-toggle-label">Read more</span>' + CHEVRON + '</button>' +
+      '</div>';
+  }).join('\n');
+}
+
+// ---------------------------------------------------------------------
+// Municipalities -- port of js/municipalities.js
+// ---------------------------------------------------------------------
+
+const CITY_STATUS = {
+  unclaimed: { label: 'unclaimed', className: 'tag-unclaimed' },
+  pending: { label: 'requested', className: 'tag-pending' },
+  active: { label: 'covered', className: 'tag-active' },
+  suspended: { label: 'paused', className: 'tag-suspended' }
+};
+
+export function renderMunicipalities(cities) {
+  return cities.map((c) => {
+    const meta = CITY_STATUS[c.status] || CITY_STATUS.unclaimed;
+    const tag = '<span class="muni-tag ' + meta.className + '">' + meta.label + '</span>';
+    const name = '<span class="muni-name">' + esc(c.name) + '</span>';
+
+    if (c.status === 'active') {
+      return '<a class="muni" href="https://' + encodeURIComponent(c.slug) +
+        '.miamidadecommissionwatch.com/" target="_blank" rel="noopener">' + name + tag + '</a>';
+    }
+    if (c.status === 'unclaimed') {
+      return '<button type="button" class="muni" data-claim="' + esc(c.slug) + '">' + name + tag + '</button>';
+    }
+    return '<button type="button" class="muni" disabled>' + name + tag + '</button>';
+  }).join('');
+}
+
+export { esc, clip };

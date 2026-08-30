@@ -1,3 +1,10 @@
+// Approved student editorials on /news.html.
+//
+// The cards are prerendered into the HTML by scripts/build.mjs so the text is
+// indexable without JavaScript. This file's job in that case is only to make
+// them interactive: the expand/collapse behaviour is bound to whatever cards
+// are already on the page. It still knows how to build the cards from scratch,
+// which is what happens if the page is opened without a build having run.
 (function () {
   function escapeHtml(str) {
     var div = document.createElement('div');
@@ -15,7 +22,8 @@
 
   // Anchor slug so a student can link straight to their own piece
   // (news.html#ed-my-editorial-title). usedSlugs keeps two editorials with the
-  // same title from claiming the same id.
+  // same title from claiming the same id. scripts/lib/render.mjs repeats these
+  // rules exactly so a prerendered card keeps the same anchor.
   var usedSlugs = {};
   function slugify(title) {
     var base = String(title == null ? '' : title)
@@ -40,24 +48,14 @@
     '<path d="M2 4.5 6 8.5 10 4.5" fill="none" stroke="currentColor" stroke-width="1.6" ' +
     'stroke-linecap="round" stroke-linejoin="round"/></svg>';
 
-  function renderEditorial(row) {
-    var id = slugify(row.title);
-    var bodyId = id + '-body';
-
-    var card = document.createElement('div');
-    card.className = 'meeting-card editorial-card';
-    card.id = id;
-    card.innerHTML =
-      '<div class="meeting-card-date">Editorial &middot; ' + escapeHtml(formatDate(row.submitted_at)) + '</div>' +
-      '<h3>' + escapeHtml(row.title) + '</h3>' +
-      '<p class="editorial-byline">By ' + escapeHtml(publicByline(row.name)) + '</p>' +
-      '<p class="editorial-body" id="' + bodyId + '">' + escapeHtml(row.body) + '</p>' +
-      '<button class="editorial-toggle" type="button" aria-expanded="false" aria-controls="' + bodyId + '">' +
-      '<span class="editorial-toggle-label">Read more</span>' + CHEVRON + '</button>';
-
+  // Attaches the read-more behaviour to a card. Works the same whether the card
+  // was built by renderEditorial() below or written into the HTML by the build,
+  // which is the point: one definition of how a card behaves.
+  function bindCard(card) {
     var bodyEl = card.querySelector('.editorial-body');
     var btn = card.querySelector('.editorial-toggle');
     var label = card.querySelector('.editorial-toggle-label');
+    if (!bodyEl || !btn || !label) return card;
 
     function setOpen(open) {
       card.classList.toggle('open', open);
@@ -80,10 +78,28 @@
     return card;
   }
 
+  function renderEditorial(row) {
+    var id = slugify(row.title);
+    var bodyId = id + '-body';
+
+    var card = document.createElement('div');
+    card.className = 'meeting-card editorial-card';
+    card.id = id;
+    card.innerHTML =
+      '<div class="meeting-card-date">Editorial &middot; ' + escapeHtml(formatDate(row.submitted_at)) + '</div>' +
+      '<h3>' + escapeHtml(row.title) + '</h3>' +
+      '<p class="editorial-byline">By ' + escapeHtml(publicByline(row.name)) + '</p>' +
+      '<p class="editorial-body" id="' + bodyId + '">' + escapeHtml(row.body) + '</p>' +
+      '<button class="editorial-toggle" type="button" aria-expanded="false" aria-controls="' + bodyId + '">' +
+      '<span class="editorial-toggle-label">Read more</span>' + CHEVRON + '</button>';
+
+    return bindCard(card);
+  }
+
   document.addEventListener('DOMContentLoaded', function () {
     var listEl = document.getElementById('editorials-list');
     var emptyEl = document.getElementById('editorials-empty');
-    if (!listEl || typeof supabaseClient === 'undefined') return;
+    if (!listEl) return;
 
     function openFromHash() {
       var hash = window.location.hash;
@@ -98,6 +114,20 @@
       target.setOpen(true);
       target.scrollIntoView({ block: 'start' });
     }
+
+    window.addEventListener('hashchange', openFromHash);
+
+    // Prerendered by scripts/build.mjs: the editorials are already here, and
+    // re-fetching would only append a second copy of each one. Bind and stop.
+    if (listEl.getAttribute('data-prerendered') === '1') {
+      var existing = listEl.querySelectorAll('.editorial-card');
+      Array.prototype.forEach.call(existing, bindCard);
+      if (!existing.length && emptyEl) emptyEl.style.display = 'block';
+      openFromHash();
+      return;
+    }
+
+    if (typeof supabaseClient === 'undefined') return;
 
     supabaseClient
       .from('editorial_submissions')
@@ -119,7 +149,5 @@
         // missed them.
         openFromHash();
       });
-
-    window.addEventListener('hashchange', openFromHash);
   });
 })();

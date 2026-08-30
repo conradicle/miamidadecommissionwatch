@@ -1,9 +1,21 @@
+# https://www.miamidadecommissionwatch.com/robots.txt
+#
+# Everything the public can read is crawlable, including /meetings/, which is
+# generated per meeting at build time.
+#
+# Note on the staff pages: admin.html, city-admin.html, login.html,
+# set-password.html and manage-subscription.html are NOT listed here, and that
+# is deliberate. They each carry <meta name="robots" content="noindex">, and a
+# crawler has to fetch a page to see that tag. Disallowing them here would
+# block the fetch, leave the noindex unread, and let the bare URLs sit in the
+# index on the strength of any link pointing at them -- the opposite of the
+# intent. Same reasoning for drafts/, which is unpublished and noindexed.
+#
+# /api/ is the one thing genuinely worth blocking: the endpoints return no
+# indexable content and some of them record a write when they are called.
+
 User-agent: *
 Allow: /
-Disallow: /admin.html
-Disallow: /login.html
-Disallow: /set-password.html
-Disallow: /drafts/
 Disallow: /api/
 
 Sitemap: https://www.miamidadecommissionwatch.com/sitemap.xml

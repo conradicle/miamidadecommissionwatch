@@ -1,4 +1,8 @@
 {
+  "$schema": "https://openapi.vercel.sh/vercel.json",
+  "framework": null,
+  "buildCommand": "node scripts/build.mjs",
+  "outputDirectory": ".",
   "rewrites": [
     {
       "source": "/links",
@@ -22,6 +26,11 @@
   "redirects": [
     {
       "source": "/index.html",
+      "destination": "/",
+      "permanent": true
+    },
+    {
+      "source": "/home.html",
       "destination": "/",
       "permanent": true
     },
