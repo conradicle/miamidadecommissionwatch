@@ -112,7 +112,7 @@ function lastModified(relPath) {
 // ---------------------------------------------------------------------
 
 function meetingTitle(meeting) {
-  return `${clip(meeting.title, 70)} — Miami-Dade Commission, ${formatDate(meeting.meeting_date)}`;
+  return `${clip(meeting.title, 70)} - Miami-Dade Commission, ${formatDate(meeting.meeting_date)}`;
 }
 
 function meetingDescription(meeting) {
@@ -370,7 +370,7 @@ async function main() {
   const result = writeSitemap(entries);
   console.log(`sitemap  ${result.urls} URLs across ${result.files} file(s)`);
 
-  console.log(`\ndone in ${Date.now() - t0}ms — ${written.length} files ${DRY_RUN ? 'would be ' : ''}written`);
+  console.log(`\ndone in ${Date.now() - t0}ms, ${written.length} files ${DRY_RUN ? 'would be ' : ''}written`);
 }
 
 main().catch((err) => {
