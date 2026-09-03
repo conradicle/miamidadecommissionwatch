@@ -34,21 +34,12 @@ module.exports = async function handler(req, res) {
     res.status(500).json({ error: 'Server is not configured' });
     return;
   }
-  if (!HOOK_URL) {
-    res.status(500).json({
-      error: 'No deploy hook is configured. Add VERCEL_DEPLOY_HOOK_URL in the Vercel project settings.'
-    });
-    return;
-  }
 
-  // The hook URL comes from our own environment, not from the request, so this
-  // is a configuration check rather than a defence against a hostile caller --
-  // but a typo that pointed it at some other host would quietly turn this
-  // endpoint into a request forwarder, so refuse anything that is not Vercel.
-  if (!/^https:\/\/api\.vercel\.com\/v1\/integrations\/deploy\//.test(HOOK_URL)) {
-    res.status(500).json({ error: 'The configured deploy hook is not a Vercel deploy hook URL.' });
-    return;
-  }
+  // Deliberately no deploy-hook check yet. Whether the hook is configured is
+  // information about this deployment, and an anonymous caller has no business
+  // learning it -- so the caller proves they are staff first, and the
+  // configuration errors below are only ever seen by someone entitled to act
+  // on them.
 
   var authHeader = req.headers.authorization || '';
   var token = authHeader.replace(/^Bearer\s+/i, '');
@@ -83,6 +74,23 @@ module.exports = async function handler(req, res) {
     if (!callerRole || callerRole.status !== 'active' ||
         (callerRole.role !== 'owner' && callerRole.role !== 'admin')) {
       res.status(403).json({ error: 'Only staff can publish the site.' });
+      return;
+    }
+
+    // ---------- the hook must be configured, and must be Vercel's ----------
+    if (!HOOK_URL) {
+      res.status(500).json({
+        error: 'No deploy hook is configured. Add VERCEL_DEPLOY_HOOK_URL in the Vercel project settings.'
+      });
+      return;
+    }
+
+    // The hook URL comes from our own environment, not from the request, so
+    // this is a configuration check rather than a defence against a hostile
+    // caller -- but a typo pointing it at some other host would quietly turn
+    // this endpoint into a request forwarder, so refuse anything not Vercel.
+    if (!/^https:\/\/api\.vercel\.com\/v1\/integrations\/deploy\//.test(HOOK_URL)) {
+      res.status(500).json({ error: 'The configured deploy hook is not a Vercel deploy hook URL.' });
       return;
     }
 
