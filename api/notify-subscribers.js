@@ -99,6 +99,21 @@ module.exports = async function handler(req, res) {
     }
     if (!Array.isArray(subscribers)) subscribers = [];
 
+    // Resend rejects a whole batch if any one address in it is unsendable, so
+    // a single row of test data -- someone@example.com -- silently blocked
+    // every subscriber email the site tried to send. Drop the unsendable ones
+    // here and mail everybody else. The count comes back in the response so a
+    // bad address is visible rather than merely survivable.
+    var unsendable = [];
+    subscribers = subscribers.filter(function (sub) {
+      var email = typeof sub.email === 'string' ? sub.email.trim() : '';
+      if (!isSendableAddress(email)) {
+        unsendable.push(email || '(blank)');
+        return false;
+      }
+      return true;
+    });
+
     var totalSubscribers = subscribers.length;
 
     // Only mail people whose districts or topics this meeting actually
@@ -116,9 +131,12 @@ module.exports = async function handler(req, res) {
         ok: true,
         sent: 0,
         skipped: totalSubscribers,
+        unsendable: unsendable.length,
         note: totalSubscribers > 0
           ? 'No subscriber\'s district or topic preferences match any item on this meeting. Tag the items and try again.'
-          : 'There are no active subscribers.'
+          : unsendable.length > 0
+            ? 'There are no active subscribers with a sendable address. Skipped: ' + unsendable.join(', ')
+            : 'There are no active subscribers.'
       });
       return;
     }
@@ -158,11 +176,36 @@ module.exports = async function handler(req, res) {
 
     await markSent(SUPABASE_URL, SERVICE_ROLE_KEY, meetingId, kind);
 
-    res.status(200).json({ ok: true, sent: subscribers.length, skipped: totalSubscribers - subscribers.length });
+    res.status(200).json({
+      ok: true,
+      sent: subscribers.length,
+      skipped: totalSubscribers - subscribers.length,
+      unsendable: unsendable.length,
+      note: unsendable.length > 0
+        ? 'Skipped ' + unsendable.length + ' unsendable address' +
+          (unsendable.length === 1 ? '' : 'es') + ': ' + unsendable.join(', ') +
+          '. Remove them from the subscribers table.'
+        : undefined
+    });
   } catch (err) {
     res.status(500).json({ error: 'Unexpected error sending subscriber emails' });
   }
 };
+
+// Addresses Resend will refuse. Deliberately narrow: this is not an attempt to
+// validate email in general, which is not something a regex does. It catches
+// the two things that actually reach this table -- a malformed address, and
+// the reserved domains from RFC 2606 and RFC 6761 that seed and test data use.
+// Anything else is handed to Resend, which is the real authority on whether an
+// address can be delivered to.
+var RESERVED_EMAIL_DOMAINS = /@(example|test|invalid|localhost)(\.|$)/i;
+
+function isSendableAddress(email) {
+  if (!email) return false;
+  if (!/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(email)) return false;
+  if (RESERVED_EMAIL_DOMAINS.test(email)) return false;
+  return true;
+}
 
 function sleep(ms) {
   return new Promise(function (resolve) { setTimeout(resolve, ms); });
