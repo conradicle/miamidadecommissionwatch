@@ -407,7 +407,7 @@
     function resetToCreateMode() {
       editingMeetingId = null;
       headingEl.textContent = 'Add a meeting';
-      submitBtn.textContent = 'Publish meeting';
+      submitBtn.textContent = 'Save meeting';
       cancelBtn.style.display = 'none';
       form.reset();
       itemsContainer.innerHTML = '';
@@ -897,6 +897,69 @@
     });
   }
 
+  // Saving a meeting writes to Supabase, but the public site is a prerender:
+  // meetings-feed.js skips its own fetch when the list is already in the HTML,
+  // so nothing reaches a reader until a deploy runs scripts/build.mjs again.
+  // Before this button the only way to do that was to push a commit, and a
+  // finished recap could sit unseen in the database for hours.
+  function initPublishSite() {
+    var btn = document.getElementById('publish-site-btn');
+    var statusEl = document.getElementById('publish-site-status');
+    if (!btn || !statusEl) return;
+
+    btn.addEventListener('click', function () {
+      var warning = 'Rebuild the public site now?\n\n' +
+        'Everything currently saved goes live, including anything still ' +
+        'unfinished. The site updates about a minute after the build starts.';
+      if (!window.confirm(warning)) return;
+
+      btn.disabled = true;
+      var originalText = btn.textContent;
+      btn.textContent = 'Starting...';
+      statusEl.textContent = '';
+      statusEl.className = 'district-status';
+
+      supabaseClient.auth.getSession().then(function (sessionRes) {
+        var session = sessionRes.data && sessionRes.data.session;
+        if (!session) {
+          btn.disabled = false;
+          btn.textContent = originalText;
+          statusEl.textContent = 'Your session has expired. Log out and log back in, then try again.';
+          statusEl.className = 'district-status error';
+          return;
+        }
+
+        fetch('/api/publish-site', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            Authorization: 'Bearer ' + session.access_token
+          }
+        })
+          .then(function (r) {
+            return r.json().then(function (data) { return { ok: r.ok, data: data }; });
+          })
+          .then(function (result) {
+            btn.disabled = false;
+            btn.textContent = originalText;
+            if (!result.ok) {
+              statusEl.textContent = result.data.error || 'Could not start the build.';
+              statusEl.className = 'district-status error';
+              return;
+            }
+            statusEl.textContent = 'Build started. Give it about a minute, then reload the meetings page to check.';
+            statusEl.className = 'district-status success';
+          })
+          .catch(function () {
+            btn.disabled = false;
+            btn.textContent = originalText;
+            statusEl.textContent = 'Could not reach the server.';
+            statusEl.className = 'district-status error';
+          });
+      });
+    });
+  }
+
   function initNewsletterStats() {
     document.getElementById('newsletter-stats-refresh').addEventListener('click', loadNewsletterStats);
     loadNewsletterStats();
@@ -1305,6 +1368,7 @@
 
           initEditorials();
           loadCommissionerRoster().then(initMeetings);
+          initPublishSite();
           initNewsletterStats();
           initLinkStats();
 
