@@ -829,7 +829,12 @@
                 window.alert('Could not send: ' + (result.data.error || 'unknown error'));
                 return;
               }
-              window.alert('Sent to ' + result.data.sent + ' subscriber' + (result.data.sent === 1 ? '' : 's') + '.');
+              var msg = 'Sent to ' + result.data.sent + ' subscriber' + (result.data.sent === 1 ? '' : 's') + '.';
+              // The server skips addresses Resend would reject rather than
+              // letting one bad row fail the whole batch. Say so, or a dead
+              // address sits in the table forever looking like a delivery.
+              if (result.data.note) msg += '\n\n' + result.data.note;
+              window.alert(msg);
               loadMeetingsAdmin();
             })
             .catch(function () {
