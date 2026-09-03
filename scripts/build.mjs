@@ -32,6 +32,7 @@ import {
   renderEditorials, renderMunicipalities, renderTeam, makeCounter
 } from './lib/render.mjs';
 import { setHead, setJsonLd, upsertRegion, rewriteToRootRelative, splitShell } from './lib/page.mjs';
+import { fetchXPosts, renderXFeed, HANDLE as xHandle } from './lib/x-feed.mjs';
 import * as schema from './lib/schema.mjs';
 
 const DRY_RUN = process.argv.includes('--dry-run');
@@ -348,8 +349,22 @@ async function main() {
     write('about.html', html);
   }
 
+  // --- home.html -----------------------------------------------------------
+  {
+    let html = read('home.html');
+    const feed = await fetchXPosts();
+    if (feed.posts.length) {
+      console.log(`x feed   ${feed.posts.length} post(s) from @${xHandle}`);
+    } else {
+      console.log(`x feed   follow card (${feed.reason})`);
+    }
+    html = upsertRegion(html, 'xfeed', renderXFeed(feed.posts), '</aside>');
+    html = setJsonLd(html, 'jsonld', [schema.organization(), schema.website()]);
+    write('home.html', html);
+  }
+
   // --- Organization JSON-LD on every remaining public page -----------------
-  const handled = new Set(['meetings.html', 'news.html', 'municipalities.html', 'about.html']);
+  const handled = new Set(['meetings.html', 'news.html', 'municipalities.html', 'about.html', 'home.html']);
   const pages = publicPages();
   let plainCount = 0;
 
