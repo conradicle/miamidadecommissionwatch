@@ -57,12 +57,31 @@ async function rest(path) {
 const MEETINGS_SELECT =
   '*,meeting_items(*,item_sources(*),item_votes(vote,commissioners(slug,full_name,district)))';
 
+// published=is.true is not optional and has no fallback. If the column is
+// missing the build must fail: a fallback that dropped the filter would
+// publish every draft in the table, which is the exact failure the column
+// exists to prevent. A failed build leaves the last good deployment serving,
+// so the cost of stopping is that the site does not update -- not that it
+// updates wrongly.
 export async function fetchMeetings() {
-  const rows = await rest(
-    `meetings?select=${encodeURIComponent(MEETINGS_SELECT)}` +
-    '&order=meeting_date.desc' +
-    '&order=meeting_items(sort_order).asc'
-  );
+  let rows;
+  try {
+    rows = await rest(
+      `meetings?select=${encodeURIComponent(MEETINGS_SELECT)}` +
+      '&published=is.true' +
+      '&order=meeting_date.desc' +
+      '&order=meeting_items(sort_order).asc'
+    );
+  } catch (err) {
+    if (/published/.test(err.message) && /(does not exist|42703)/.test(err.message)) {
+      throw new Error(
+        'meetings.published is missing from the database.\n' +
+        'Apply supabase/migration_22_meeting_draft_state.sql in the Supabase SQL editor, then deploy again.\n' +
+        'Original error: ' + err.message
+      );
+    }
+    throw err;
+  }
   for (const m of rows) {
     m.meeting_items = (m.meeting_items || []).slice()
       .sort((a, b) => (a.sort_order || 0) - (b.sort_order || 0));
