@@ -129,6 +129,15 @@
           </div>
           <div class="field"><label for="m-title">Headline</label><input type="text" id="m-title" required></div>
           <div class="field"><label for="m-summary">Summary</label><textarea id="m-summary" rows="3" required></textarea></div>
+          <!-- New meetings start unchecked, i.e. as drafts. Saving a draft is
+               safe: the build skips it and the anon key cannot read it. -->
+          <div class="field">
+            <label for="m-published">Visibility</label>
+            <label style="display:flex; align-items:flex-start; gap:9px; font-weight:400; cursor:pointer;">
+              <input type="checkbox" id="m-published" style="width:auto; margin:4px 0 0;">
+              <span>Published &mdash; include this meeting the next time the site is built. Leave unchecked to keep working on it privately.</span>
+            </label>
+          </div>
 
           <h4 style="margin-top:24px; margin-bottom:0;">Agenda items</h4>
           <div id="meeting-items"></div>
@@ -505,6 +514,6 @@
 <script src="js/main.js?v=20260830c"></script>
 <script src="js/admin-cities.js?v=20260827"></script>
 <script src="js/admin-claims.js?v=20260827"></script>
-<script src="js/admin.js?v=20260902"></script>
+<script src="js/admin.js?v=20260902b"></script>
 </body>
 </html>
