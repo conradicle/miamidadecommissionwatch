@@ -68,6 +68,19 @@ module.exports = async function handler(req, res) {
       return;
     }
 
+    // A draft is absent from the built site, so its /meetings/<date>.html does
+    // not exist -- mailing subscribers about it sends the whole list to a 404.
+    // The dashboard disables the button, but this reads the row with the
+    // service role and is the check that actually holds. Rows predating
+    // migration_22 have no published column and are live, so only an explicit
+    // false is a draft.
+    if (meeting.published === false) {
+      res.status(409).json({
+        error: 'That meeting is still a draft. Publish it and rebuild the site before emailing subscribers.'
+      });
+      return;
+    }
+
     var subsRes = await fetch(
       SUPABASE_URL + '/rest/v1/subscribers?status=eq.subscribed&select=email,unsubscribe_token,all_meetings,districts,topics',
       { headers: { Authorization: 'Bearer ' + SERVICE_ROLE_KEY, apikey: SERVICE_ROLE_KEY } }

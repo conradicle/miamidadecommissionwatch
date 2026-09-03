@@ -350,15 +350,27 @@
       ? 'Re-send recap email (sent ' + escapeHtml(formatDate(meeting.recap_sent_at)) + ')'
       : 'Email subscribers: Recap';
 
+    // Rows written before migration_22 have no published column; they are live,
+    // so anything that is not explicitly false counts as published.
+    var isDraft = meeting.published === false;
+    var badge = isDraft
+      ? '<span class="ac-badge ac-badge-draft">Draft</span>'
+      : '<span class="ac-badge ac-badge-published">Published</span>';
+
+    // A draft is not on the site, so mailing subscribers a link to it would
+    // send them to a page that does not exist. The server refuses this too --
+    // see api/notify-subscribers.js -- this only keeps the button from lying.
+    var mailAttrs = isDraft ? ' disabled title="Publish this meeting first."' : '';
+
     card.innerHTML =
-      '<div class="submission-meta">' + escapeHtml(meeting.meeting_type) + ' &middot; ' + escapeHtml(formatMeetingDate(meeting.meeting_date)) + '</div>' +
+      '<div class="submission-meta">' + escapeHtml(meeting.meeting_type) + ' &middot; ' + escapeHtml(formatMeetingDate(meeting.meeting_date)) + badge + '</div>' +
       '<h3 style="margin-bottom:4px;">' + escapeHtml(meeting.title) + '</h3>' +
       '<p style="color:var(--ink-600); font-size:14px;">' + escapeHtml(meeting.summary) + '</p>' +
       (itemsHtml ? '<ul style="margin:8px 0 14px; padding-left:20px; font-size:14px; color:var(--ink-600);">' + itemsHtml + '</ul>' : '') +
       '<div class="submission-actions">' +
         '<button type="button" class="btn btn-secondary btn-small" data-action="edit-meeting" data-id="' + meeting.id + '">Edit</button>' +
-        '<button type="button" class="btn btn-secondary btn-small" data-action="send-agenda" data-id="' + meeting.id + '">' + agendaLabel + '</button>' +
-        '<button type="button" class="btn btn-secondary btn-small" data-action="send-recap" data-id="' + meeting.id + '">' + recapLabel + '</button>' +
+        '<button type="button" class="btn btn-secondary btn-small" data-action="send-agenda" data-id="' + meeting.id + '"' + mailAttrs + '>' + agendaLabel + '</button>' +
+        '<button type="button" class="btn btn-secondary btn-small" data-action="send-recap" data-id="' + meeting.id + '"' + mailAttrs + '>' + recapLabel + '</button>' +
         '<button type="button" class="btn btn-danger btn-small" data-action="delete-meeting" data-id="' + meeting.id + '">Delete meeting</button>' +
       '</div>';
 
@@ -481,6 +493,9 @@
       document.getElementById('m-type').value = meeting.meeting_type;
       document.getElementById('m-title').value = meeting.title;
       document.getElementById('m-summary').value = meeting.summary;
+      // Pre-migration_22 rows have no published column at all; treat those as
+      // published, which is what they are.
+      document.getElementById('m-published').checked = meeting.published !== false;
 
       itemsContainer.innerHTML = '';
       var items = (meeting.meeting_items || []).slice().sort(function (a, b) { return a.sort_order - b.sort_order; });
@@ -671,12 +686,17 @@
         });
       }
 
+      var isPublished = document.getElementById('m-published').checked;
       var meetingFields = {
         meeting_date: document.getElementById('m-date').value,
         meeting_type: document.getElementById('m-type').value.trim(),
         title: document.getElementById('m-title').value.trim(),
-        summary: document.getElementById('m-summary').value.trim()
+        summary: document.getElementById('m-summary').value.trim(),
+        published: isPublished
       };
+      // Stamp the moment it first goes public. Left alone when unpublishing so
+      // the original publication date survives a temporary retraction.
+      if (isPublished) meetingFields.published_at = new Date().toISOString();
 
       submitBtn.disabled = true;
       statusEl.textContent = editingMeetingId ? 'Saving...' : 'Publishing...';
