@@ -1,0 +1,33 @@
+# Every hour, compare what Supabase says is public with what the live site
+# is serving, and rebuild the site if they disagree. See
+# scripts/check-live.mjs for why this exists.
+#
+# VERCEL_DEPLOY_HOOK_URL is a repository secret (Settings -> Secrets and
+# variables -> Actions). It is the same URL stored in the Vercel project's
+# environment for api/publish-site. That variable is marked Sensitive in
+# Vercel, so copy the URL from Settings -> Git -> Deploy Hooks, where it
+# is still shown. Until the secret exists a drift run fails instead of
+# repairing, and GitHub emails the repo owner about the failed run.
+
+name: Check live site
+
+on:
+  schedule:
+    - cron: '17 * * * *'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  check:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+      - run: node scripts/check-live.mjs
+        env:
+          VERCEL_DEPLOY_HOOK_URL: ${{ secrets.VERCEL_DEPLOY_HOOK_URL }}
