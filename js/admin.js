@@ -85,17 +85,21 @@
     card.className = 'submission-card';
 
     var actionsHtml = '';
+    // data-was records the status the button was drawn against, so the click
+    // handler can tell a change the public page cares about (anything into or
+    // out of 'approved') from one it does not (pending <-> rejected).
+    var attrs = ' data-id="' + row.id + '" data-was="' + row.status + '"';
     if (row.status === 'pending') {
       actionsHtml =
-        '<button type="button" class="btn btn-primary btn-small" data-action="approve" data-id="' + row.id + '">Approve &amp; Publish</button>' +
-        '<button type="button" class="btn btn-danger btn-small" data-action="reject" data-id="' + row.id + '">Reject</button>';
+        '<button type="button" class="btn btn-primary btn-small" data-action="approve"' + attrs + '>Approve &amp; Publish</button>' +
+        '<button type="button" class="btn btn-danger btn-small" data-action="reject"' + attrs + '>Reject</button>';
     } else if (row.status === 'approved') {
       actionsHtml =
-        '<button type="button" class="btn btn-secondary btn-small" data-action="unpublish" data-id="' + row.id + '">Move back to pending</button>' +
-        '<button type="button" class="btn btn-danger btn-small" data-action="reject" data-id="' + row.id + '">Reject</button>';
+        '<button type="button" class="btn btn-secondary btn-small" data-action="unpublish"' + attrs + '>Move back to pending</button>' +
+        '<button type="button" class="btn btn-danger btn-small" data-action="reject"' + attrs + '>Reject</button>';
     } else if (row.status === 'rejected') {
       actionsHtml =
-        '<button type="button" class="btn btn-secondary btn-small" data-action="unpublish" data-id="' + row.id + '">Reconsider (back to pending)</button>';
+        '<button type="button" class="btn btn-secondary btn-small" data-action="unpublish"' + attrs + '>Reconsider (back to pending)</button>';
     }
 
     card.innerHTML =
@@ -147,6 +151,7 @@
 
       var id = btn.getAttribute('data-id');
       var action = btn.getAttribute('data-action');
+      var wasStatus = btn.getAttribute('data-was');
       var newStatus = action === 'approve' ? 'approved' : action === 'reject' ? 'rejected' : 'pending';
 
       btn.disabled = true;
@@ -165,6 +170,33 @@
             return;
           }
           loadSubmissions();
+
+          // The News page is a prerender (see initPublishSite), so a row that
+          // just became or stopped being 'approved' is invisible to readers
+          // until the site rebuilds. The button says "Approve & Publish";
+          // for a while it only did the first half, and an approved piece
+          // sat in the database for a day with nothing on the site. Kick
+          // the build here so the word holds.
+          var wasPublic = wasStatus === 'approved';
+          var isPublic = newStatus === 'approved';
+          if (wasPublic === isPublic) {
+            statusEl.textContent = '';
+            statusEl.className = 'district-status';
+            return;
+          }
+          var verb = isPublic ? 'Approved.' : 'Taken down.';
+          statusEl.textContent = verb + ' Rebuilding the site...';
+          statusEl.className = 'district-status';
+          startSiteBuild().then(function (result) {
+            if (!result.ok) {
+              statusEl.textContent = verb + ' But the site did not rebuild: ' + result.message +
+                ' The News page will not change until it does. Try Publish to site on the Meetings tab.';
+              statusEl.className = 'district-status error';
+              return;
+            }
+            statusEl.textContent = verb + ' Build started. The News page updates in about a minute.';
+            statusEl.className = 'district-status success';
+          });
         });
     });
 
@@ -927,6 +959,36 @@
   // so nothing reaches a reader until a deploy runs scripts/build.mjs again.
   // Before this button the only way to do that was to push a commit, and a
   // finished recap could sit unseen in the database for hours.
+  //
+  // Asks api/publish-site to start a production build. Resolves, never
+  // rejects, with { ok, message }: message is the reason when ok is false.
+  // Shared by the Publish to site button and by editorial approvals, which
+  // rebuild on their own (see initEditorials).
+  function startSiteBuild() {
+    return supabaseClient.auth.getSession().then(function (sessionRes) {
+      var session = sessionRes.data && sessionRes.data.session;
+      if (!session) {
+        return { ok: false, message: 'Your session has expired. Log out and log back in, then try again.' };
+      }
+      return fetch('/api/publish-site', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: 'Bearer ' + session.access_token
+        }
+      })
+        .then(function (r) {
+          return r.json().then(function (data) {
+            if (!r.ok) return { ok: false, message: data.error || 'Could not start the build.' };
+            return { ok: true, message: '' };
+          });
+        })
+        .catch(function () {
+          return { ok: false, message: 'Could not reach the server.' };
+        });
+    });
+  }
+
   function initPublishSite() {
     var btn = document.getElementById('publish-site-btn');
     var statusEl = document.getElementById('publish-site-status');
@@ -944,43 +1006,16 @@
       statusEl.textContent = '';
       statusEl.className = 'district-status';
 
-      supabaseClient.auth.getSession().then(function (sessionRes) {
-        var session = sessionRes.data && sessionRes.data.session;
-        if (!session) {
-          btn.disabled = false;
-          btn.textContent = originalText;
-          statusEl.textContent = 'Your session has expired. Log out and log back in, then try again.';
+      startSiteBuild().then(function (result) {
+        btn.disabled = false;
+        btn.textContent = originalText;
+        if (!result.ok) {
+          statusEl.textContent = result.message;
           statusEl.className = 'district-status error';
           return;
         }
-
-        fetch('/api/publish-site', {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-            Authorization: 'Bearer ' + session.access_token
-          }
-        })
-          .then(function (r) {
-            return r.json().then(function (data) { return { ok: r.ok, data: data }; });
-          })
-          .then(function (result) {
-            btn.disabled = false;
-            btn.textContent = originalText;
-            if (!result.ok) {
-              statusEl.textContent = result.data.error || 'Could not start the build.';
-              statusEl.className = 'district-status error';
-              return;
-            }
-            statusEl.textContent = 'Build started. Give it about a minute, then reload the meetings page to check.';
-            statusEl.className = 'district-status success';
-          })
-          .catch(function () {
-            btn.disabled = false;
-            btn.textContent = originalText;
-            statusEl.textContent = 'Could not reach the server.';
-            statusEl.className = 'district-status error';
-          });
+        statusEl.textContent = 'Build started. Give it about a minute, then reload the meetings page to check.';
+        statusEl.className = 'district-status success';
       });
     });
   }
