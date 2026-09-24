@@ -209,9 +209,20 @@
         var face = img.parentNode;
         if (face) face.innerHTML = initialsHtml(face.getAttribute('data-name'));
       }
-      // Already failed before this ran (a cached 404, say).
-      if (img.complete && img.naturalWidth === 0) { fallBack(); return; }
+      // Never upscale: a photo smaller than its circle keeps its natural size.
+      function checkSize() {
+        var face = img.parentNode;
+        if (face && (img.naturalWidth < face.clientWidth || img.naturalHeight < face.clientHeight)) {
+          img.classList.add('is-small');
+        }
+      }
+      // Already settled before this ran (a cached 404, or a cached photo).
+      if (img.complete) {
+        if (img.naturalWidth === 0) fallBack(); else checkSize();
+        return;
+      }
       img.addEventListener('error', fallBack, { once: true });
+      img.addEventListener('load', checkSize, { once: true });
     });
   }
 

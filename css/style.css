@@ -642,14 +642,17 @@ iframe.skiptranslate { display: none !important; }
 }
 .roster-card:hover { border-color: var(--green-700); transform: translateY(-5px); box-shadow: var(--shadow-sm); }
 
-/* City subdomain officials (js/city-site.js). The face block is the same
-   square whether it holds a photo or initials, so every card's name starts
-   at the same height. */
+/* City subdomain officials (js/city-site.js). The face is the same fixed
+   circle whether it holds a photo or initials, so every card's name starts
+   at the same height. Fixed at 160px rather than the card's width because
+   the cities' source photos are small (Miami Beach's are ~250px, some with
+   a round outline already drawn in) and stretching them looks soft. */
 .official-face {
-  width: 100%;
+  width: 160px;
+  max-width: 100%;
   aspect-ratio: 1 / 1;
   margin-bottom: 12px;
-  border-radius: var(--radius);
+  border-radius: 50%;
   overflow: hidden;
   background: var(--green-100);
 }
@@ -659,6 +662,9 @@ iframe.skiptranslate { display: none !important; }
   height: 100%;
   object-fit: cover;
 }
+/* A photo smaller than the circle is shown at its natural size, centered,
+   instead of being upscaled (set by js/city-site.js once it has loaded). */
+.official-photo.is-small { object-fit: none; }
 .official-initials {
   display: flex;
   width: 100%;
@@ -666,7 +672,7 @@ iframe.skiptranslate { display: none !important; }
   align-items: center;
   justify-content: center;
   font-family: var(--font-mono);
-  font-size: 56px;
+  font-size: 44px;
   letter-spacing: 0.03em;
   color: var(--green-700);
 }
