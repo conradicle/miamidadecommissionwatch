@@ -112,22 +112,35 @@ grant execute on function public.claim_site_rebuild(uuid, integer) to service_ro
 -- =========================================================================
 -- The Edge Function is public on the internet (it has to accept pg_net's call
 -- without a user JWT), so it only acts on requests carrying this value. It is
--- generated here, lives in Vault, and gets copied once into the function's
--- REBUILD_WEBHOOK_SECRET. Read it back with:
---
---   select decrypted_secret from vault.decrypted_secrets
---    where name = 'rebuild_site_webhook_secret';
+-- generated here and lives only in Vault: the trigger reads it to send, and
+-- the function reads it back through rebuild_site_webhook_secret() with the
+-- service role to check. Nobody ever copies it anywhere.
 do $do$
 begin
   if not exists (select 1 from vault.secrets where name = 'rebuild_site_webhook_secret') then
     perform vault.create_secret(
       replace(gen_random_uuid()::text, '-', '') || replace(gen_random_uuid()::text, '-', ''),
       'rebuild_site_webhook_secret',
-      'Shared with the rebuild-site Edge Function as REBUILD_WEBHOOK_SECRET. See migration_24.'
+      'Shared between the editorial rebuild trigger and the rebuild-site Edge Function. See migration_24.'
     );
   end if;
 end
 $do$;
+
+create or replace function public.rebuild_site_webhook_secret()
+returns text
+language sql
+stable
+security definer
+set search_path = ''
+as $fn$
+  select decrypted_secret from vault.decrypted_secrets
+   where name = 'rebuild_site_webhook_secret'
+   limit 1;
+$fn$;
+
+revoke all on function public.rebuild_site_webhook_secret() from public, anon, authenticated;
+grant execute on function public.rebuild_site_webhook_secret() to service_role;
 
 -- =========================================================================
 -- 3. The trigger
