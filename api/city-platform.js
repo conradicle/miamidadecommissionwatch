@@ -1,4 +1,4 @@
-// One entry point for the three city-platform actions.
+// One entry point for the city-platform actions.
 //
 // Vercel's Hobby plan allows 12 Serverless Functions per deployment and this
 // project was already at the ceiling, so filing a claim, deciding a claim and
@@ -18,11 +18,16 @@ var submitClaim = require('./_submit-claim.js');
 var decideClaim = require('./_decide-claim.js');
 var cityInvite = require('./_city-invite.js');
 var staffOps = require('./_staff-ops.js');
+var officialPhoto = require('./_official-photo.js');
 
 var OPS = {
   submit_claim: submitClaim,
   decide_claim: decideClaim,
   invite_editor: cityInvite,
+
+  // Staff or a member of the official's city: copies a pasted photo URL into
+  // our own Storage so the city page's CSP will load it.
+  import_official_photo: officialPhoto,
 
   // Staff-only, all three handled by one module because they share the same
   // "is this an active staff member" preamble.

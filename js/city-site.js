@@ -177,6 +177,44 @@
     setHtml('city-what', html);
   }
 
+  // "Alex J. Fernandez" -> "AF": first and last word, the same rule as the
+  // team monograms in scripts/lib/render.mjs.
+  function initials(name) {
+    var tokens = String(name || '').split(/\s+/).filter(Boolean);
+    if (!tokens.length) return '';
+    var first = tokens[0].charAt(0);
+    var last = tokens.length > 1 ? tokens[tokens.length - 1].charAt(0) : '';
+    return (first + last).toUpperCase().replace(/[^A-ZÀ-ɏ]/g, '');
+  }
+
+  function initialsHtml(name) {
+    return '<span class="official-initials" aria-hidden="true">' + escapeHtml(initials(name)) + '</span>';
+  }
+
+  // Every card gets the same square face block, photo or not, so names and
+  // seats line up across the row. A photo that fails to load (moved, blocked,
+  // deleted) turns into the initials instead of a broken-image icon.
+  function officialFace(o) {
+    var photo = safeHref(o.photo_url);
+    var inner = photo
+      ? '<img class="official-photo" src="' + escapeHtml(photo) + '" alt="' + escapeHtml(o.name) + '" loading="lazy">'
+      : initialsHtml(o.name);
+    return '<div class="official-face" data-name="' + escapeHtml(o.name) + '">' + inner + '</div>';
+  }
+
+  function bindPhotoFallbacks(host) {
+    if (!host) return;
+    Array.prototype.forEach.call(host.querySelectorAll('img.official-photo'), function (img) {
+      function fallBack() {
+        var face = img.parentNode;
+        if (face) face.innerHTML = initialsHtml(face.getAttribute('data-name'));
+      }
+      // Already failed before this ran (a cached 404, say).
+      if (img.complete && img.naturalWidth === 0) { fallBack(); return; }
+      img.addEventListener('error', fallBack, { once: true });
+    });
+  }
+
   function renderOfficials(city, officials) {
     if (!officials.length) {
       setHtml('city-officials', emptyState('No officials recorded yet for ' + city.name + '.'));
@@ -184,12 +222,8 @@
     }
 
     var html = officials.map(function (o) {
-      var card = '<div class="card">';
-      var photo = safeHref(o.photo_url);
-      if (photo) {
-        card += '<img src="' + escapeHtml(photo) + '" alt="" loading="lazy" ' +
-          'style="width:100%; aspect-ratio:1/1; object-fit:cover; border-radius:var(--radius); margin-bottom:12px;">';
-      }
+      var card = '<div class="card official-card">';
+      card += officialFace(o);
       card += '<h3 style="margin-bottom:4px;">' + escapeHtml(o.name) + '</h3>';
 
       var seat = o.seat;
@@ -220,6 +254,7 @@
     }).join('');
 
     setHtml('city-officials', html);
+    bindPhotoFallbacks(el('city-officials'));
   }
 
   // The one place the two governance modes diverge, and the reason the field

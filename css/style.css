@@ -641,6 +641,35 @@ iframe.skiptranslate { display: none !important; }
   transition: transform .35s var(--ease), box-shadow .35s var(--ease), border-color .35s;
 }
 .roster-card:hover { border-color: var(--green-700); transform: translateY(-5px); box-shadow: var(--shadow-sm); }
+
+/* City subdomain officials (js/city-site.js). The face block is the same
+   square whether it holds a photo or initials, so every card's name starts
+   at the same height. */
+.official-face {
+  width: 100%;
+  aspect-ratio: 1 / 1;
+  margin-bottom: 12px;
+  border-radius: var(--radius);
+  overflow: hidden;
+  background: var(--green-100);
+}
+.official-photo {
+  display: block;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+.official-initials {
+  display: flex;
+  width: 100%;
+  height: 100%;
+  align-items: center;
+  justify-content: center;
+  font-family: var(--font-mono);
+  font-size: 56px;
+  letter-spacing: 0.03em;
+  color: var(--green-700);
+}
 .roster-card .district {
   font-family: var(--font-mono);
   font-size: 12px;
