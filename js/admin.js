@@ -116,9 +116,14 @@
     return card;
   }
 
+  // Bumped on every load so a slower, older response cannot append a second
+  // copy of the list on top of a newer one.
+  var submissionsLoadSeq = 0;
+
   function loadSubmissions() {
     var statusEl = document.getElementById('admin-status');
     var listEl = document.getElementById('submissions-list');
+    var seq = ++submissionsLoadSeq;
     listEl.innerHTML = '';
 
     supabaseClient
@@ -126,6 +131,7 @@
       .select('*')
       .order('submitted_at', { ascending: false })
       .then(function (res) {
+        if (seq !== submissionsLoadSeq) return;
         if (res.error) {
           statusEl.textContent = 'Could not load submissions: ' + res.error.message;
           statusEl.className = 'district-status error';
@@ -141,62 +147,96 @@
       });
   }
 
+  // What the status line says after a change, keyed by the status the
+  // database handed back -- never by the button that was clicked.
+  var EDITORIAL_RESULT = {
+    approved: 'Approved. It is live on the News page now, and the site rebuilds on its own within about three minutes.',
+    rejected: 'Rejected.',
+    pending: 'Moved back to pending.'
+  };
+
   function initEditorials() {
     var listEl = document.getElementById('submissions-list');
     var statusEl = document.getElementById('admin-status');
 
+    function fail(message, card) {
+      statusEl.textContent = message;
+      statusEl.className = 'district-status error';
+      if (card) {
+        card.querySelectorAll('button[data-action]').forEach(function (b) { b.disabled = false; });
+      }
+    }
+
     listEl.addEventListener('click', function (e) {
       var btn = e.target.closest('button[data-action]');
-      if (!btn) return;
+      if (!btn || btn.disabled) return;
 
+      var card = btn.closest('.submission-card');
       var id = btn.getAttribute('data-id');
       var action = btn.getAttribute('data-action');
       var wasStatus = btn.getAttribute('data-was');
       var newStatus = action === 'approve' ? 'approved' : action === 'reject' ? 'rejected' : 'pending';
 
-      btn.disabled = true;
+      // On 2026-09-23 an approval was undone seconds later: the list redrew
+      // with "Move back to pending" exactly where "Approve & Publish" had
+      // been, a second click landed on it, and the row ended up pending with
+      // the review stamped. Taking a live piece down now has to be meant.
+      if (wasStatus === 'approved' &&
+          !window.confirm('Take this editorial off the News page?')) {
+        return;
+      }
 
-      var updates = { status: newStatus, reviewed_at: new Date().toISOString(), reviewed_by: currentUserId };
+      // Every button on the card, not just the one clicked: the others act on
+      // the same row and would race this write.
+      card.querySelectorAll('button[data-action]').forEach(function (b) { b.disabled = true; });
+      statusEl.textContent = 'Saving...';
+      statusEl.className = 'district-status';
 
+      // One statement, so status and the review stamp land together or not
+      // at all. The status filter makes it a compare-and-set: a card drawn
+      // against a status the row no longer has (a second tab, a second click)
+      // matches nothing instead of overwriting. .select() is what makes a
+      // no-op visible -- without it an update that RLS or that filter
+      // narrowed to zero rows comes back with no error and no data.
       supabaseClient
         .from('editorial_submissions')
-        .update(updates)
+        .update({ status: newStatus, reviewed_at: new Date().toISOString(), reviewed_by: currentUserId })
         .eq('id', id)
+        .eq('status', wasStatus)
+        .select('*')
         .then(function (res) {
           if (res.error) {
-            statusEl.textContent = 'Update failed: ' + res.error.message;
-            statusEl.className = 'district-status error';
-            btn.disabled = false;
+            fail('Update failed: ' + res.error.message + ' Nothing was changed.', card);
             return;
           }
-          loadSubmissions();
+          var row = res.data && res.data[0];
+          if (!row) {
+            fail('Nothing was saved. This submission changed since the list loaded, or your account ' +
+              'no longer has staff access. The list has been reloaded; check its status before trying again.');
+            loadSubmissions();
+            return;
+          }
+          if (row.status !== newStatus) {
+            fail('The database reports this submission as "' + row.status + '", not "' + newStatus + '".');
+            listEl.replaceChild(renderSubmission(row), card);
+            return;
+          }
 
-          // The News page is a prerender (see initPublishSite), so a row that
-          // just became or stopped being 'approved' is invisible to readers
-          // until the site rebuilds. The button says "Approve & Publish";
-          // for a while it only did the first half, and an approved piece
-          // sat in the database for a day with nothing on the site. Kick
-          // the build here so the word holds.
-          var wasPublic = wasStatus === 'approved';
-          var isPublic = newStatus === 'approved';
-          if (wasPublic === isPublic) {
-            statusEl.textContent = '';
-            statusEl.className = 'district-status';
-            return;
+          // Redraw only this card, from the row the database returned, so the
+          // rest of the list does not jump under the pointer.
+          listEl.replaceChild(renderSubmission(row), card);
+          statusEl.textContent = EDITORIAL_RESULT[row.status] || ('Saved as "' + row.status + '".');
+          if (wasStatus === 'approved') {
+            statusEl.textContent += ' It leaves the News page when the site rebuilds on its own, within about three minutes.';
           }
-          var verb = isPublic ? 'Approved.' : 'Taken down.';
-          statusEl.textContent = verb + ' Rebuilding the site...';
-          statusEl.className = 'district-status';
-          startSiteBuild().then(function (result) {
-            if (!result.ok) {
-              statusEl.textContent = verb + ' But the site did not rebuild: ' + result.message +
-                ' The News page will not change until it does. Try Publish to site on the Meetings tab.';
-              statusEl.className = 'district-status error';
-              return;
-            }
-            statusEl.textContent = verb + ' Build started. The News page updates in about a minute.';
-            statusEl.className = 'district-status success';
-          });
+          statusEl.className = 'district-status success';
+          // No rebuild call here. The News page shows new approvals straight
+          // from the database (js/editorials-feed.js), and a database webhook
+          // (supabase/migration_24) rebuilds the prerender whenever a row
+          // moves into or out of 'approved', from any client, debounced.
+        })
+        .catch(function () {
+          fail('Could not reach the database. Nothing was changed.', card);
         });
     });
 
@@ -962,8 +1002,8 @@
   //
   // Asks api/publish-site to start a production build. Resolves, never
   // rejects, with { ok, message }: message is the reason when ok is false.
-  // Shared by the Publish to site button and by editorial approvals, which
-  // rebuild on their own (see initEditorials).
+  // Used by the Publish to site button. Editorial approvals do not call it:
+  // the database webhook in supabase/migration_24 rebuilds for those.
   function startSiteBuild() {
     return supabaseClient.auth.getSession().then(function (sessionRes) {
       var session = sessionRes.data && sessionRes.data.session;
