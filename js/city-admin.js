@@ -243,7 +243,6 @@
       seat: val('ca-official-seat'),
       seat_type: val('ca-official-seat-type'),
       district: isDistrict && districtRaw ? parseInt(districtRaw, 10) : null,
-      photo_url: orNull(val('ca-official-photo')),
       contact_email: orNull(val('ca-official-email')),
       contact_url: orNull(val('ca-official-url')),
       term_ends: orNull(val('ca-official-term')),
@@ -253,15 +252,37 @@
     };
 
     var id = val('ca-official-id');
+    // A pasted external photo is not saved as a hotlink: the row is saved
+    // first, then the server copies the image into our bucket (see
+    // js/official-photo.js).
+    var photo = window.OfficialPhoto.planSave(val('ca-official-photo'), !!id);
+    Object.assign(row, photo.fields);
+
     var query = id
-      ? window.supabaseClient.from('city_officials').update(row).eq('id', id)
-      : window.supabaseClient.from('city_officials').insert(row);
+      ? window.supabaseClient.from('city_officials').update(row).eq('id', id).select('id')
+      : window.supabaseClient.from('city_officials').insert(row).select('id');
 
     query.then(function (res) {
       if (res.error) { reportError('Could not save', res.error); return; }
-      setStatus('Saved.', 'success');
-      resetOfficialForm();
-      loadOfficials();
+      var saved = res.data && res.data[0];
+      if (!saved) { setStatus('Nothing was saved. Reload the page and try again.', 'error'); return; }
+      if (!photo.importUrl) {
+        setStatus('Saved.', 'success');
+        resetOfficialForm();
+        loadOfficials();
+        return;
+      }
+      setStatus('Saved. Copying the photo…');
+      window.OfficialPhoto.importFromUrl(saved.id, photo.importUrl).then(function (result) {
+        if (result.ok) {
+          setStatus('Saved, and the photo was copied to our storage.', 'success');
+        } else {
+          setStatus('Saved, but the photo could not be copied: ' + result.message +
+            ' The official is saved without the new photo.', 'error');
+        }
+        resetOfficialForm();
+        loadOfficials();
+      });
     });
   }
 
