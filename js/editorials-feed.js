@@ -5,6 +5,11 @@
 // them interactive: the expand/collapse behaviour is bound to whatever cards
 // are already on the page. It still knows how to build the cards from scratch,
 // which is what happens if the page is opened without a build having run.
+//
+// It also covers the gap between an approval and the next build. The
+// prerendered cards stay (they are what crawlers read), and anything approved
+// since the build is fetched and added beside them, so a piece appears when
+// staff approve it rather than when the rebuild finishes.
 (function () {
   function escapeHtml(str) {
     var div = document.createElement('div');
@@ -21,26 +26,31 @@
   }
 
   // Anchor slug so a student can link straight to their own piece
-  // (news.html#ed-my-editorial-title). usedSlugs keeps two editorials with the
-  // same title from claiming the same id. scripts/lib/render.mjs repeats these
-  // rules exactly so a prerendered card keeps the same anchor.
-  var usedSlugs = {};
-  function slugify(title) {
-    var base = String(title == null ? '' : title)
-      .toLowerCase()
-      .replace(/[^a-z0-9]+/g, '-')
-      .replace(/^-+|-+$/g, '')
-      .slice(0, 50)
-      .replace(/-+$/, '');
-    if (!base) base = 'editorial';
-    var slug = base;
-    var n = 2;
-    while (usedSlugs[slug]) {
-      slug = base + '-' + n;
-      n++;
-    }
-    usedSlugs[slug] = true;
-    return 'ed-' + slug;
+  // (news.html#ed-my-editorial-title). The used-slug table keeps two
+  // editorials with the same title from claiming the same id, which makes the
+  // result depend on order: feed it rows newest first, as the build does. This
+  // is makeEditorialSlugger() in scripts/lib/render.mjs rule for rule, so a
+  // card built here gets the id the build would have given it -- which is
+  // also how the fallback below tells a new piece from a prerendered one.
+  function makeSlugger() {
+    var usedSlugs = {};
+    return function slugify(title) {
+      var base = String(title == null ? '' : title)
+        .toLowerCase()
+        .replace(/[^a-z0-9]+/g, '-')
+        .replace(/^-+|-+$/g, '')
+        .slice(0, 50)
+        .replace(/-+$/, '');
+      if (!base) base = 'editorial';
+      var slug = base;
+      var n = 2;
+      while (usedSlugs[slug]) {
+        slug = base + '-' + n;
+        n++;
+      }
+      usedSlugs[slug] = true;
+      return 'ed-' + slug;
+    };
   }
 
   var CHEVRON =
@@ -78,8 +88,7 @@
     return card;
   }
 
-  function renderEditorial(row) {
-    var id = slugify(row.title);
+  function renderEditorial(row, id) {
     var bodyId = id + '-body';
 
     var card = document.createElement('div');
@@ -117,14 +126,14 @@
 
     window.addEventListener('hashchange', openFromHash);
 
-    // Prerendered by scripts/build.mjs: the editorials are already here, and
-    // re-fetching would only append a second copy of each one. Bind and stop.
-    if (listEl.getAttribute('data-prerendered') === '1') {
+    // Prerendered by scripts/build.mjs: bind the cards already here first, so
+    // the page works even if the fetch below never comes back.
+    var prerendered = listEl.getAttribute('data-prerendered') === '1';
+    if (prerendered) {
       var existing = listEl.querySelectorAll('.editorial-card');
       Array.prototype.forEach.call(existing, bindCard);
       if (!existing.length && emptyEl) emptyEl.style.display = 'block';
       openFromHash();
-      return;
     }
 
     if (typeof supabaseClient === 'undefined') return;
@@ -138,16 +147,41 @@
       .eq('status', 'approved')
       .order('submitted_at', { ascending: false })
       .then(function (res) {
-        if (res.error || !res.data || res.data.length === 0) {
-          emptyEl.style.display = 'block';
+        if (res.error || !res.data) {
+          // A prerendered page is already complete as of the last build.
+          if (!prerendered && emptyEl) emptyEl.style.display = 'block';
           return;
         }
-        res.data.forEach(function (row) {
-          listEl.appendChild(renderEditorial(row));
-        });
-        // Cards only exist now, so the browser's own hash scroll already
+
+        // Slug the whole list newest first, exactly as the build did, and add
+        // only the rows whose card is not on the page yet. Oldest first, each
+        // new card goes in front of the nearest older card already present,
+        // so the list stays in date order.
+        //
+        // Known limit: if a new piece has the exact title of an older one, the
+        // new one takes the bare slug, the prerendered older card's id no
+        // longer lines up, and the older piece shows twice until the rebuild
+        // (a few minutes). Nothing is ever dropped.
+        var slugify = makeSlugger();
+        var ids = res.data.map(function (row) { return slugify(row.title); });
+        var added = 0;
+        for (var i = res.data.length - 1; i >= 0; i--) {
+          if (document.getElementById(ids[i])) continue;
+          var older = null;
+          for (var j = i + 1; j < ids.length && !older; j++) {
+            var el = document.getElementById(ids[j]);
+            if (el && el.parentNode === listEl) older = el;
+          }
+          listEl.insertBefore(renderEditorial(res.data[i], ids[i]), older);
+          added++;
+        }
+
+        if (emptyEl) {
+          emptyEl.style.display = listEl.querySelector('.editorial-card') ? 'none' : 'block';
+        }
+        // New cards only exist now, so the browser's own hash scroll already
         // missed them.
-        openFromHash();
+        if (added) openFromHash();
       });
   });
 })();

@@ -5,9 +5,10 @@
 // push to main, and api/publish-site from the staff dashboard) and both can
 // be missed. On 2026-09-17 an editorial was approved in the dashboard and
 // sat in the database for a day because the rebuild never ran; the button
-// only set the status. js/admin.js now rebuilds on its own after an
-// approval, but a session can expire, a request can fail, and a row can be
-// edited straight in Supabase, so that is one safeguard, not proof.
+// only set the status. A database trigger now rebuilds after any move into
+// or out of 'approved' (supabase/migration_24 and the rebuild-site Edge
+// Function), but a secret can be missing or Vercel can refuse the hook, so
+// that is one safeguard, not proof.
 //
 // This is the proof. It asks the database what is approved and published,
 // asks the live site what it is actually serving, and if the two disagree
