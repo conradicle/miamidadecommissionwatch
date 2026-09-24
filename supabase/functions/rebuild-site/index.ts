@@ -17,10 +17,11 @@
 // so it lives only in this function's secrets, never in the repo, a response
 // body, or a log line. Same rule as api/publish-site.js.
 //
-// Secrets (Edge Functions -> Secrets, or `supabase secrets set`):
+// Secret to set (Edge Functions -> Secrets, or `supabase secrets set`):
 //   VERCEL_DEPLOY_HOOK_URL  the Vercel deploy hook, same one api/publish-site uses
-//   REBUILD_WEBHOOK_SECRET  the Vault value migration_24 generated
-// SUPABASE_URL and SUPABASE_SERVICE_ROLE_KEY are provided by the platform.
+// SUPABASE_URL and SUPABASE_SERVICE_ROLE_KEY are provided by the platform. The
+// shared webhook secret is read from Vault (rebuild_site_webhook_secret(),
+// migration_24), so it never has to be copied by hand.
 //
 // Deploy with JWT verification OFF -- pg_net calls without a user token, and
 // the x-webhook-secret check below is the gate instead:
@@ -37,7 +38,6 @@ const MAX_WAIT_SECONDS = 180;
 const SUPABASE_URL = Deno.env.get('SUPABASE_URL') ?? '';
 const SERVICE_ROLE_KEY = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? '';
 const HOOK_URL = Deno.env.get('VERCEL_DEPLOY_HOOK_URL') ?? '';
-const WEBHOOK_SECRET = Deno.env.get('REBUILD_WEBHOOK_SECRET') ?? '';
 
 function json(status: number, body: Record<string, unknown>): Response {
   return new Response(JSON.stringify(body), {
@@ -112,16 +112,33 @@ async function deployWhenQuiet(requestId: string): Promise<void> {
   }
 }
 
+// Read once per warm instance. Only a successful read is cached, so a secret
+// created after the function first ran is picked up on the next call.
+let webhookSecret = '';
+async function getWebhookSecret(): Promise<string> {
+  if (!webhookSecret) {
+    const value = await rpc('rebuild_site_webhook_secret', {});
+    if (typeof value === 'string') webhookSecret = value;
+  }
+  return webhookSecret;
+}
+
 Deno.serve(async (req) => {
   if (req.method !== 'POST') return json(405, { error: 'Method not allowed' });
-
-  if (!WEBHOOK_SECRET || !sameSecret(req.headers.get('x-webhook-secret') ?? '', WEBHOOK_SECRET)) {
-    return json(401, { error: 'Unauthorized' });
-  }
 
   if (!SUPABASE_URL || !SERVICE_ROLE_KEY || !HOOK_URL) {
     console.error('rebuild-site is missing SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY or VERCEL_DEPLOY_HOOK_URL.');
     return json(500, { error: 'Not configured' });
+  }
+
+  let secret = '';
+  try {
+    secret = await getWebhookSecret();
+  } catch (err) {
+    console.error(`Could not read the webhook secret: ${err instanceof Error ? err.message : String(err)}`);
+  }
+  if (!secret || !sameSecret(req.headers.get('x-webhook-secret') ?? '', secret)) {
+    return json(401, { error: 'Unauthorized' });
   }
   // A typo pointing this at some other host would quietly turn it into a
   // request forwarder, so refuse anything that is not a Vercel deploy hook.
