@@ -19,7 +19,7 @@
 //
 // Secret to set (Edge Functions -> Secrets, or `supabase secrets set`):
 //   VERCEL_DEPLOY_HOOK_URL  the Vercel deploy hook, same one api/publish-site uses
-// SUPABASE_URL and SUPABASE_SERVICE_ROLE_KEY are provided by the platform. The
+// SUPABASE_URL and the service key are provided by the platform. The
 // shared webhook secret is read from Vault (rebuild_site_webhook_secret(),
 // migration_24), so it never has to be copied by hand.
 //
@@ -36,7 +36,22 @@ const QUIET_SECONDS = 60;
 const MAX_WAIT_SECONDS = 180;
 
 const SUPABASE_URL = Deno.env.get('SUPABASE_URL') ?? '';
-const SERVICE_ROLE_KEY = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? '';
+
+// The project is on the new API keys (sb_publishable_ / sb_secret_), which the
+// platform hands functions as SUPABASE_SECRET_KEYS, a JSON map. The legacy
+// JWT service_role key is the fallback for projects that still have it.
+function serviceKey(): string {
+  try {
+    const keys = JSON.parse(Deno.env.get('SUPABASE_SECRET_KEYS') ?? '{}');
+    if (typeof keys.default === 'string' && keys.default) return keys.default;
+    const first = Object.values(keys).find((v) => typeof v === 'string' && v);
+    if (typeof first === 'string') return first;
+  } catch {
+    // Not set or not JSON; fall through to the legacy key.
+  }
+  return Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? '';
+}
+const SERVICE_ROLE_KEY = serviceKey();
 const HOOK_URL = Deno.env.get('VERCEL_DEPLOY_HOOK_URL') ?? '';
 
 function json(status: number, body: Record<string, unknown>): Response {
@@ -55,11 +70,13 @@ function sameSecret(a: string, b: string): boolean {
   return diff === 0;
 }
 
-const serviceHeaders = {
+// An sb_secret_ key is not a JWT and goes in apikey alone; the gateway maps it
+// to service_role. A legacy JWT key goes in both headers, as it always did.
+const serviceHeaders: Record<string, string> = {
   apikey: SERVICE_ROLE_KEY,
-  Authorization: `Bearer ${SERVICE_ROLE_KEY}`,
   'Content-Type': 'application/json'
 };
+if (!SERVICE_ROLE_KEY.startsWith('sb_')) serviceHeaders.Authorization = `Bearer ${SERVICE_ROLE_KEY}`;
 
 async function rpc(name: string, args: Record<string, unknown>): Promise<unknown> {
   const res = await fetch(`${SUPABASE_URL}/rest/v1/rpc/${name}`, {
@@ -127,7 +144,7 @@ Deno.serve(async (req) => {
   if (req.method !== 'POST') return json(405, { error: 'Method not allowed' });
 
   if (!SUPABASE_URL || !SERVICE_ROLE_KEY || !HOOK_URL) {
-    console.error('rebuild-site is missing SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY or VERCEL_DEPLOY_HOOK_URL.');
+    console.error('rebuild-site is missing SUPABASE_URL, a service key or VERCEL_DEPLOY_HOOK_URL.');
     return json(500, { error: 'Not configured' });
   }
 
