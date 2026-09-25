@@ -11,10 +11,9 @@
 (function () {
   var cities = [];
 
+  // Only for cities that are neither covered nor open to claim.
   var STATUS = {
-    unclaimed: { label: 'unclaimed', className: 'tag-unclaimed' },
     pending:   { label: 'requested', className: 'tag-pending' },
-    active:    { label: 'covered',   className: 'tag-active' },
     suspended: { label: 'paused',    className: 'tag-suspended' }
   };
 
@@ -33,31 +32,47 @@
     node.className = 'district-status' + (kind ? ' ' + kind : '');
   }
 
-  // ---------- the list ----------
+  // ---------- the lists ----------
+  // Mirrors renderMunicipalities in scripts/lib/render.mjs, which prerenders
+  // the same markup at build time. Change both together.
   function render() {
-    var grid = el('muni-grid');
     if (!cities.length) {
-      grid.innerHTML = '';
+      el('muni-covered').innerHTML = '';
+      el('muni-open').innerHTML = '';
+      el('muni-count').textContent = '';
       setStatus('muni-status', 'No municipalities are listed yet.', 'error');
       return;
     }
 
-    grid.innerHTML = cities.map(function (c) {
-      var meta = STATUS[c.status] || STATUS.unclaimed;
-      var tag = '<span class="muni-tag ' + meta.className + '">' + meta.label + '</span>';
-      var name = '<span class="muni-name">' + escapeHtml(c.name) + '</span>';
+    var covered = cities.filter(function (c) { return c.status === 'active'; });
+    var open = cities.filter(function (c) { return c.status !== 'active'; });
 
-      // A covered city links out to its own site; an unclaimed one opens the
-      // request form; anything else is inert with its status showing.
-      if (c.status === 'active') {
-        return '<a class="muni" href="https://' + encodeURIComponent(c.slug) +
-          '.miamidadecommissionwatch.com/" target="_blank" rel="noopener">' + name + tag + '</a>';
-      }
+    // A covered city links out to its own site.
+    el('muni-covered').innerHTML = covered.length
+      ? covered.map(function (c) {
+          return '<li><a class="card muni-card" href="https://' + encodeURIComponent(c.slug) +
+            '.miamidadecommissionwatch.com/" target="_blank" rel="noopener">' +
+            '<h3>' + escapeHtml(c.name) + '</h3>' +
+            '<p>Read our ' + escapeHtml(c.name) + ' coverage</p>' +
+            '<span class="muni-card-url mono">' + escapeHtml(c.slug) + '.miamidadecommissionwatch.com</span>' +
+            '</a></li>';
+        }).join('')
+      : '<li class="muni-empty">No city has a team yet.</li>';
+
+    el('muni-count').textContent = covered.length + ' of ' + cities.length + ' cities covered';
+
+    // An unclaimed city links to the request form; anything else shows its
+    // status and has no link.
+    el('muni-open').innerHTML = open.map(function (c) {
+      var name = '<span class="muni-name">' + escapeHtml(c.name) + '</span>';
       if (c.status === 'unclaimed') {
-        return '<button type="button" class="muni" data-claim="' + escapeHtml(c.slug) + '">' +
-          name + tag + '</button>';
+        return '<li class="muni">' + name +
+          '<a class="muni-claim" href="#request" data-claim="' + escapeHtml(c.slug) + '">' +
+          'Claim this city<span class="sr-only">: ' + escapeHtml(c.name) + '</span></a></li>';
       }
-      return '<button type="button" class="muni" disabled>' + name + tag + '</button>';
+      var meta = STATUS[c.status] || STATUS.pending;
+      return '<li class="muni">' + name +
+        '<span class="muni-tag ' + meta.className + '">' + meta.label + '</span></li>';
     }).join('');
   }
 
@@ -70,8 +85,8 @@
     el('claim-city-name').value = city.name;
     el('claim-heading').textContent = 'Request ' + city.name;
     el('claim-intro').textContent =
-      'You’d be starting coverage of the ' + city.name + ' city commission from scratch. ' +
-      'Tell us a bit about you and we’ll get back to you.';
+      "You'd be starting coverage of the " + city.name + " city commission from scratch. " +
+      "Tell us a bit about you and we'll get back to you.";
 
     el('claim-placeholder').style.display = 'none';
     el('claim-form').style.display = '';
@@ -118,7 +133,7 @@
         }
         el('claim-form').reset();
         setStatus('claim-status',
-          'Request sent. We’ll email you at that address either way — usually within a few days.', 'success');
+          "Request sent. We'll email you at that address either way, usually within a few days.", 'success');
         load();
       })
       .catch(function () {
@@ -145,12 +160,16 @@
   }
 
   document.addEventListener('DOMContentLoaded', function () {
-    if (!el('muni-grid') || typeof window.supabaseClient === 'undefined') return;
+    if (!el('muni-open') || typeof window.supabaseClient === 'undefined') return;
 
-    // Delegated: the grid is re-rendered after a successful claim.
-    el('muni-grid').addEventListener('click', function (e) {
-      var button = e.target.closest('[data-claim]');
-      if (button) openClaim(button.getAttribute('data-claim'));
+    // Delegated: the list is re-rendered after a successful claim. A claim
+    // link is a real link to #request, so Enter works on it natively; here it
+    // also fills in the city and moves focus into the form.
+    el('muni-open').addEventListener('click', function (e) {
+      var link = e.target.closest('[data-claim]');
+      if (!link) return;
+      e.preventDefault();
+      openClaim(link.getAttribute('data-claim'));
     });
 
     el('claim-form').addEventListener('submit', submitClaim);

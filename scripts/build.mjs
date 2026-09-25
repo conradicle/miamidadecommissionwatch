@@ -322,7 +322,10 @@ async function main() {
   // --- municipalities.html -------------------------------------------------
   {
     let html = read('municipalities.html');
-    html = upsertRegion(html, 'municipalities', renderMunicipalities(cities), '</main>');
+    const registry = renderMunicipalities(cities);
+    html = upsertRegion(html, 'municipalities-covered', registry.covered, '</main>');
+    html = upsertRegion(html, 'municipalities-count', registry.count, '</main>');
+    html = upsertRegion(html, 'municipalities-open', registry.open, '</main>');
     html = setJsonLd(html, 'jsonld', [
       schema.organization(),
       schema.website(),

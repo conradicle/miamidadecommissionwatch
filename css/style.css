@@ -211,6 +211,12 @@ section[id] { scroll-margin-top: 140px; }
   align-items: center;
   gap: 12px;
 }
+/* At 360px the wordmark, language toggle and Menu button overran the
+   viewport by about 9px; a 16px gutter and tighter gaps fit them. */
+@media (max-width: 400px) {
+  .site-header .wrap { padding: 16px; gap: 12px; }
+  .header-actions { gap: 8px; }
+}
 .lang-toggle {
   display: flex;
   border: 1px solid rgba(255,255,255,0.4);
