@@ -85,8 +85,8 @@
     el('claim-city-name').value = city.name;
     el('claim-heading').textContent = 'Request ' + city.name;
     el('claim-intro').textContent =
-      'You’d be starting coverage of the ' + city.name + ' city commission from scratch. ' +
-      'Tell us a bit about you and we’ll get back to you.';
+      "You'd be starting coverage of the " + city.name + " city commission from scratch. " +
+      "Tell us a bit about you and we'll get back to you.";
 
     el('claim-placeholder').style.display = 'none';
     el('claim-form').style.display = '';
@@ -133,7 +133,7 @@
         }
         el('claim-form').reset();
         setStatus('claim-status',
-          'Request sent. We’ll email you at that address either way — usually within a few days.', 'success');
+          "Request sent. We'll email you at that address either way, usually within a few days.", 'success');
         load();
       })
       .catch(function () {
