@@ -322,28 +322,49 @@ export function renderEditorials(rows, publicByline) {
 // Municipalities -- port of js/municipalities.js
 // ---------------------------------------------------------------------
 
+// The page has two lists: covered cities as cards linking to their own site,
+// and every other city in a quieter grid with a link into the claim form
+// further down the page. The three pieces come back separately because they
+// sit in different places in municipalities.html. The count uses every row
+// anon can read, so it moves on its own as cities are claimed or added.
 const CITY_STATUS = {
-  unclaimed: { label: 'unclaimed', className: 'tag-unclaimed' },
   pending: { label: 'requested', className: 'tag-pending' },
-  active: { label: 'covered', className: 'tag-active' },
   suspended: { label: 'paused', className: 'tag-suspended' }
 };
 
-export function renderMunicipalities(cities) {
-  return cities.map((c) => {
-    const meta = CITY_STATUS[c.status] || CITY_STATUS.unclaimed;
-    const tag = '<span class="muni-tag ' + meta.className + '">' + meta.label + '</span>';
-    const name = '<span class="muni-name">' + esc(c.name) + '</span>';
+function citySiteUrl(slug) {
+  return 'https://' + encodeURIComponent(slug) + '.miamidadecommissionwatch.com/';
+}
 
-    if (c.status === 'active') {
-      return '<a class="muni" href="https://' + encodeURIComponent(c.slug) +
-        '.miamidadecommissionwatch.com/" target="_blank" rel="noopener">' + name + tag + '</a>';
-    }
+export function renderMunicipalities(cities) {
+  const covered = cities.filter((c) => c.status === 'active');
+  const open = cities.filter((c) => c.status !== 'active');
+
+  const coveredHtml = covered.length
+    ? covered.map((c) =>
+        '<li><a class="card muni-card" href="' + citySiteUrl(c.slug) + '" target="_blank" rel="noopener">' +
+          '<h3>' + esc(c.name) + '</h3>' +
+          '<p>Read our ' + esc(c.name) + ' coverage</p>' +
+          '<span class="muni-card-url mono">' + esc(c.slug) + '.miamidadecommissionwatch.com</span>' +
+        '</a></li>'
+      ).join('')
+    : '<li class="muni-empty">No city has a team yet.</li>';
+
+  const countHtml = covered.length + ' of ' + cities.length + ' cities covered';
+
+  const openHtml = open.map((c) => {
+    const name = '<span class="muni-name">' + esc(c.name) + '</span>';
     if (c.status === 'unclaimed') {
-      return '<button type="button" class="muni" data-claim="' + esc(c.slug) + '">' + name + tag + '</button>';
+      return '<li class="muni">' + name +
+        '<a class="muni-claim" href="#request" data-claim="' + esc(c.slug) + '">' +
+        'Claim this city<span class="sr-only">: ' + esc(c.name) + '</span></a></li>';
     }
-    return '<button type="button" class="muni" disabled>' + name + tag + '</button>';
+    const meta = CITY_STATUS[c.status] || CITY_STATUS.pending;
+    return '<li class="muni">' + name +
+      '<span class="muni-tag ' + meta.className + '">' + meta.label + '</span></li>';
   }).join('');
+
+  return { covered: coveredHtml, count: countHtml, open: openHtml };
 }
 
 // ---------------------------------------------------------------------
