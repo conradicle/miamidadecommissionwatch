@@ -1123,7 +1123,7 @@ iframe.skiptranslate { display: none !important; }
 .partner-card h3 { margin-bottom: 6px; }
 .partner-card p { color: var(--ink-600); font-size: 15px; }
 .partner-card p:last-child { margin-bottom: 0; }
-.partner-card .pull-quote-long p { font-size: 13.5px; }
+.partner-card .pull-quote-long p { max-width: none; }
 @media (max-width: 560px) {
   .partner-card { grid-template-columns: 1fr; text-align: center; }
   .partner-card img { max-width: 180px; margin: 0 auto; }
