@@ -303,7 +303,7 @@ async function main() {
   // --- news.html -----------------------------------------------------------
   {
     let html = read('news.html');
-    html = upsertRegion(html, 'editorials', renderEditorials(editorials, publicByline), '</main>');
+    html = upsertRegion(html, 'editorials', renderEditorials(editorials), '</main>');
     html = setJsonLd(html, 'jsonld', [
       schema.organization(),
       schema.website(),

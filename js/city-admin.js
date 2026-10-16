@@ -57,6 +57,13 @@
     return checked(checkboxId) ? 'published' : 'draft';
   }
 
+  // Live rows are the owner's to change or remove (supabase/migration_27).
+  // The trigger refuses an editor's save or delete with a message; this just
+  // keeps the Delete button off rows it would refuse.
+  function canRemove(row) {
+    return role === 'owner' || row.status !== 'published';
+  }
+
   // ---------- boot ----------
   function start() {
     window.supabaseClient.auth.getSession().then(function (res) {
@@ -204,7 +211,7 @@
         '<div class="ac-meta">' + escapeHtml(seat) + '</div></div>' +
         '<div class="submission-actions">' +
         '<button type="button" class="btn btn-secondary btn-small" data-edit-official="' + escapeHtml(o.id) + '">Edit</button>' +
-        '<button type="button" class="btn btn-danger btn-small" data-delete-official="' + escapeHtml(o.id) + '">Remove</button>' +
+        (canRemove(o) ? '<button type="button" class="btn btn-danger btn-small" data-delete-official="' + escapeHtml(o.id) + '">Remove</button>' : '') +
         '</div></div>';
     }).join('');
   }
@@ -342,7 +349,7 @@
         '<div class="ac-meta">' + escapeHtml(m.meeting_date) + '</div></div>' +
         '<div class="submission-actions">' +
         '<button type="button" class="btn btn-secondary btn-small" data-edit-meeting="' + escapeHtml(m.id) + '">Edit</button>' +
-        '<button type="button" class="btn btn-danger btn-small" data-delete-meeting="' + escapeHtml(m.id) + '">Delete</button>' +
+        (canRemove(m) ? '<button type="button" class="btn btn-danger btn-small" data-delete-meeting="' + escapeHtml(m.id) + '">Delete</button>' : '') +
         '</div></div>';
     }).join('');
   }

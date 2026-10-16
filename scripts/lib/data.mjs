@@ -89,12 +89,13 @@ export async function fetchMeetings() {
   return rows;
 }
 
-// Columns match js/editorials-feed.js exactly. Grade, school and school email
-// are never requested: submitters are minors and none of it is public.
+// Columns match js/editorials-feed.js exactly. Submitters are minors: the view
+// (supabase/migration_27) returns approved rows only, with the byline already
+// reduced to "First L." by the database. The full name is not readable here.
 export async function fetchEditorials() {
   return rest(
-    'editorial_submissions?select=name,title,body,submitted_at' +
-    '&status=eq.approved&order=submitted_at.desc'
+    'published_editorials?select=byline,title,body,submitted_at' +
+    '&order=submitted_at.desc'
   );
 }
 
