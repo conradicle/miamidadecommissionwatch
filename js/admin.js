@@ -126,10 +126,12 @@
     var seq = ++submissionsLoadSeq;
     listEl.innerHTML = '';
 
+    // Through the staff-only function, not the table: signed-in users who are
+    // not staff (city owners, editors) must never see a student's grade,
+    // school or school email, so authenticated holds SELECT on the public
+    // columns only (supabase/migration_27). Newest first, ordered there.
     supabaseClient
-      .from('editorial_submissions')
-      .select('*')
-      .order('submitted_at', { ascending: false })
+      .rpc('staff_editorial_submissions')
       .then(function (res) {
         if (seq !== submissionsLoadSeq) return;
         if (res.error) {
@@ -197,14 +199,30 @@
       // against a status the row no longer has (a second tab, a second click)
       // matches nothing instead of overwriting. .select() is what makes a
       // no-op visible -- without it an update that RLS or that filter
-      // narrowed to zero rows comes back with no error and no data.
+      // narrowed to zero rows comes back with no error and no data. It asks
+      // for id only (the table no longer grants the review columns), and the
+      // full row for the redraw comes from the staff-only function.
       supabaseClient
         .from('editorial_submissions')
         .update({ status: newStatus, reviewed_at: new Date().toISOString(), reviewed_by: currentUserId })
         .eq('id', id)
         .eq('status', wasStatus)
-        .select('*')
+        .select('id')
         .then(function (res) {
+          if (res.error || !res.data || !res.data[0]) return res;
+          return supabaseClient.rpc('staff_editorial_submissions', { p_id: id })
+            .then(function (full) {
+              if (!full.error) return full;
+              // The write landed; only the re-read failed. Say so, and let a
+              // fresh list show the real state.
+              fail('Saved, but the updated submission could not be reloaded: ' + full.error.message +
+                ' The list has been reloaded.');
+              loadSubmissions();
+              return null;
+            });
+        })
+        .then(function (res) {
+          if (!res) return;
           if (res.error) {
             fail('Update failed: ' + res.error.message + ' Nothing was changed.', card);
             return;
