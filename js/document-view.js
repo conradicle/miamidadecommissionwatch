@@ -89,8 +89,10 @@
       .replace(/<\/table>/g, '</table></div>');
   }
 
+  // notranslate: the entries are the document's own headings, and the
+  // document stays in English, so the list has to match it.
   function renderTocList(entries) {
-    return '<ol class="doc-toc-list">' + entries.map(function (e) {
+    return '<ol class="doc-toc-list notranslate" translate="no">' + entries.map(function (e) {
       return '<li class="doc-toc-l' + e.level + '"><a href="#' + esc(e.id) + '">' + esc(e.text) + '</a></li>';
     }).join('') + '</ol>';
   }
@@ -169,6 +171,12 @@
       html += '<p class="doc-companion doc-companion-pending">The Meeting Summary for this meeting will be linked here once it is published.</p>\n';
     }
 
+    // Plain page text on purpose, so the language switcher translates this
+    // line along with the menus.
+    if (!opts.translations || !opts.translations.length) {
+      html += '<p class="doc-edition-note">Official English edition. Spanish and Haitian Creole editions coming soon.</p>\n';
+    }
+
     if (opts.translations && opts.translations.length) {
       html += '<p class="doc-translations">Also available: ' + opts.translations.map(function (t) {
         return '<a href="' + esc(t.pdfUrl) + '" lang="' + esc(t.language) + '">' +
@@ -200,7 +208,12 @@
       html += '<details class="doc-toc doc-toc-inline"><summary>Contents (' + plural(toc.length, 'section') +
         ')</summary><nav aria-label="Contents">' + renderTocList(toc) + '</nav></details>\n';
     }
-    html += '<article class="mdcw-doc" lang="' + esc(doc.language || 'en') + '">\n' + wrapTables(v.body_html) + '\n</article>\n';
+    // The official text is never machine-translated: Google Translate's
+    // widget skips anything marked notranslate (translate="no" is the
+    // standard spelling of the same thing). The page around it, menus and
+    // buttons included, still translates.
+    html += '<article class="mdcw-doc notranslate" translate="no" lang="' + esc(doc.language || 'en') + '">\n' +
+      wrapTables(v.body_html) + '\n</article>\n';
     html += '<p class="doc-foot"><a href="' + type.index + '">All ' + esc(type.plural) + ' &#8594;</a>' +
       (opts.pdfUrl ? ' <a href="' + esc(opts.pdfUrl) + '">Download official PDF</a>' : '') + '</p>\n';
     html += '</div>\n</div>\n';

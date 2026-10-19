@@ -8,6 +8,17 @@ document.addEventListener('DOMContentLoaded', function () {
     });
   }
 
+  // Prerendered meeting dates (the upcoming list on /documents) carry
+  // data-hide-after="YYYY-MM-DD". Once that day is over the card goes, so
+  // the list does not show a past meeting as upcoming while it waits for the
+  // next rebuild.
+  var now = new Date();
+  var todayLocal = now.getFullYear() + '-' + String(now.getMonth() + 1).padStart(2, '0') + '-' +
+    String(now.getDate()).padStart(2, '0');
+  document.querySelectorAll('[data-hide-after]').forEach(function (el) {
+    if (el.getAttribute('data-hide-after') < todayLocal) el.hidden = true;
+  });
+
   // The Documents menu is a <details>, which opens and closes on its own.
   // On a desktop dropdown it should also close when you click elsewhere or
   // press Escape, the way every other menu does.

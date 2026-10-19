@@ -31,6 +31,18 @@ var MAX_PDF_BYTES = 30 * 1024 * 1024;
 // The HTML travels in a JSON body, and Vercel caps request bodies at 4.5 MB.
 var MAX_HTML_BYTES = 3 * 1024 * 1024;
 
+// Published PDFs live in the public `documents` bucket but are always linked
+// through our own domain: vercel.json rewrites /documents/files/* to the
+// bucket, so no reader ever sees a Supabase address. Keep the prefix in step
+// with that rewrite (and with the copies in js/admin-documents.js and
+// js/document-preview.js, which cannot require this file).
+var PDF_URL_PREFIX = '/documents/files/';
+
+function publicPdfPath(storagePath) {
+  if (!storagePath) return null;
+  return PDF_URL_PREFIX + String(storagePath).split('/').map(encodeURIComponent).join('/');
+}
+
 function isDocType(value) {
   return Object.prototype.hasOwnProperty.call(DOC_TYPES, value);
 }
@@ -349,6 +361,8 @@ module.exports = {
   LANGUAGES: LANGUAGES,
   MAX_PDF_BYTES: MAX_PDF_BYTES,
   MAX_HTML_BYTES: MAX_HTML_BYTES,
+  PDF_URL_PREFIX: PDF_URL_PREFIX,
+  publicPdfPath: publicPdfPath,
   isDocType: isDocType,
   isIsoDate: isIsoDate,
   expectedDocumentNumber: expectedDocumentNumber,
