@@ -97,7 +97,7 @@
     card.innerHTML =
       '<div class="meeting-card-date">Editorial &middot; ' + escapeHtml(formatDate(row.submitted_at)) + '</div>' +
       '<h3>' + escapeHtml(row.title) + '</h3>' +
-      '<p class="editorial-byline">By ' + escapeHtml(publicByline(row.name)) + '</p>' +
+      '<p class="editorial-byline">By ' + escapeHtml(row.byline) + '</p>' +
       '<p class="editorial-body" id="' + bodyId + '">' + escapeHtml(row.body) + '</p>' +
       '<button class="editorial-toggle" type="button" aria-expanded="false" aria-controls="' + bodyId + '">' +
       '<span class="editorial-toggle-label">Read more</span>' + CHEVRON + '</button>';
@@ -139,12 +139,11 @@
     if (typeof supabaseClient === 'undefined') return;
 
     supabaseClient
-      .from('editorial_submissions')
-      // Grade and school are deliberately not requested: submitters are minors
-      // and none of it is ever shown publicly. The name is still needed here so
-      // publicByline() can cut it down to "First L." before it hits the page.
-      .select('name, title, body, submitted_at')
-      .eq('status', 'approved')
+      // Submitters are minors. The view (supabase/migration_28) holds approved
+      // rows only and hands back the byline already cut to "First L." in the
+      // database, so the full name never reaches the browser at all.
+      .from('published_editorials')
+      .select('byline, title, body, submitted_at')
       .order('submitted_at', { ascending: false })
       .then(function (res) {
         if (res.error || !res.data) {
