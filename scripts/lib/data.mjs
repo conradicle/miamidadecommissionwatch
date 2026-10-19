@@ -90,7 +90,7 @@ export async function fetchMeetings() {
 }
 
 // Columns match js/editorials-feed.js exactly. Submitters are minors: the view
-// (supabase/migration_27) returns approved rows only, with the byline already
+// (supabase/migration_28) returns approved rows only, with the byline already
 // reduced to "First L." by the database. The full name is not readable here.
 export async function fetchEditorials() {
   return rest(

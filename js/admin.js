@@ -129,7 +129,7 @@
     // Through the staff-only function, not the table: signed-in users who are
     // not staff (city owners, editors) must never see a student's grade,
     // school or school email, so authenticated holds SELECT on the public
-    // columns only (supabase/migration_27). Newest first, ordered there.
+    // columns only (supabase/migration_28). Newest first, ordered there.
     supabaseClient
       .rpc('staff_editorial_submissions')
       .then(function (res) {
