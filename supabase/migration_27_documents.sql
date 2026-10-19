@@ -69,6 +69,9 @@ create table if not exists public.documents (
   -- When subscribers were emailed about this document. Set by
   -- api/notify-subscribers once the page is live; null means not yet.
   subscribers_notified_at timestamptz,
+  -- The last version subscribers were emailed about: the first publication,
+  -- or a correction marked for email. Stops the same version going twice.
+  last_notified_version text,
   created_by uuid references auth.users(id),
   created_at timestamptz not null default now(),
   updated_at timestamptz not null default now(),
@@ -94,6 +97,10 @@ create table if not exists public.document_versions (
   issued_on date not null,
   -- What a correction changed. Shown in the public version history.
   change_note text check (change_note is null or char_length(change_note) <= 1000),
+  -- A correction is emailed to subscribers only when staff tick "Email
+  -- subscribers about this correction" on upload (for a correction that
+  -- changes a fact). Ignored for a first publication, which is always mailed.
+  notify_subscribers boolean not null default false,
   page_count integer check (page_count is null or page_count between 1 and 5000),
   pdf_bytes bigint,
   upload_pdf_path text,

@@ -177,6 +177,10 @@
             <label for="doc-change">What this version corrects</label>
             <textarea id="doc-change" rows="2" maxlength="1000" placeholder="For example: Corrects the vote count on item 11A5 from 10-2 to 9-3."></textarea>
             <span class="field-hint">Shown to readers in the version history. Required for every version after the first.</span>
+            <label style="display:flex; align-items:flex-start; gap:9px; font-weight:400; cursor:pointer; margin-top:12px;">
+              <input type="checkbox" id="doc-notify" style="width:auto; margin:4px 0 0;">
+              <span>Email subscribers about this correction. Use this when the correction changes a fact (a vote count, a dollar figure, an outcome). Off by default; the email goes out when the corrected page is live, with "Correction:" and the document title as its subject.</span>
+            </label>
           </div>
 
           <div style="margin-top:20px; display:flex; gap:10px; flex-wrap:wrap;">
@@ -619,8 +623,8 @@
 <script src="js/official-photo.js?v=20260924"></script>
 <script src="js/admin-cities.js?v=20260924"></script>
 <script src="js/admin-claims.js?v=20260827"></script>
-<script src="js/admin-documents.js?v=20261019b"></script>
+<script src="js/admin-documents.js?v=20261019c"></script>
 <script src="js/admin-schedule.js?v=20261019b"></script>
-<script src="js/admin.js?v=20261019b"></script>
+<script src="js/admin.js?v=20261019c"></script>
 </body>
 </html>
