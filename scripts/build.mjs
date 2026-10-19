@@ -49,6 +49,18 @@ import {
 
 const DRY_RUN = process.argv.includes('--dry-run');
 
+// api/_sanitize-html.js is a bundled copy of sanitize-html, because Vercel's
+// function runtime cannot load the package itself (scripts/vendor-sanitizer.mjs
+// says why). Refuse to deploy a bundle older or newer than package.json asks for.
+{
+  const wanted = JSON.parse(readFileSync(join(ROOT, 'package.json'), 'utf8')).dependencies['sanitize-html'];
+  const bundled = (/^\/\/ sanitize-html (\S+) /.exec(readFileSync(join(ROOT, 'api/_sanitize-html.js'), 'utf8')) || [])[1];
+  if (bundled !== wanted) {
+    throw new Error('api/_sanitize-html.js bundles sanitize-html ' + bundled + ' but package.json asks for ' +
+      wanted + '. Run npm run vendor-sanitizer and commit the result.');
+  }
+}
+
 // Sitemaps are capped at 50,000 URLs by the protocol. Split below that with
 // room to spare rather than at the limit.
 const MAX_URLS_PER_SITEMAP = 45000;

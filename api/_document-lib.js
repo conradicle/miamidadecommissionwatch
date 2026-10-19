@@ -6,7 +6,10 @@
 // so a mistake shows up before the upload rather than after it. The leading
 // underscore keeps it out of Vercel's function count, like the other helpers.
 var zlib = require('zlib');
-var sanitizeHtml = require('sanitize-html');
+// The bundled copy, not require('sanitize-html'): the package require()s an
+// ES-module-only htmlparser2, which crashes Vercel's function runtime on load.
+// See scripts/vendor-sanitizer.mjs.
+var sanitizeHtml = require('./_sanitize-html.js');
 
 // ---------------------------------------------------------------------
 // Types, languages, numbering
