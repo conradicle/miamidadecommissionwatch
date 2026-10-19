@@ -155,6 +155,27 @@ export async function fetchDocuments() {
   return docs.filter((d) => d.current && d.current.body_html);
 }
 
+// Upcoming BCC meeting dates (migration_27). Same no-fallback rule as the
+// documents: the homepage and /documents read this, so a missing table stops
+// the build rather than shipping a site with no next meeting.
+export async function fetchSchedule() {
+  try {
+    return await rest(
+      'meeting_schedule?select=meeting_date,start_time,meeting_type,location,note,cancelled' +
+      '&order=meeting_date.asc'
+    );
+  } catch (err) {
+    if (/meeting_schedule/.test(err.message) && /(does not exist|42P01|PGRST20[05]|schema cache)/.test(err.message)) {
+      throw new Error(
+        'The meeting_schedule table is missing from the database.\n' +
+        'Apply supabase/migration_27_documents.sql in the Supabase SQL editor, then deploy again.\n' +
+        'Original error: ' + err.message
+      );
+    }
+    throw err;
+  }
+}
+
 export async function fetchCities() {
   return rest('cities?select=slug,name,status,sort_order&order=sort_order.asc');
 }

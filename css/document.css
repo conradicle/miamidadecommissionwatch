@@ -202,6 +202,7 @@
 .doc-file-facts { font-size: 14px; color: var(--doc-muted); }
 
 .doc-companion, .doc-translations { margin: 14px 0 0; font-size: 15px; }
+.doc-edition-note { margin: 10px 0 0; font-size: 14px; color: var(--doc-muted); }
 .doc-companion-label { display: block; font: 700 11px/1.4 var(--doc-sans); letter-spacing: .14em; text-transform: uppercase; color: var(--doc-dgold); }
 .doc-companion a, .doc-translations a { color: var(--doc-navy); font-weight: 600; }
 .doc-companion-pending { color: var(--doc-muted); }
@@ -430,6 +431,14 @@
 .mdcw-doc .chapter .cnum { font: 700 52px/1 var(--doc-serif); color: var(--doc-gold); }
 .mdcw-doc .chapter h2 { font-size: clamp(24px, 3.6vw, 30px); border-bottom-width: 2px; }
 .mdcw-doc .dropcap::first-letter { font: 700 44px/0.9 var(--doc-serif); color: var(--doc-navy); float: left; padding: 4px 6px 0 0; }
+
+/* ---------- Upcoming meetings on /documents ---------- */
+.schedule-list { display: flex; flex-direction: column; gap: 12px; margin-top: 20px; }
+.schedule-list .meeting-card { margin: 0; }
+.schedule-list .meeting-card[hidden] { display: none; }
+.schedule-meta { display: flex; flex-wrap: wrap; gap: 4px 8px; margin: 6px 0 0; font-size: 14px; color: var(--ink-600); }
+.schedule-meta a { color: var(--doc-navy); font-weight: 600; }
+.schedule-cancelled { font-weight: 700; color: var(--doc-navy); text-transform: uppercase; letter-spacing: .08em; font-size: 12px; }
 
 /* ---------- Print: the PDF is the printable copy, but keep this tidy ---------- */
 @media print {

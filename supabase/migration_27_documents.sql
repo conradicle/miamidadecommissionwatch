@@ -1,8 +1,9 @@
 -- Official documents: Meeting Summaries and Agenda Summaries.
 --
 -- Run this once in the Supabase SQL editor, after migration_26. It only adds
--- things (two tables, two buckets, policies, guards); nothing existing is
--- altered except one new trigger on meetings that freezes the tracker.
+-- things (three tables, two buckets, policies, guards). Nothing existing is
+-- altered: the Meeting Tracker is frozen in the build and the dashboard, not
+-- in the database, so the meetings table accepts any date as before.
 --
 -- IMPORTANT: run this BEFORE deploying the code that reads it. The build
 -- fetches published documents and fails loudly if the table is missing, the
@@ -16,6 +17,9 @@
 --                      to it. Language is there so a Spanish or Haitian
 --                      Creole edition can be attached later; translation_of
 --                      links an edition to the English original.
+--   meeting_schedule   upcoming BCC meeting dates, kept apart from tracker
+--                      entries so the homepage, the district panel and the
+--                      upcoming list keep working after the tracker froze.
 --   document_versions  one row per version: 1.0, then 1.1 for a correction.
 --                      Each keeps its own PDF, sanitized HTML and metadata
 --                      snapshot. A published version is never changed or
@@ -62,6 +66,9 @@ create table if not exists public.documents (
   keywords text[] not null default '{}',
   page_count integer check (page_count is null or page_count between 1 and 5000),
   first_published_at timestamptz,
+  -- When subscribers were emailed about this document. Set by
+  -- api/notify-subscribers once the page is live; null means not yet.
+  subscribers_notified_at timestamptz,
   created_by uuid references auth.users(id),
   created_at timestamptz not null default now(),
   updated_at timestamptz not null default now(),
@@ -374,37 +381,86 @@ create policy "Staff can read document files"
 -- the service role can write to it.
 
 -- =========================================================================
--- 5. Freeze the meeting tracker
+-- 5. Meeting schedule
 -- =========================================================================
--- The tracker is now the archive (through October 2026). Meetings after that
--- are published as documents. Existing meetings stay editable for
--- corrections; only a meeting dated after the archive's last day is refused.
--- To move the cut-off, change the date here and TRACKER_ARCHIVE_THROUGH in
--- scripts/lib/documents.mjs and js/admin.js together.
-create or replace function public.guard_tracker_archive()
+-- The dates of upcoming Board meetings, from the county's published
+-- calendar. Before this, "the next meeting" was read from the tracker's
+-- meetings table, which only knew about a meeting once someone wrote it up,
+-- and the tracker no longer gets new entries. The homepage next-meeting line,
+-- the district panel and the upcoming list on /documents read this instead.
+-- Staff keep it up to date from the Schedule tab of the dashboard.
+create table if not exists public.meeting_schedule (
+  id uuid primary key default gen_random_uuid(),
+  meeting_date date not null,
+  start_time time,
+  meeting_type text not null default 'Regular Meeting' check (char_length(meeting_type) between 3 and 80),
+  location text check (location is null or char_length(location) <= 200),
+  note text check (note is null or char_length(note) <= 300),
+  cancelled boolean not null default false,
+  created_by uuid references auth.users(id),
+  created_at timestamptz not null default now(),
+  updated_at timestamptz not null default now(),
+  constraint meeting_schedule_one_per_date_and_type unique (meeting_date, meeting_type)
+);
+
+comment on table public.meeting_schedule is
+  'Upcoming BCC meeting dates from the county calendar. Public read, staff write. Independent of the meetings (tracker) table. See migration_27.';
+
+create index if not exists meeting_schedule_date_idx on public.meeting_schedule (meeting_date);
+
+alter table public.meeting_schedule enable row level security;
+
+drop policy if exists "Public can read the meeting schedule" on public.meeting_schedule;
+create policy "Public can read the meeting schedule"
+  on public.meeting_schedule for select
+  using (true);
+
+drop policy if exists "Staff can manage the meeting schedule" on public.meeting_schedule;
+create policy "Staff can manage the meeting schedule"
+  on public.meeting_schedule for all
+  using (public.is_active_staff())
+  with check (public.is_active_staff());
+
+revoke select on public.meeting_schedule from anon;
+grant select (id, meeting_date, start_time, meeting_type, location, note, cancelled, updated_at)
+  on public.meeting_schedule to anon;
+revoke insert, update, delete on public.meeting_schedule from anon;
+
+create or replace function public.touch_meeting_schedule()
 returns trigger
 language plpgsql
 as $fn$
 begin
-  if new.meeting_date > date '2026-10-31' then
-    raise exception 'The Meeting Tracker is an archive through October 2026. Publish later meetings as a Meeting Summary or Agenda Summary in the Documents tab.';
-  end if;
+  new.updated_at := now();
   return new;
 end;
 $fn$;
 
-drop trigger if exists meetings_tracker_archive on public.meetings;
-create trigger meetings_tracker_archive
-  before insert or update of meeting_date on public.meetings
-  for each row execute function public.guard_tracker_archive();
+drop trigger if exists meeting_schedule_touch on public.meeting_schedule;
+create trigger meeting_schedule_touch
+  before update on public.meeting_schedule
+  for each row execute function public.touch_meeting_schedule();
+
+-- The regular meetings the site already lists, from the county's 2026
+-- Meeting Calendar (PDF). Add the rest of the calendar in the Schedule tab.
+insert into public.meeting_schedule (meeting_date, start_time, meeting_type, location)
+values
+  ('2026-10-06', '09:30', 'Regular Meeting', 'Commission Chambers, Stephen P. Clark Government Center, 111 NW 1st Street, Miami'),
+  ('2026-10-20', '09:30', 'Regular Meeting', 'Commission Chambers, Stephen P. Clark Government Center, 111 NW 1st Street, Miami'),
+  ('2026-11-17', '09:30', 'Regular Meeting', 'Commission Chambers, Stephen P. Clark Government Center, 111 NW 1st Street, Miami')
+on conflict (meeting_date, meeting_type) do nothing;
 
 -- =========================================================================
 -- After running this file
 -- =========================================================================
--- 1. Deploy the code (the build now reads documents).
--- 2. In the staff dashboard, Documents tab: upload the PDF and HTML, preview
---    the draft, then Publish. Publishing starts a site rebuild.
+-- 1. Deploy the code (the build now reads documents and the schedule).
+-- 2. In the staff dashboard, Schedule tab: add the rest of the county's
+--    meeting calendar.
+-- 3. Documents tab: upload the PDF and HTML, preview the draft, then
+--    Publish. Publishing starts a site rebuild, and subscribers are emailed
+--    once the document's page is live.
 --
 -- Verify:
 select id, public, file_size_limit from storage.buckets where id in ('document-uploads', 'documents');
 select count(*) as documents from public.documents;
+select meeting_date, start_time, meeting_type from public.meeting_schedule order by meeting_date;

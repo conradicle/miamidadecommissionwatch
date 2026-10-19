@@ -69,8 +69,11 @@
     return top ? top[0] + '.' + (top[1] + 1) : '1.0';
   }
 
+  // Our own domain, through the /documents/files/ rewrite in vercel.json.
+  // Same rule as publicPdfPath in api/_document-lib.js.
   function publicPdfUrl(path) {
-    return path ? supabaseClient.storage.from('documents').getPublicUrl(path).data.publicUrl : null;
+    if (!path) return null;
+    return '/documents/files/' + String(path).split('/').map(encodeURIComponent).join('/');
   }
 
   function withToken(fn) {
@@ -93,6 +96,58 @@
           return data;
         });
       });
+    });
+  }
+
+  // ---------- subscriber email ----------
+  // api/notify-subscribers emails a document only once its page is live,
+  // and answers 409 { pending: true } until then. Publishing starts a
+  // rebuild that takes about a minute, so this asks every 20 seconds for up
+  // to six minutes. If the tab is closed first, the document's card offers
+  // "Email subscribers" instead.
+  var NOTIFY_INTERVAL_MS = 20000;
+  var NOTIFY_ATTEMPTS = 18;
+
+  function notifyOnce(docId, resend) {
+    return withToken(function (session) {
+      return fetch('/api/notify-subscribers', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', Authorization: 'Bearer ' + session.access_token },
+        body: JSON.stringify({ document_id: docId, resend: !!resend })
+      }).then(function (r) {
+        return r.json().catch(function () { return {}; }).then(function (data) {
+          return { status: r.status, data: data };
+        });
+      });
+    });
+  }
+
+  function notifyWhenLive(docId, label, attempt) {
+    attempt = attempt || 1;
+    return notifyOnce(docId).then(function (result) {
+      if (result.status === 409 && result.data.pending) {
+        if (attempt >= NOTIFY_ATTEMPTS) {
+          setStatus('doc-admin-status', label + ' is published, but its page was not live after six minutes, so ' +
+            'subscribers have not been emailed. Check the rebuild, then use Email subscribers on the document.', 'error');
+          return load();
+        }
+        setStatus('doc-admin-status', label + ' is published. Waiting for its page to go live before emailing ' +
+          'subscribers (check ' + attempt + ' of ' + NOTIFY_ATTEMPTS + ', every 20 seconds). You can leave this tab open or come back later.');
+        return new Promise(function (resolve) { setTimeout(resolve, NOTIFY_INTERVAL_MS); })
+          .then(function () { return notifyWhenLive(docId, label, attempt + 1); });
+      }
+      if (result.status !== 200) {
+        setStatus('doc-admin-status', label + ' is published, but subscribers were not emailed: ' +
+          (result.data.error || 'unknown error') + '. Use Email subscribers on the document to try again.', 'error');
+        return load();
+      }
+      var sent = result.data.sent || 0;
+      setStatus('doc-admin-status', label + ' is published and live. ' +
+        (result.data.already ? result.data.note : 'Emailed ' + sent + ' subscriber' + (sent === 1 ? '' : 's') + '.') +
+        (result.data.note && !result.data.already ? ' ' + result.data.note : ''), 'success');
+      return load();
+    }).catch(function (err) {
+      setStatus('doc-admin-status', label + ' is published, but subscribers were not emailed: ' + err.message, 'error');
     });
   }
 
@@ -179,6 +234,10 @@
         actions.push('<button type="button" class="btn btn-danger btn-small" data-discard="' + escapeHtml(draft.id) +
           '">Discard draft</button>');
       }
+      if (published.length && !d.subscribers_notified_at) {
+        actions.push('<button type="button" class="btn btn-secondary btn-small" data-notify="' + escapeHtml(d.id) +
+          '">Email subscribers</button>');
+      }
       if (published.length) {
         actions.push('<button type="button" class="btn btn-secondary btn-small" data-new-version="' + escapeHtml(d.id) +
           '">Upload a correction</button>');
@@ -192,6 +251,9 @@
         '<h3 style="margin:0 0 6px;">' + escapeHtml(draft && d.status === 'draft' ? draft.title : d.title) + '</h3>' +
         (current ? '<p style="margin:0 0 4px; font-size:14px; color:var(--ink-600);">Readers see version ' + escapeHtml(current.version) +
           (current.published_at ? ', published ' + escapeHtml(formatDate(current.published_at)) : '') + '.</p>' : '') +
+        (published.length ? '<p style="margin:0 0 4px; font-size:14px; color:var(--ink-600);">' +
+          (d.subscribers_notified_at ? 'Subscribers emailed ' + escapeHtml(formatDate(d.subscribers_notified_at)) + '.'
+            : 'Subscribers have not been emailed about this document.') + '</p>' : '') +
         (draft && published.length ? '<p style="margin:0 0 4px; font-size:14px; color:var(--gold-700);">Draft correction v' +
           escapeHtml(draft.version) + ' is waiting to be published.</p>' : '') +
         versionsHtml +
@@ -420,6 +482,10 @@
       'A later correction becomes a new version, and this one stays downloadable.\n\n' +
       'Did you check the preview?')) return;
 
+    // Subscribers hear about a document once, when it first goes out. A
+    // correction shows on the page and in its version history instead.
+    var firstPublication = !found.doc.versions.some(function (v) { return v.status === 'published'; });
+
     button.disabled = true;
     setStatus('doc-admin-status', 'Publishing ' + label + '...');
     callServer({ op: 'publish_document_version', version_id: versionId })
@@ -429,15 +495,24 @@
           ? window.mdcwStartSiteBuild()
           : Promise.resolve({ ok: false, message: 'Use Publish to site on the Tracker archive tab.' });
         return build.then(function (result) {
-          setStatus('doc-admin-status', result.ok
-            ? 'Published ' + label + '. The site is rebuilding; the page is live in about a minute.'
-            : 'Published ' + label + ', but the rebuild did not start: ' + result.message, result.ok ? 'success' : 'error');
+          if (!result.ok) {
+            setStatus('doc-admin-status', 'Published ' + label + ', but the rebuild did not start: ' + result.message +
+              (firstPublication ? ' Subscribers are emailed once the page is live; use Email subscribers on the document after the rebuild.' : ''), 'error');
+            return load();
+          }
+          if (!firstPublication) {
+            setStatus('doc-admin-status', 'Published ' + label + '. The site is rebuilding; the page updates in about a minute. ' +
+              'Corrections are not emailed to subscribers.', 'success');
+            return load();
+          }
+          load();
+          return notifyWhenLive(found.doc.id, label);
         });
       })
       .catch(function (err) {
         setStatus('doc-admin-status', err.message || 'Could not publish.', 'error');
-      })
-      .then(load);
+        return load();
+      });
   }
 
   function discard(versionId, button) {
@@ -502,6 +577,22 @@
       if (btn.dataset.publish) publish(btn.dataset.publish, btn);
       else if (btn.dataset.discard) discard(btn.dataset.discard, btn);
       else if (btn.dataset.newVersion) startNewVersion(btn.dataset.newVersion);
+      else if (btn.dataset.notify) {
+        var d = docs.filter(function (x) { return x.id === btn.dataset.notify; })[0];
+        if (!d || !window.confirm('Email every subscriber about ' + d.document_number + ' now?')) return;
+        btn.disabled = true;
+        notifyOnce(d.id).then(function (result) {
+          if (result.status === 409 && result.data.pending) {
+            setStatus('doc-admin-status', result.data.error + ' Try again in a minute.', 'error');
+          } else if (result.status !== 200) {
+            setStatus('doc-admin-status', 'Not sent: ' + (result.data.error || 'unknown error'), 'error');
+          } else {
+            setStatus('doc-admin-status', result.data.already ? result.data.note
+              : 'Emailed ' + result.data.sent + ' subscriber' + (result.data.sent === 1 ? '' : 's') + '.', 'success');
+          }
+          load();
+        }).catch(function (err) { setStatus('doc-admin-status', err.message, 'error'); load(); });
+      }
     });
 
     load();

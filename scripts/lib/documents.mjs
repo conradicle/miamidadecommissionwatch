@@ -6,15 +6,13 @@
 // meeting's two documents, and the archive cut-off for the old tracker.
 
 import { createRequire } from 'node:module';
-import { SUPABASE_URL } from './data.mjs';
 import { SITE_ORIGIN, escapeHtml as esc, formatDate, formatDateShort } from './fmt.mjs';
 
 const require = createRequire(import.meta.url);
-const { sanitizeDocumentHtml } = require('../../api/_document-lib.js');
+const { sanitizeDocumentHtml, publicPdfPath } = require('../../api/_document-lib.js');
 
-// The Meeting Tracker stops here. Keep in step with guard_tracker_archive in
-// supabase/migration_27_documents.sql and TRACKER_ARCHIVE_THROUGH in
-// js/admin.js.
+// The Meeting Tracker stops here. Keep in step with TRACKER_ARCHIVE_THROUGH
+// in js/admin.js. Deliberately not enforced in the database.
 export const TRACKER_ARCHIVE_THROUGH = '2026-10-31';
 export const TRACKER_ARCHIVE_LABEL = 'Meeting Tracker Archive (through October 2026)';
 
@@ -38,10 +36,9 @@ export const DOC_TYPES = {
 const MONTHS = ['January', 'February', 'March', 'April', 'May', 'June',
   'July', 'August', 'September', 'October', 'November', 'December'];
 
+// Root-relative, on our own domain (see publicPdfPath in api/_document-lib.js).
 export function publicPdfUrl(path) {
-  if (!path) return null;
-  return `${SUPABASE_URL}/storage/v1/object/public/documents/` +
-    String(path).split('/').map(encodeURIComponent).join('/');
+  return publicPdfPath(path);
 }
 
 export function documentPath(doc) {
@@ -158,6 +155,78 @@ export function renderLatestCard(docs, docType, { headingLevel = 3 } = {}) {
     (pdf ? `<a class="btn btn-secondary btn-small" href="${esc(pdf)}">Download PDF</a>` : '') +
     `<a class="doc-latest-all" href="${type.index}">All ${esc(type.plural)} &#8594;</a>` +
     `</div></div>`;
+}
+
+// ---------------------------------------------------------------------
+// Meeting schedule
+// ---------------------------------------------------------------------
+
+// Today in Miami, not on the build machine (Vercel builds in UTC, which is
+// already tomorrow by 8 p.m. Eastern).
+export function todayInMiami() {
+  return new Intl.DateTimeFormat('en-CA', {
+    timeZone: 'America/New_York', year: 'numeric', month: '2-digit', day: '2-digit'
+  }).format(new Date());
+}
+
+const WEEKDAYS = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
+
+function weekday(dateStr) {
+  const [y, m, d] = dateStr.split('-').map(Number);
+  return WEEKDAYS[new Date(Date.UTC(y, m - 1, d)).getUTCDay()];
+}
+
+// "09:30:00" -> "9:30 AM"
+export function formatTime(value) {
+  const m = /^(\d{1,2}):(\d{2})/.exec(String(value || ''));
+  if (!m) return '';
+  const h = Number(m[1]);
+  return `${((h + 11) % 12) + 1}:${m[2]} ${h < 12 ? 'AM' : 'PM'}`;
+}
+
+// "Tuesday, October 20, 2026 · 9:30 AM", the same wording js/home.js uses.
+export function meetingWhen(row) {
+  const time = formatTime(row.start_time);
+  return `${weekday(row.meeting_date)}, ${formatDate(row.meeting_date)}${time ? ' &middot; ' + esc(time) : ''}`;
+}
+
+export function upcomingMeetings(schedule, today) {
+  return schedule.filter((r) => r.meeting_date >= today);
+}
+
+// The homepage hero line. js/home.js refreshes it from the same table in the
+// browser, so it moves on to the next date the day after a meeting even if
+// nothing has been rebuilt.
+export function renderNextMeeting(schedule, today) {
+  const next = upcomingMeetings(schedule, today).find((r) => !r.cancelled);
+  if (!next) {
+    return '<div class="label">Next BCC meeting</div><div class="date">Date not posted yet</div>';
+  }
+  const type = next.meeting_type && next.meeting_type !== 'Regular Meeting' ? ` (${esc(next.meeting_type)})` : '';
+  return `<div class="label">Next BCC meeting${type}</div><div class="date">${meetingWhen(next)}</div>`;
+}
+
+// The list on /documents. Each card carries data-hide-after, so js/main.js
+// drops it the day after the meeting without waiting for a rebuild. A
+// meeting whose Agenda Summary is out links to it.
+export function renderUpcomingList(schedule, docs, today) {
+  const rows = upcomingMeetings(schedule, today);
+  if (!rows.length) {
+    return '<p class="doc-empty">No upcoming meetings are posted yet. See the county\'s ' +
+      '<a href="https://www.miamidade.gov/resources/commission/documents/2026-bcc-calendar.pdf" target="_blank" rel="noopener">meeting calendar (PDF)</a>.</p>';
+  }
+  return rows.map((r) => {
+    const agenda = pageDocuments(docs).find((d) => d.doc_type === 'agenda-summary' && d.meeting_date === r.meeting_date);
+    const bits = [];
+    if (r.cancelled) bits.push('<span class="schedule-cancelled">Cancelled</span>');
+    if (r.location && !r.cancelled) bits.push(`<span>${esc(r.location)}</span>`);
+    if (r.note) bits.push(`<span>${esc(r.note)}</span>`);
+    if (agenda && !r.cancelled) bits.push(`<a href="${esc(documentPath(agenda))}">Read the Agenda Summary &#8594;</a>`);
+    return `<div class="meeting-card schedule-card" data-hide-after="${esc(r.meeting_date)}">` +
+      `<div class="meeting-card-date">${esc(r.meeting_type)} &middot; ${meetingWhen(r)}</div>` +
+      (bits.length ? `<p class="schedule-meta">${bits.join('<span class="doc-row-sep" aria-hidden="true">&middot;</span>')}</p>` : '') +
+      `</div>`;
+  }).join('\n');
 }
 
 // Options for js/document-view.js's renderDocumentMain.

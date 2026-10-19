@@ -3,7 +3,7 @@
   var currentRole = null;
 
   // Last day the Meeting Tracker covers. Keep in step with
-  // scripts/lib/documents.mjs and guard_tracker_archive in migration_27.
+  // scripts/lib/documents.mjs, which keeps later rows out of the build.
   var TRACKER_ARCHIVE_THROUGH = '2026-10-31';
 
   // Must stay in sync with public.mdcw_topics() in migration_14, api/_prefs.js
@@ -762,8 +762,9 @@
         });
       }
 
-      // The tracker is an archive. guard_tracker_archive (migration_27) refuses
-      // a later date anyway; this says so before anything is sent.
+      // The tracker is an archive. The database would accept a later date,
+      // but the build leaves it out, so refuse it here rather than let
+      // someone write up a meeting nobody will see.
       if (document.getElementById('m-date').value > TRACKER_ARCHIVE_THROUGH) {
         statusEl.textContent = 'The Meeting Tracker is an archive through October 2026. ' +
           'Publish later meetings as a Meeting Summary or Agenda Summary in the Documents tab.';
@@ -1499,6 +1500,9 @@
           }
           if (typeof window.initAdminDocuments === 'function') {
             window.initAdminDocuments({ userId: currentUserId, role: role, isStaff: isStaff });
+          }
+          if (typeof window.initAdminSchedule === 'function') {
+            window.initAdminSchedule({ userId: currentUserId, role: role, isStaff: isStaff });
           }
 
           if (currentRole === 'owner') {

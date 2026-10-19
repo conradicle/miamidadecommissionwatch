@@ -104,10 +104,20 @@ In the staff dashboard, **Documents** tab:
 4. **Preview** the draft. It is the public page exactly as it will appear,
    visible only to signed-in staff.
 5. **Publish.** The PDF is copied to the public bucket under a versioned name
-   and the site rebuilds itself (about a minute).
+   and the site rebuilds itself (about a minute). Readers download it from
+   our own address, `/documents/files/...`; the storage service behind it
+   never shows in a link.
+6. **Subscribers are emailed** with the document type, meeting date, summary
+   and a link to the page, as soon as that page is live. Keep the tab open
+   for a minute or two; if you close it first, the document's card shows an
+   **Email subscribers** button. Each document is emailed once, on its first
+   publication. Corrections are not emailed.
 
 Publishing is permanent. Nothing published can be edited, unpublished or
-deleted, from the dashboard or from the database.
+deleted, from the dashboard or from the database. The one exception is
+`supabase/maintenance_remove_document.sql`, for a document that should never
+have existed (a test upload, or a file published under the wrong meeting). A
+wrong fact is a correction, not a removal.
 
 ## Corrections
 
@@ -122,6 +132,15 @@ A correction is a new version, never an overwrite:
 
 The public page then says "Updated [date], version 1.1" with the note, and
 the version history lists every version with its own PDF.
+
+## Translation
+
+The web page around a document (menus, buttons, the "Official English
+edition" line) goes through the site's language switcher like every other
+page. The document text and its contents list are marked `notranslate`, so
+the official text always reads as published. When Spanish and Haitian Creole
+editions exist, they are uploaded as their own documents (language `es` or
+`ht`, number ending `-ES` or `-HT`) and listed on the English page.
 
 ## Fonts
 

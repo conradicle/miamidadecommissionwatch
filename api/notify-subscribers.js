@@ -1,8 +1,20 @@
 // Emails every active subscriber about one meeting, either its agenda
-// (before the vote) or its recap (after). Needs the Supabase service role
-// key and the Resend API key, so this is server-only; verifies the caller
-// is active staff before doing anything, same pattern as admin-invite.js.
+// (before the vote) or its recap (after), or about one published official
+// document (a Meeting Summary or Agenda Summary). Needs the Supabase service
+// role key and the Resend API key, so this is server-only; verifies the
+// caller is active staff before doing anything, same pattern as
+// admin-invite.js.
+//
+// Documents: the Documents tab calls this right after publishing, with
+// { document_id }. The document's page only exists once the site rebuild
+// finishes, so this checks the live page first and answers 409 with
+// pending: true until it is there; the dashboard keeps asking. Each document
+// is mailed once (documents.subscribers_notified_at), on its first
+// publication. Corrections are not mailed.
 var prefsLib = require("./_prefs");
+var docLib = require("./_document-lib");
+
+var SITE_ORIGIN = 'https://www.miamidadecommissionwatch.com';
 
 module.exports = async function handler(req, res) {
   if (req.method !== 'POST') {
@@ -25,15 +37,23 @@ module.exports = async function handler(req, res) {
     return;
   }
 
+  var documentId = req.body && req.body.document_id;
   var meetingId = req.body && req.body.meeting_id;
   var kind = req.body && req.body.kind;
-  if (!meetingId || typeof meetingId !== 'string') {
-    res.status(400).json({ error: 'meeting_id is required' });
-    return;
-  }
-  if (kind !== 'agenda' && kind !== 'recap') {
-    res.status(400).json({ error: 'kind must be "agenda" or "recap"' });
-    return;
+  if (documentId) {
+    if (typeof documentId !== 'string') {
+      res.status(400).json({ error: 'document_id must be a string' });
+      return;
+    }
+  } else {
+    if (!meetingId || typeof meetingId !== 'string') {
+      res.status(400).json({ error: 'meeting_id is required' });
+      return;
+    }
+    if (kind !== 'agenda' && kind !== 'recap') {
+      res.status(400).json({ error: 'kind must be "agenda" or "recap"' });
+      return;
+    }
   }
 
   try {
@@ -54,6 +74,15 @@ module.exports = async function handler(req, res) {
     var callerRole = roleRows && roleRows[0];
     if (!callerRole || (callerRole.role !== 'owner' && callerRole.role !== 'admin') || callerRole.status !== 'active') {
       res.status(403).json({ error: 'Only staff can send subscriber emails' });
+      return;
+    }
+
+    if (documentId) {
+      await notifyDocument(res, {
+        SUPABASE_URL: SUPABASE_URL,
+        SERVICE_ROLE_KEY: SERVICE_ROLE_KEY,
+        RESEND_API_KEY: RESEND_API_KEY
+      }, documentId, req.body.resend === true);
       return;
     }
 
@@ -191,6 +220,175 @@ module.exports = async function handler(req, res) {
     res.status(500).json({ error: 'Unexpected error sending subscriber emails' });
   }
 };
+
+// ---------------------------------------------------------------------
+// Documents
+// ---------------------------------------------------------------------
+
+async function notifyDocument(res, env, documentId, resend) {
+  var headers = { Authorization: 'Bearer ' + env.SERVICE_ROLE_KEY, apikey: env.SERVICE_ROLE_KEY };
+
+  var docRes = await fetch(
+    env.SUPABASE_URL + '/rest/v1/documents?id=eq.' + encodeURIComponent(documentId) +
+      '&select=*,document_versions!document_versions_document_id_fkey(id,version,public_pdf_path,status)',
+    { headers: headers }
+  );
+  var docRows = await docRes.json();
+  var doc = Array.isArray(docRows) && docRows[0];
+  if (!doc) {
+    res.status(404).json({ error: 'Document not found' });
+    return;
+  }
+  if (doc.status !== 'published') {
+    res.status(409).json({ error: 'That document is still a draft. Publish it before emailing subscribers.' });
+    return;
+  }
+  if (doc.subscribers_notified_at && !resend) {
+    res.status(200).json({ ok: true, sent: 0, already: true,
+      note: 'Subscribers were already emailed about this document on ' + doc.subscribers_notified_at.slice(0, 10) + '.' });
+    return;
+  }
+
+  var current = (doc.document_versions || []).filter(function (v) { return v.id === doc.current_version_id; })[0];
+  var pagePath = '/documents/' + doc.doc_type + '/' + doc.meeting_date;
+  var pageUrl = SITE_ORIGIN + pagePath;
+  var pdfUrl = current && current.public_pdf_path ? SITE_ORIGIN + docLib.publicPdfPath(current.public_pdf_path) : null;
+
+  // Never mail a link that 404s. The rebuild that publishing started takes
+  // about a minute; until the page answers with this document on it, say so
+  // and let the dashboard try again.
+  var live = false;
+  try {
+    var pageRes = await fetch(pageUrl, { headers: { 'Cache-Control': 'no-cache' } });
+    live = pageRes.ok && (await pageRes.text()).indexOf(doc.document_number) !== -1;
+  } catch (e) {
+    live = false;
+  }
+  if (!live) {
+    res.status(409).json({ pending: true,
+      error: 'The page for ' + doc.document_number + ' is not live yet. Subscribers are emailed once it is.' });
+    return;
+  }
+
+  var loaded = await loadSubscribers(env.SUPABASE_URL, env.SERVICE_ROLE_KEY);
+  // A document covers the whole meeting: every item, every district. It is
+  // treated like a countywide item in prefsLib.meetingMatchesSubscriber,
+  // which matches every subscriber, including those who narrowed their mail
+  // to particular districts or topics.
+  var subscribers = loaded.subscribers;
+  if (!subscribers.length) {
+    res.status(200).json({ ok: true, sent: 0, unsendable: loaded.unsendable.length,
+      note: 'There are no active subscribers with a sendable address.' });
+    return;
+  }
+
+  var content = buildDocumentEmail(doc, pageUrl, pdfUrl);
+  var sendError = await sendInBatches(env.RESEND_API_KEY, subscribers, content);
+  if (sendError) {
+    res.status(502).json({ error: sendError });
+    return;
+  }
+
+  await fetch(env.SUPABASE_URL + '/rest/v1/documents?id=eq.' + encodeURIComponent(doc.id), {
+    method: 'PATCH',
+    headers: Object.assign({ 'Content-Type': 'application/json', Prefer: 'return=minimal' }, headers),
+    body: JSON.stringify({ subscribers_notified_at: new Date().toISOString() })
+  });
+
+  res.status(200).json({
+    ok: true,
+    sent: subscribers.length,
+    unsendable: loaded.unsendable.length,
+    note: loaded.unsendable.length
+      ? 'Skipped ' + loaded.unsendable.length + ' unsendable address' + (loaded.unsendable.length === 1 ? '' : 'es') +
+        ': ' + loaded.unsendable.join(', ') + '. Remove them from the subscribers table.'
+      : undefined
+  });
+}
+
+// Active subscribers with a sendable address, plus the ones skipped.
+async function loadSubscribers(SUPABASE_URL, SERVICE_ROLE_KEY) {
+  var headers = { Authorization: 'Bearer ' + SERVICE_ROLE_KEY, apikey: SERVICE_ROLE_KEY };
+  var r = await fetch(SUPABASE_URL + '/rest/v1/subscribers?status=eq.subscribed&select=email,unsubscribe_token', { headers: headers });
+  var rows = await r.json();
+  if (!Array.isArray(rows)) rows = [];
+  var unsendable = [];
+  var subscribers = rows.filter(function (sub) {
+    var email = typeof sub.email === 'string' ? sub.email.trim() : '';
+    if (!isSendableAddress(email)) {
+      unsendable.push(email || '(blank)');
+      return false;
+    }
+    return true;
+  });
+  return { subscribers: subscribers, unsendable: unsendable };
+}
+
+// Resend batches of 100, as the meeting emails do. Returns an error message,
+// or null when every batch went.
+async function sendInBatches(RESEND_API_KEY, subscribers, content) {
+  for (var i = 0; i < subscribers.length; i += 100) {
+    var batch = subscribers.slice(i, i + 100).map(function (sub) {
+      return {
+        from: 'Miami-Dade Commission Watch <news@miamidadecommissionwatch.com>',
+        to: sub.email,
+        reply_to: 'contact@miamidadecommissionwatch.com',
+        subject: content.subject,
+        html: content.html + unsubscribeFooterHtml(sub.unsubscribe_token),
+        text: content.text + unsubscribeFooterText(sub.unsubscribe_token)
+      };
+    });
+    var batchRes = await fetch('https://api.resend.com/emails/batch', {
+      method: 'POST',
+      headers: { Authorization: 'Bearer ' + RESEND_API_KEY, 'Content-Type': 'application/json' },
+      body: JSON.stringify(batch)
+    });
+    if (!batchRes.ok) {
+      var errData = await batchRes.json().catch(function () { return {}; });
+      return errData.message || 'Email provider rejected the send';
+    }
+    if (i + 100 < subscribers.length) await sleep(600);
+  }
+  return null;
+}
+
+function buildDocumentEmail(doc, pageUrl, pdfUrl) {
+  var type = docLib.DOC_TYPES[doc.doc_type];
+  var dateStr = formatMeetingDate(doc.meeting_date);
+  var lead = doc.doc_type === 'agenda-summary'
+    ? 'Our Agenda Summary for the Board of County Commissioners meeting of ' + dateStr + ' is out.'
+    : 'Our Meeting Summary for the Board of County Commissioners meeting of ' + dateStr + ' is out.';
+
+  var html =
+    '<div style="font-family:Georgia,\'Times New Roman\',serif;max-width:560px;margin:0 auto;color:#1a1a1a;">' +
+      '<div style="background:#0e4a3c;padding:20px 24px;border-bottom:4px solid #c08a2e;">' +
+        '<span style="font-family:Arial,sans-serif;font-weight:700;font-size:18px;color:#fff;">Miami-Dade <span style="color:#c08a2e;">Commission</span> Watch</span>' +
+      '</div>' +
+      '<div style="padding:28px 24px;">' +
+        '<div style="font-family:Arial,sans-serif;font-size:12px;text-transform:uppercase;letter-spacing:.05em;color:#c08a2e;margin-bottom:6px;">' +
+          escapeHtml(type.label) + ' &middot; Meeting of ' + escapeHtml(dateStr) + '</div>' +
+        '<h1 style="font-size:22px;margin:0 0 12px;">' + escapeHtml(doc.title) + '</h1>' +
+        '<p style="line-height:1.6;margin:0 0 12px;">' + escapeHtml(lead) + '</p>' +
+        '<p style="line-height:1.6;">' + escapeHtml(doc.summary) + '</p>' +
+        '<a href="' + escapeHtml(pageUrl) + '" style="display:inline-block;margin-top:6px;padding:12px 22px;background:#1B365D;color:#fff;text-decoration:none;border-radius:6px;font-family:Arial,sans-serif;font-size:15px;">Read the ' + escapeHtml(type.label) + '</a>' +
+        (pdfUrl ? '<p style="font-family:Arial,sans-serif;font-size:14px;margin-top:14px;"><a href="' + escapeHtml(pdfUrl) + '" style="color:#1B365D;">Download the official PDF</a> &middot; ' + escapeHtml(doc.document_number) + '</p>' : '') +
+      '</div>' +
+    '</div>';
+
+  var text =
+    type.label + ' · Meeting of ' + dateStr + '\n' +
+    doc.title + '\n\n' +
+    lead + '\n\n' +
+    doc.summary + '\n\n' +
+    'Read it: ' + pageUrl + '\n' +
+    (pdfUrl ? 'Official PDF (' + doc.document_number + '): ' + pdfUrl + '\n' : '');
+
+  return {
+    subject: type.label + ': BCC meeting of ' + dateStr,
+    html: html,
+    text: text
+  };
+}
 
 // Addresses Resend will refuse. Deliberately narrow: this is not an attempt to
 // validate email in general, which is not something a regex does. It catches

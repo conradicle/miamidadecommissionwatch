@@ -30,39 +30,56 @@
   // Meeting Tracker's item rows. The tracker is an archive now, so the
   // homepage shows the latest Meeting and Agenda Summaries instead, written
   // into the page at build time (scripts/build.mjs, region home-documents).
+  //
+  // The next meeting comes from meeting_schedule (migration_27), which staff
+  // keep from the county calendar in the Schedule tab. It used to come from
+  // the tracker's meetings table, which never learns about a future meeting
+  // now that the tracker is frozen.
+  function nextScheduled() {
+    if (!haveSupabase()) return Promise.resolve(undefined);
+    return supabaseClient
+      .from('meeting_schedule')
+      .select('meeting_date, start_time, meeting_type')
+      .gte('meeting_date', fmt.todayISO())
+      .eq('cancelled', false)
+      .order('meeting_date', { ascending: true })
+      .limit(1)
+      .then(function (res) { return res.error ? undefined : ((res.data && res.data[0]) || null); })
+      .catch(function () { return undefined; });
+  }
+
+  // "09:30:00" -> "9:30 AM". Same as formatTime in scripts/lib/documents.mjs.
+  function formatTime(value) {
+    var m = /^(\d{1,2}):(\d{2})/.exec(String(value || ''));
+    if (!m) return '';
+    var h = Number(m[1]);
+    return (((h + 11) % 12) + 1) + ':' + m[2] + ' ' + (h < 12 ? 'AM' : 'PM');
+  }
+
+  function meetingWhen(row) {
+    var time = formatTime(row.start_time);
+    return esc(fmt.formatDate(row.meeting_date, {
+      weekday: 'long', month: 'long', day: 'numeric', year: 'numeric'
+    })) + (time ? ' &middot; ' + esc(time) : '');
+  }
+
+  // The build already wrote this line from the same table. Redrawing it
+  // here only matters once a meeting date has passed and no rebuild has run
+  // since, so a failed query (undefined) leaves the prerendered line alone.
   function renderNextMeeting(next) {
     var el = document.getElementById('next-meeting-live');
-    if (!el) return;
-
+    if (!el || next === undefined) return;
     if (!next) {
-      // Nothing in the meetings table. Leave the hand-written fallback in the
-      // markup exactly as it is: it comes from the county's published 2026
-      // calendar, so it is better information than "not yet published".
-      // Only a real database row is allowed to overwrite it.
+      el.innerHTML = '<div class="label">Next BCC meeting</div><div class="date">Date not posted yet</div>';
       return;
     }
-
-    el.innerHTML =
-      '<div class="label">Next ' + esc(next.meeting_type || 'BCC meeting') + '</div>' +
-      '<div class="date">' + esc(fmt.formatDate(next.meeting_date, {
-        weekday: 'long', month: 'long', day: 'numeric', year: 'numeric'
-      })) + '</div>';
+    var type = next.meeting_type && next.meeting_type !== 'Regular Meeting' ? ' (' + esc(next.meeting_type) + ')' : '';
+    el.innerHTML = '<div class="label">Next BCC meeting' + type + '</div>' +
+      '<div class="date">' + meetingWhen(next) + '</div>';
   }
 
   function loadNextMeeting() {
-    if (!haveSupabase()) return;
-
-    supabaseClient
-      .from('meetings')
-      .select('meeting_date, meeting_type, title')
-      .gte('meeting_date', fmt.todayISO())
-      .order('meeting_date', { ascending: true })
-      .limit(1)
-      .then(function (res) {
-        if (res.error) throw res.error;
-        renderNextMeeting(res.data && res.data[0]);
-      })
-      .catch(function () { renderNextMeeting(null); });
+    nextScheduled().then(renderNextMeeting);
   }
 
   // ---------------------------------------------------------------------
@@ -105,15 +122,7 @@
   }
 
   function nextMeetingRow() {
-    if (!haveSupabase()) return Promise.resolve(null);
-    return supabaseClient
-      .from('meetings')
-      .select('meeting_date, meeting_type')
-      .gte('meeting_date', fmt.todayISO())
-      .order('meeting_date', { ascending: true })
-      .limit(1)
-      .then(function (res) { return res.error ? null : (res.data && res.data[0]); })
-      .catch(function () { return null; });
+    return nextScheduled().then(function (row) { return row || null; });
   }
 
   function renderVotesBlock(items) {
@@ -172,7 +181,7 @@
         '<div class="dp-block">' +
           '<span class="label">Next relevant meeting</span>' +
           '<p>' + (next
-            ? esc(next.meeting_type + ' on ' + fmt.formatDate(next.meeting_date)) +
+            ? esc(next.meeting_type) + ' on ' + meetingWhen(next) +
               '. <a href="/documents/agenda-summaries">Agenda Summaries</a>'
             : 'See the <a href="/documents/agenda-summaries">Agenda Summaries</a> for what is coming up.') +
           '</p>' +

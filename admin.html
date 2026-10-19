@@ -119,6 +119,7 @@
       <div class="admin-tabs" id="admin-tabs" style="display:none;">
         <button type="button" class="admin-tab active" data-tab="editorials">Editorials</button>
         <button type="button" class="admin-tab" data-tab="documents">Documents</button>
+        <button type="button" class="admin-tab" data-tab="schedule">Schedule</button>
         <button type="button" class="admin-tab" data-tab="meetings">Tracker archive</button>
         <button type="button" class="admin-tab" data-tab="newsletter">Newsletter</button>
         <button type="button" class="admin-tab" data-tab="links">Links page</button>
@@ -191,6 +192,33 @@
         </div>
         <div id="doc-admin-status" class="district-status"></div>
         <div id="doc-admin-list"></div>
+      </div>
+
+      <div class="admin-panel" id="panel-schedule" style="display:none;">
+        <div class="notice" style="margin-bottom:20px;">
+          Upcoming Board meetings, from the county's <a href="https://www.miamidade.gov/resources/commission/documents/2026-bcc-calendar.pdf" target="_blank" rel="noopener">meeting calendar (PDF)</a>. The homepage's next-meeting line and the district panel read this list as soon as you save. The upcoming list on the Documents page updates at the next site rebuild (publishing a document starts one, or use <strong>Publish to site</strong> on the Tracker archive tab).
+        </div>
+        <form id="schedule-form" class="admin-form">
+          <h3 style="margin-top:0;" id="schedule-form-heading">Add a meeting date</h3>
+          <div class="field-row">
+            <div class="field"><label for="s-date">Date</label><input type="date" id="s-date" required></div>
+            <div class="field"><label for="s-time">Start time</label><input type="time" id="s-time" value="09:30"></div>
+            <div class="field"><label for="s-type">Meeting type</label><input type="text" id="s-type" value="Regular Meeting" required maxlength="80"></div>
+          </div>
+          <div class="field"><label for="s-location">Location</label><input type="text" id="s-location" maxlength="200" value="Commission Chambers, Stephen P. Clark Government Center, 111 NW 1st Street, Miami"></div>
+          <div class="field"><label for="s-note">Note <span class="field-hint">optional, shown publicly</span></label><input type="text" id="s-note" maxlength="300" placeholder="For example: Moved from November 10"></div>
+          <div class="field">
+            <label style="display:flex; align-items:center; gap:9px; font-weight:400; cursor:pointer;">
+              <input type="checkbox" id="s-cancelled" style="width:auto; margin:0;"> <span>Cancelled (stays listed, marked cancelled, and is skipped as the next meeting)</span>
+            </label>
+          </div>
+          <div style="margin-top:16px; display:flex; gap:10px; flex-wrap:wrap;">
+            <button type="submit" class="btn btn-primary" id="schedule-submit-btn">Save date</button>
+            <button type="button" class="btn btn-secondary" id="schedule-cancel-btn" hidden>Cancel edit</button>
+          </div>
+          <div id="schedule-status" class="district-status" style="margin-top:12px;" role="status" aria-live="polite"></div>
+        </form>
+        <div id="schedule-list"></div>
       </div>
 
       <div class="admin-panel" id="panel-meetings" style="display:none;">
@@ -587,11 +615,12 @@
 
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.112.3" integrity="sha384-l8ah+VgaWtk1mvOe9VC+OirC6qHFF4yH7l7mKRidV9MSti3E9F463bMp6ZVN4kuC" crossorigin="anonymous"></script>
 <script src="js/supabase-client.js"></script>
-<script src="js/main.js?v=20261019a"></script>
+<script src="js/main.js?v=20261019b"></script>
 <script src="js/official-photo.js?v=20260924"></script>
 <script src="js/admin-cities.js?v=20260924"></script>
 <script src="js/admin-claims.js?v=20260827"></script>
-<script src="js/admin-documents.js?v=20261019a"></script>
-<script src="js/admin.js?v=20261019a"></script>
+<script src="js/admin-documents.js?v=20261019b"></script>
+<script src="js/admin-schedule.js?v=20261019b"></script>
+<script src="js/admin.js?v=20261019b"></script>
 </body>
 </html>

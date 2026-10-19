@@ -15,9 +15,11 @@
     el.className = 'district-status' + (kind ? ' ' + kind : '');
   }
 
+  // Our own domain, through the /documents/files/ rewrite in vercel.json.
+  // Same rule as publicPdfPath in api/_document-lib.js.
   function publicPdfUrl(path) {
     if (!path) return null;
-    return supabaseClient.storage.from('documents').getPublicUrl(path).data.publicUrl;
+    return '/documents/files/' + String(path).split('/').map(encodeURIComponent).join('/');
   }
 
   function cmpDesc(a, b) {

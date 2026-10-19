@@ -30,7 +30,7 @@ import { join } from 'node:path';
 import { execFileSync } from 'node:child_process';
 
 import {
-  ROOT, fetchMeetings, fetchEditorials, fetchCities, fetchDocuments,
+  ROOT, fetchMeetings, fetchEditorials, fetchCities, fetchDocuments, fetchSchedule,
   loadPublicByline, loadContributors, loadDocumentView
 } from './lib/data.mjs';
 import { SITE_ORIGIN, formatDate, formatDateShort, isoDay, clip, escapeHtml } from './lib/fmt.mjs';
@@ -44,7 +44,7 @@ import * as schema from './lib/schema.mjs';
 import {
   DOC_TYPES, TRACKER_ARCHIVE_THROUGH, TRACKER_ARCHIVE_LABEL, pageDocuments, cleanBodies,
   documentPath, documentUrl, publicPdfUrl, renderDocumentList, renderFilterOptions,
-  renderLatestCard, pageOptions
+  renderLatestCard, pageOptions, todayInMiami, renderNextMeeting, renderUpcomingList
 } from './lib/documents.mjs';
 
 const DRY_RUN = process.argv.includes('--dry-run');
@@ -242,7 +242,7 @@ function buildDocumentPage(shellSource, docView, doc, allDocs) {
   html = setJsonLd(html, 'jsonld', [
     schema.organization(),
     schema.website(),
-    schema.documentReport(doc, { url, pdfUrl: publicPdfUrl(doc.current.public_pdf_path), label: type.label }),
+    schema.documentReport(doc, { url, pdfUrl: SITE_ORIGIN + publicPdfUrl(doc.current.public_pdf_path), label: type.label }),
     schema.breadcrumbs([
       { name: 'Home', url: `${SITE_ORIGIN}/` },
       { name: 'Documents', url: `${SITE_ORIGIN}/documents` },
@@ -311,23 +311,24 @@ async function main() {
   const t0 = Date.now();
   console.log(DRY_RUN ? '· dry run: nothing will be written\n' : '');
 
-  const [allMeetings, editorials, cities, documents] = await Promise.all([
-    fetchMeetings(), fetchEditorials(), fetchCities(), fetchDocuments()
+  const [allMeetings, editorials, cities, documents, schedule] = await Promise.all([
+    fetchMeetings(), fetchEditorials(), fetchCities(), fetchDocuments(), fetchSchedule()
   ]);
+  const today = todayInMiami();
   const publicByline = loadPublicByline();
   const teams = loadContributors();
   const docView = loadDocumentView();
 
-  // The tracker is an archive now. A meeting dated after the cut-off cannot
-  // be saved (guard_tracker_archive in migration_27), and this keeps one out
-  // of the archive even if it was saved before that trigger existed.
+  // The tracker is an archive now. The freeze lives here and in the
+  // dashboard form, not in the database: the meetings table still accepts
+  // any date, and a later row simply never reaches the archive pages.
   const rawMeetings = allMeetings.filter((m) => String(m.meeting_date) <= TRACKER_ARCHIVE_THROUGH);
   const meetings = assignMeetingPaths(rawMeetings);
 
   cleanBodies(documents);
   const docPages = pageDocuments(documents);
 
-  console.log(`fetched  ${meetings.length} meetings, ${editorials.length} editorials, ${cities.length} cities, ${documents.length} documents`);
+  console.log(`fetched  ${meetings.length} meetings, ${editorials.length} editorials, ${cities.length} cities, ${documents.length} documents, ${schedule.length} scheduled meetings`);
 
   if (!meetings.length) throw new Error('Supabase returned zero meetings; refusing to publish an empty tracker.');
   if (!cities.length) throw new Error('Supabase returned zero cities; refusing to publish an empty registry.');
@@ -381,6 +382,7 @@ async function main() {
     let html = docShellSource;
     html = upsertRegion(html, 'latest-agenda-summary', renderLatestCard(documents, 'agenda-summary'), '</main>');
     html = upsertRegion(html, 'latest-meeting-summary', renderLatestCard(documents, 'meeting-summary'), '</main>');
+    html = upsertRegion(html, 'upcoming-meetings', renderUpcomingList(schedule, documents, today), '</main>');
     html = setJsonLd(html, 'jsonld', [
       schema.organization(),
       schema.website(),
@@ -488,6 +490,7 @@ async function main() {
       console.log(`x feed   follow card (${feed.reason})`);
     }
     html = upsertRegion(html, 'xfeed', renderXFeed(feed.posts), '</aside>');
+    html = upsertRegion(html, 'next-meeting', renderNextMeeting(schedule, today), '</main>');
     html = upsertRegion(html, 'home-documents',
       '<div class="doc-sections">' +
       renderLatestCard(documents, 'meeting-summary') +

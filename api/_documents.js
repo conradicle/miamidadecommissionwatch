@@ -385,7 +385,7 @@ module.exports = async function handler(req, res) {
       res.status(200).json({
         ok: true,
         version: v.version,
-        pdf_url: SUPABASE_URL + '/storage/v1/object/public/' + PUBLIC_BUCKET + '/' + encodePath(publicPath)
+        pdf_url: lib.publicPdfPath(publicPath)
       });
       return;
     }
