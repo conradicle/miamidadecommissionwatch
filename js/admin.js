@@ -2,6 +2,10 @@
   var currentUserId = null;
   var currentRole = null;
 
+  // Last day the Meeting Tracker covers. Keep in step with
+  // scripts/lib/documents.mjs, which keeps later rows out of the build.
+  var TRACKER_ARCHIVE_THROUGH = '2026-10-31';
+
   // Must stay in sync with public.mdcw_topics() in migration_14, api/_prefs.js
   // and js/meetings-feed.js. Four copies is three too many, but there is no
   // build step here to share one.
@@ -415,24 +419,12 @@
       return '<li>' + escapeHtml(item.tag_label) + ': ' + escapeHtml(item.heading) + '</li>';
     }).join('');
 
-    var agendaLabel = meeting.agenda_sent_at
-      ? 'Re-send agenda email (sent ' + escapeHtml(formatDate(meeting.agenda_sent_at)) + ')'
-      : 'Email subscribers: Agenda';
-    var recapLabel = meeting.recap_sent_at
-      ? 'Re-send recap email (sent ' + escapeHtml(formatDate(meeting.recap_sent_at)) + ')'
-      : 'Email subscribers: Recap';
-
     // Rows written before migration_22 have no published column; they are live,
     // so anything that is not explicitly false counts as published.
     var isDraft = meeting.published === false;
     var badge = isDraft
       ? '<span class="ac-badge ac-badge-draft">Draft</span>'
       : '<span class="ac-badge ac-badge-published">Published</span>';
-
-    // A draft is not on the site, so mailing subscribers a link to it would
-    // send them to a page that does not exist. The server refuses this too --
-    // see api/notify-subscribers.js -- this only keeps the button from lying.
-    var mailAttrs = isDraft ? ' disabled title="Publish this meeting first."' : '';
 
     card.innerHTML =
       '<div class="submission-meta">' + escapeHtml(meeting.meeting_type) + ' &middot; ' + escapeHtml(formatMeetingDate(meeting.meeting_date)) + badge + '</div>' +
@@ -441,8 +433,6 @@
       (itemsHtml ? '<ul style="margin:8px 0 14px; padding-left:20px; font-size:14px; color:var(--ink-600);">' + itemsHtml + '</ul>' : '') +
       '<div class="submission-actions">' +
         '<button type="button" class="btn btn-secondary btn-small" data-action="edit-meeting" data-id="' + meeting.id + '">Edit</button>' +
-        '<button type="button" class="btn btn-secondary btn-small" data-action="send-agenda" data-id="' + meeting.id + '"' + mailAttrs + '>' + agendaLabel + '</button>' +
-        '<button type="button" class="btn btn-secondary btn-small" data-action="send-recap" data-id="' + meeting.id + '"' + mailAttrs + '>' + recapLabel + '</button>' +
         '<button type="button" class="btn btn-danger btn-small" data-action="delete-meeting" data-id="' + meeting.id + '">Delete meeting</button>' +
       '</div>';
 
@@ -758,6 +748,16 @@
         });
       }
 
+      // The tracker is an archive. The database would accept a later date,
+      // but the build leaves it out, so refuse it here rather than let
+      // someone write up a meeting nobody will see.
+      if (document.getElementById('m-date').value > TRACKER_ARCHIVE_THROUGH) {
+        statusEl.textContent = 'The Meeting Tracker is an archive through October 2026. ' +
+          'Publish later meetings as a Meeting Summary or Agenda Summary in the Documents tab.';
+        statusEl.className = 'district-status error';
+        return;
+      }
+
       var isPublished = document.getElementById('m-published').checked;
       var meetingFields = {
         meeting_date: document.getElementById('m-date').value,
@@ -863,60 +863,9 @@
         return;
       }
 
-      var sendBtn = e.target.closest('button[data-action="send-agenda"], button[data-action="send-recap"]');
-      if (sendBtn) {
-        var kind = sendBtn.getAttribute('data-action') === 'send-agenda' ? 'agenda' : 'recap';
-        var meetingId = sendBtn.getAttribute('data-id');
-        var alreadySent = sendBtn.textContent.indexOf('Re-send') === 0;
-        var confirmMsg = alreadySent
-          ? 'This meeting already had a ' + kind + ' email sent. Send it again to every current subscriber?'
-          : 'Email every subscriber the ' + kind + ' for this meeting now?';
-        if (!window.confirm(confirmMsg)) return;
-
-        sendBtn.disabled = true;
-        var originalText = sendBtn.textContent;
-        sendBtn.textContent = 'Sending...';
-
-        supabaseClient.auth.getSession().then(function (sessionRes) {
-          var session = sessionRes.data && sessionRes.data.session;
-          if (!session) {
-            sendBtn.disabled = false;
-            sendBtn.textContent = originalText;
-            window.alert('Your session has expired. Log out and log back in, then try again.');
-            return;
-          }
-          fetch('/api/notify-subscribers', {
-            method: 'POST',
-            headers: {
-              'Content-Type': 'application/json',
-              Authorization: 'Bearer ' + session.access_token
-            },
-            body: JSON.stringify({ meeting_id: meetingId, kind: kind })
-          })
-            .then(function (r) { return r.json().then(function (data) { return { ok: r.ok, data: data }; }); })
-            .then(function (result) {
-              sendBtn.disabled = false;
-              if (!result.ok) {
-                sendBtn.textContent = originalText;
-                window.alert('Could not send: ' + (result.data.error || 'unknown error'));
-                return;
-              }
-              var msg = 'Sent to ' + result.data.sent + ' subscriber' + (result.data.sent === 1 ? '' : 's') + '.';
-              // The server skips addresses Resend would reject rather than
-              // letting one bad row fail the whole batch. Say so, or a dead
-              // address sits in the table forever looking like a delivery.
-              if (result.data.note) msg += '\n\n' + result.data.note;
-              window.alert(msg);
-              loadMeetingsAdmin();
-            })
-            .catch(function () {
-              sendBtn.disabled = false;
-              sendBtn.textContent = originalText;
-              window.alert('Could not reach the server.');
-            });
-        });
-        return;
-      }
+      // The per-meeting agenda and recap emails were removed with the tracker
+      // freeze. Subscribers are now emailed when a document is published, from
+      // the Documents tab.
 
       var deleteBtn = e.target.closest('button[data-action="delete-meeting"]');
       if (!deleteBtn) return;
@@ -1029,6 +978,10 @@
     });
   }
 
+  // The Documents tab (js/admin-documents.js) starts the same build after
+  // publishing a document.
+  window.mdcwStartSiteBuild = startSiteBuild;
+
   function initPublishSite() {
     var btn = document.getElementById('publish-site-btn');
     var statusEl = document.getElementById('publish-site-status');
@@ -1070,7 +1023,9 @@
   // isn't here (an old card that was renamed, say) still shows, using the
   // raw id, rather than vanishing from the totals.
   var LINK_LABELS = {
-    'meetings': 'Latest meeting recap',
+    // Kept as 'meetings' so its count carries over; the card now opens the
+    // document library.
+    'meetings': 'Meeting and Agenda Summaries',
     'find-district': 'Find your commissioner',
     'public-comment': 'How to speak at public comment',
     'elections': '2026 elections guide',
@@ -1477,6 +1432,12 @@
           }
           if (typeof window.initAdminClaims === 'function') {
             window.initAdminClaims({ userId: currentUserId, role: role, isStaff: isStaff });
+          }
+          if (typeof window.initAdminDocuments === 'function') {
+            window.initAdminDocuments({ userId: currentUserId, role: role, isStaff: isStaff });
+          }
+          if (typeof window.initAdminSchedule === 'function') {
+            window.initAdminSchedule({ userId: currentUserId, role: role, isStaff: isStaff });
           }
 
           if (currentRole === 'owner') {

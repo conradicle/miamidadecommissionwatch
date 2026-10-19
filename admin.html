@@ -9,7 +9,7 @@
 <link rel="icon" type="image/png" sizes="32x32" href="assets/img/favicon-32x32.png">
 <link rel="icon" type="image/png" sizes="16x16" href="assets/img/favicon-16x16.png">
 <link rel="apple-touch-icon" sizes="180x180" href="assets/img/apple-touch-icon.png">
-<link rel="stylesheet" href="css/style.css?v=20260902a">
+<link rel="stylesheet" href="css/style.css?v=20261019a">
 <style>
   .submission-card { background: var(--paper-raised); border: 1px solid var(--line); border-radius: var(--radius); padding: 24px; margin-bottom: 20px; }
   .submission-meta { font-family: var(--font-mono); font-size: 12px; color: var(--ink-400); margin-bottom: 10px; }
@@ -70,6 +70,16 @@
   .link-stats-controls { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; margin-bottom: 20px; }
   .link-stats-controls label { font-family: var(--font-mono); font-size: 12px; color: var(--ink-600); }
   .link-stats-controls select { width: auto; min-width: 150px; }
+
+  /* Documents tab */
+  .field-hint { display: block; font-size: 13px; font-weight: 400; color: var(--ink-400); margin-top: 4px; }
+  label .field-hint { display: inline; margin-left: 6px; }
+  .doc-form-context { background: var(--gold-100); border-left: 4px solid var(--gold-600); padding: 10px 14px; border-radius: var(--radius-sm); }
+  .doc-admin-versions { list-style: none; margin: 10px 0 14px; padding: 0; border-top: 1px solid var(--line); font-size: 14px; }
+  .doc-admin-versions li { display: flex; flex-wrap: wrap; gap: 4px 12px; align-items: baseline; padding: 8px 0; border-bottom: 1px solid var(--line); }
+  .doc-admin-versions .v { font-weight: 700; min-width: 7ch; }
+  .doc-admin-versions .note { flex-basis: 100%; color: var(--ink-600); }
+  .submission-status.published { background: rgba(26,125,100,0.14); color: var(--green-700); }
 </style>
 </head>
 <body>
@@ -98,7 +108,7 @@
     <div class="wrap">
       <span class="eyebrow">Staff</span>
       <h1 style="max-width:28ch;">Staff dashboard</h1>
-      <p class="lede">Review editorials, write up meetings, and (for the site owner) manage staff access. Changes save here immediately, but the public site is rebuilt from this data rather than reading it live. Approving or taking down an editorial starts that rebuild on its own; for meetings, use <strong>Publish to site</strong> on the Meetings tab to push what you have saved out to readers.</p>
+      <p class="lede">Review editorials, publish Meeting and Agenda Summaries, and (for the site owner) manage staff access. Changes save here immediately, but the public site is rebuilt from this data rather than reading it live. Approving or taking down an editorial starts that rebuild on its own, and so does publishing a document; for the tracker archive, use <strong>Publish to site</strong> on that tab to push corrections out to readers.</p>
     </div>
   </section>
 
@@ -108,7 +118,9 @@
 
       <div class="admin-tabs" id="admin-tabs" style="display:none;">
         <button type="button" class="admin-tab active" data-tab="editorials">Editorials</button>
-        <button type="button" class="admin-tab" data-tab="meetings">Meetings</button>
+        <button type="button" class="admin-tab" data-tab="documents">Documents</button>
+        <button type="button" class="admin-tab" data-tab="schedule">Schedule</button>
+        <button type="button" class="admin-tab" data-tab="meetings">Tracker archive</button>
         <button type="button" class="admin-tab" data-tab="newsletter">Newsletter</button>
         <button type="button" class="admin-tab" data-tab="links">Links page</button>
         <button type="button" class="admin-tab" data-tab="cities">Cities</button>
@@ -120,7 +132,103 @@
         <div id="submissions-list"></div>
       </div>
 
+      <div class="admin-panel" id="panel-documents" style="display:none;">
+        <div class="notice" style="margin-bottom:20px;">
+          <p style="margin:0 0 8px;"><strong>Build both files first.</strong> Make the document from the template in <code>document-templates/</code>, then run <code>npm run build-doc -- path/to/file.html</code> to get the PDF. Upload the PDF and the HTML it was built from. The HTML becomes the web page; the PDF is the official download.</p>
+          <p style="margin:0;"><strong>Saving makes a draft</strong> that only staff can see. Preview it, then publish. <strong>Publishing is permanent:</strong> a correction is a new version (1.0, then 1.1), and every earlier version stays downloadable from the document's version history.</p>
+        </div>
+
+        <form id="doc-form" class="admin-form" novalidate>
+          <h3 style="margin-top:0;" id="doc-form-heading">Upload a document</h3>
+          <p id="doc-form-context" class="doc-form-context" hidden></p>
+
+          <div class="field-row">
+            <div class="field"><label for="doc-html">HTML source file</label><input type="file" id="doc-html" accept=".html,text/html" required>
+              <span class="field-hint">Choose this first: the form fills in from the document's own details.</span></div>
+            <div class="field"><label for="doc-pdf">PDF file</label><input type="file" id="doc-pdf" accept=".pdf,application/pdf" required>
+              <span class="field-hint">Built from that HTML with npm run build-doc. Up to 30 MB.</span></div>
+          </div>
+
+          <div class="field-row">
+            <div class="field"><label for="doc-type">Document type</label>
+              <select id="doc-type" required>
+                <option value="agenda-summary">Agenda Summary (before the meeting)</option>
+                <option value="meeting-summary">Meeting Summary (after the meeting)</option>
+              </select></div>
+            <div class="field"><label for="doc-date">Meeting date</label><input type="date" id="doc-date" required></div>
+            <div class="field"><label for="doc-issued">Issue date</label><input type="date" id="doc-issued" required></div>
+          </div>
+
+          <div class="field-row">
+            <div class="field"><label for="doc-number">Document number</label><input type="text" id="doc-number" placeholder="MDCW-AS-2026-1020" required autocomplete="off" spellcheck="false"></div>
+            <div class="field"><label for="doc-version">Version</label><input type="text" id="doc-version" placeholder="1.0" required autocomplete="off" inputmode="decimal"></div>
+            <div class="field"><label for="doc-pages">Page count</label><input type="number" id="doc-pages" min="1" max="5000" placeholder="Read from the PDF">
+              <span class="field-hint">Leave blank; it is read from the PDF.</span></div>
+          </div>
+
+          <div class="field"><label for="doc-title">Title</label><input type="text" id="doc-title" required maxlength="300"></div>
+          <div class="field"><label for="doc-summary">Short summary <span class="field-hint" id="doc-summary-count"></span></label>
+            <textarea id="doc-summary" rows="3" required maxlength="1200" placeholder="Two or three sentences for the index: what the document covers. Describe, don't characterize."></textarea></div>
+          <div class="field-row">
+            <div class="field"><label for="doc-items">Item numbers covered</label><input type="text" id="doc-items" placeholder="11A5, 11A1, 8O1, 8N2" autocomplete="off" spellcheck="false"></div>
+            <div class="field"><label for="doc-keywords">Keywords</label><input type="text" id="doc-keywords" placeholder="affordable housing, county land" autocomplete="off"></div>
+          </div>
+          <div class="field" id="doc-change-wrap" hidden>
+            <label for="doc-change">What this version corrects</label>
+            <textarea id="doc-change" rows="2" maxlength="1000" placeholder="For example: Corrects the vote count on item 11A5 from 10-2 to 9-3."></textarea>
+            <span class="field-hint">Shown to readers in the version history. Required for every version after the first.</span>
+            <label style="display:flex; align-items:flex-start; gap:9px; font-weight:400; cursor:pointer; margin-top:12px;">
+              <input type="checkbox" id="doc-notify" style="width:auto; margin:4px 0 0;">
+              <span>Email subscribers about this correction. Use this when the correction changes a fact (a vote count, a dollar figure, an outcome). Off by default; the email goes out when the corrected page is live, with "Correction:" and the document title as its subject.</span>
+            </label>
+          </div>
+
+          <div style="margin-top:20px; display:flex; gap:10px; flex-wrap:wrap;">
+            <button type="submit" class="btn btn-primary" id="doc-submit-btn">Save draft</button>
+            <button type="button" class="btn btn-secondary" id="doc-cancel-btn" hidden>Cancel</button>
+          </div>
+          <div id="doc-form-status" class="district-status" style="margin-top:12px;" role="status" aria-live="polite"></div>
+        </form>
+
+        <div class="field-row" style="align-items:center; margin-bottom:12px;">
+          <h3 style="margin:0;">Documents</h3>
+          <button type="button" class="btn btn-secondary btn-small" id="doc-refresh" style="flex:0;">Refresh</button>
+        </div>
+        <div id="doc-admin-status" class="district-status"></div>
+        <div id="doc-admin-list"></div>
+      </div>
+
+      <div class="admin-panel" id="panel-schedule" style="display:none;">
+        <div class="notice" style="margin-bottom:20px;">
+          Upcoming Board meetings, from the county's <a href="https://www.miamidade.gov/resources/commission/documents/2026-bcc-calendar.pdf" target="_blank" rel="noopener">meeting calendar (PDF)</a>. The homepage's next-meeting line and the district panel read this list as soon as you save. The upcoming list on the Documents page updates at the next site rebuild (publishing a document starts one, or use <strong>Publish to site</strong> on the Tracker archive tab).
+        </div>
+        <form id="schedule-form" class="admin-form">
+          <h3 style="margin-top:0;" id="schedule-form-heading">Add a meeting date</h3>
+          <div class="field-row">
+            <div class="field"><label for="s-date">Date</label><input type="date" id="s-date" required></div>
+            <div class="field"><label for="s-time">Start time</label><input type="time" id="s-time" value="09:30"></div>
+            <div class="field"><label for="s-type">Meeting type</label><input type="text" id="s-type" value="Regular Meeting" required maxlength="80"></div>
+          </div>
+          <div class="field"><label for="s-location">Location</label><input type="text" id="s-location" maxlength="200" value="Commission Chambers, Stephen P. Clark Government Center, 111 NW 1st Street, Miami"></div>
+          <div class="field"><label for="s-note">Note <span class="field-hint">optional, shown publicly</span></label><input type="text" id="s-note" maxlength="300" placeholder="For example: Moved from November 10"></div>
+          <div class="field">
+            <label style="display:flex; align-items:center; gap:9px; font-weight:400; cursor:pointer;">
+              <input type="checkbox" id="s-cancelled" style="width:auto; margin:0;"> <span>Cancelled (stays listed, marked cancelled, and is skipped as the next meeting)</span>
+            </label>
+          </div>
+          <div style="margin-top:16px; display:flex; gap:10px; flex-wrap:wrap;">
+            <button type="submit" class="btn btn-primary" id="schedule-submit-btn">Save date</button>
+            <button type="button" class="btn btn-secondary" id="schedule-cancel-btn" hidden>Cancel edit</button>
+          </div>
+          <div id="schedule-status" class="district-status" style="margin-top:12px;" role="status" aria-live="polite"></div>
+        </form>
+        <div id="schedule-list"></div>
+      </div>
+
       <div class="admin-panel" id="panel-meetings" style="display:none;">
+        <div class="notice" style="margin-bottom:20px;">
+          <strong>The Meeting Tracker is an archive</strong> through October 2026. You can still correct a meeting that is already here; new meetings go in the Documents tab as a Meeting Summary or Agenda Summary.
+        </div>
         <form id="meeting-form" class="admin-form">
           <h3 style="margin-top:0;" id="meeting-form-heading">Add a meeting</h3>
           <div class="field-row">
@@ -511,10 +619,12 @@
 
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.112.3" integrity="sha384-l8ah+VgaWtk1mvOe9VC+OirC6qHFF4yH7l7mKRidV9MSti3E9F463bMp6ZVN4kuC" crossorigin="anonymous"></script>
 <script src="js/supabase-client.js"></script>
-<script src="js/main.js?v=20260830c"></script>
+<script src="js/main.js?v=20261019b"></script>
 <script src="js/official-photo.js?v=20260924"></script>
 <script src="js/admin-cities.js?v=20260924"></script>
 <script src="js/admin-claims.js?v=20260827"></script>
-<script src="js/admin.js?v=20260923"></script>
+<script src="js/admin-documents.js?v=20261019c"></script>
+<script src="js/admin-schedule.js?v=20261019b"></script>
+<script src="js/admin.js?v=20261019c"></script>
 </body>
 </html>
