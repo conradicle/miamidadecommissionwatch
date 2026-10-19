@@ -6,12 +6,16 @@
   "scripts": {
     "build": "node scripts/build.mjs",
     "build:check": "node scripts/build.mjs --dry-run",
-    "build-doc": "node scripts/build-doc.mjs"
+    "build-doc": "node scripts/build-doc.mjs",
+    "vendor-sanitizer": "node scripts/vendor-sanitizer.mjs"
   },
   "engines": {
     "node": ">=20"
   },
   "dependencies": {
     "sanitize-html": "2.18.1"
+  },
+  "devDependencies": {
+    "esbuild": "0.25.10"
   }
 }
