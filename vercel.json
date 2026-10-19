@@ -19,6 +19,22 @@
       "destination": "/city/index.html"
     },
     {
+      "source": "/documents",
+      "destination": "/documents/index.html"
+    },
+    {
+      "source": "/documents/meeting-summaries",
+      "destination": "/documents/meeting-summaries.html"
+    },
+    {
+      "source": "/documents/agenda-summaries",
+      "destination": "/documents/agenda-summaries.html"
+    },
+    {
+      "source": "/documents/:type(meeting-summary|agenda-summary)/:date(\\d{4}-\\d{2}-\\d{2})",
+      "destination": "/documents/:type/:date.html"
+    },
+    {
       "source": "/",
       "destination": "/home.html"
     }

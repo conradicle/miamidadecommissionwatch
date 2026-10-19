@@ -1,5 +1,5 @@
-// Homepage: the "since the last meeting" briefing, and the address-first
-// district panel.
+// Homepage: the next-meeting line in the hero, and the address-first
+// district panel. The "latest documents" block is prerendered by the build.
 //
 // IMPORTANT: migration_14 is applied by hand in the Supabase SQL editor, so
 // this file must render something sensible against BOTH the old schema and the
@@ -24,83 +24,12 @@
   }
 
   // ---------------------------------------------------------------------
-  // Briefing
+  // Next meeting
   // ---------------------------------------------------------------------
-  // Everything here is *derived* from the item records rather than written by
-  // hand. A hand-written standfirst on the homepage is a second copy of the
-  // facts that goes stale the moment an item is edited; counting the rows
-  // cannot disagree with the rows.
-  function buildBriefing(meeting) {
-    var items = meeting.meeting_items || [];
-    if (!items.length) return null;
-
-    var passed = 0, failed = 0, deferred = 0, dissented = 0, money = 0;
-
-    items.forEach(function (it) {
-      if (it.tag_status === 'passed') passed++;
-      else if (it.tag_status === 'failed') failed++;
-      else if (it.tag_status === 'deferred') deferred++;
-
-      // vote_no and amount_usd only exist after migration_14; undefined is
-      // simply skipped, which is the correct behaviour pre-migration.
-      if (typeof it.vote_no === 'number' && it.vote_no > 0) dissented++;
-      if (it.tag_status === 'passed' && it.amount_usd) {
-        var n = Number(it.amount_usd);
-        if (isFinite(n)) money += n;
-      }
-    });
-
-    var parts = [];
-
-    if (money > 0) {
-      parts.push(esc(fmt.formatMoney(money)) + ' approved');
-    }
-    if (passed) parts.push(passed + ' ' + fmt.plural(passed, 'item') + ' passed');
-    if (failed) parts.push(failed + ' failed');
-    if (deferred) parts.push(deferred + ' deferred');
-    if (dissented) {
-      parts.push(dissented + ' ' + fmt.plural(dissented, 'item') + ' drew a dissenting vote');
-    }
-
-    if (!parts.length) {
-      parts.push(items.length + ' ' + fmt.plural(items.length, 'item') + ' tracked');
-    }
-
-    return parts;
-  }
-
-  function renderBriefing(meeting) {
-    var lineEl = document.getElementById('briefing-line');
-    var footEl = document.getElementById('briefing-foot');
-    if (!lineEl) return;
-
-    if (!meeting) {
-      // The meetings table is empty on a fresh deployment, but the Meeting
-      // Tracker still carries hand-written recaps as static cards. Send people
-      // there rather than implying nothing has been covered.
-      lineEl.innerHTML = '<span class="briefing-empty">Recaps of recent meetings, ' +
-        'item by item, are on the <a href="meetings.html">Meeting Tracker</a>. ' +
-        'This summary fills in automatically once meetings are published from the dashboard.</span>';
-      return;
-    }
-
-    var parts = buildBriefing(meeting);
-
-    if (!parts) {
-      lineEl.innerHTML = esc(meeting.summary || meeting.title || '');
-    } else {
-      lineEl.innerHTML = parts.join('<span class="sep">&middot;</span>');
-    }
-
-    if (footEl) {
-      var bits = [];
-      bits.push('<span>From the ' + esc(meeting.meeting_type || 'meeting') + ' on ' +
-        esc(fmt.formatDate(meeting.meeting_date)) + '</span>');
-      bits.push('<a href="meetings.html">Read the full recap &#8599;</a>');
-      footEl.innerHTML = bits.join('');
-    }
-  }
-
+  // The "What the Board just did" briefing that used to sit here counted the
+  // Meeting Tracker's item rows. The tracker is an archive now, so the
+  // homepage shows the latest Meeting and Agenda Summaries instead, written
+  // into the page at build time (scripts/build.mjs, region home-documents).
   function renderNextMeeting(next) {
     var el = document.getElementById('next-meeting-live');
     if (!el) return;
@@ -120,33 +49,8 @@
       })) + '</div>';
   }
 
-  function loadBriefing() {
+  function loadNextMeeting() {
     if (!haveSupabase()) return;
-
-    // On or before today. The panel is headed "What the Board just did" and
-    // labelled "Since the last meeting", so a meeting that has not happened
-    // yet does not belong in it -- and a meeting page published ahead of the
-    // date, which is how agenda previews work, would otherwise take this slot
-    // and describe an agenda as though it were a result. Mirrors the .gte()
-    // on the next-meeting query below; a meeting today is the newest thing
-    // the Board has done and also the next one up, so it can be both.
-    supabaseClient
-      .from('meetings')
-      .select('*, meeting_items(*)')
-      .lte('meeting_date', fmt.todayISO())
-      .order('meeting_date', { ascending: false })
-      .limit(1)
-      .then(function (res) {
-        if (res.error) throw res.error;
-        renderBriefing(res.data && res.data[0]);
-      })
-      .catch(function () {
-        var lineEl = document.getElementById('briefing-line');
-        if (lineEl) {
-          lineEl.innerHTML = '<span class="briefing-empty">Couldn\'t load the latest meeting. ' +
-            '<a href="meetings.html">Open the Meeting Tracker</a></span>';
-        }
-      });
 
     supabaseClient
       .from('meetings')
@@ -215,11 +119,11 @@
   function renderVotesBlock(items) {
     if (items === null) {
       return '<p class="data-pending">Per-district vote tracking is being rolled out. ' +
-        'In the meantime the <a href="meetings.html">Meeting Tracker</a> has every item we\'ve covered.</p>';
+        'In the meantime the <a href="/documents/meeting-summaries">Meeting Summaries</a> cover every meeting.</p>';
     }
     if (!items.length) {
       return '<p>No tracked item so far has been tagged as specifically affecting this district. ' +
-        'Countywide decisions still apply &mdash; see the <a href="meetings.html">Meeting Tracker</a>.</p>';
+        'Countywide decisions still apply. See the <a href="/documents/meeting-summaries">Meeting Summaries</a>.</p>';
     }
 
     var rows = items.map(function (it) {
@@ -269,8 +173,8 @@
           '<span class="label">Next relevant meeting</span>' +
           '<p>' + (next
             ? esc(next.meeting_type + ' on ' + fmt.formatDate(next.meeting_date)) +
-              '. <a href="meetings.html">What\'s on the agenda</a>'
-            : 'No upcoming meeting has been published yet. <a href="meetings.html">Meeting Tracker</a>') +
+              '. <a href="/documents/agenda-summaries">Agenda Summaries</a>'
+            : 'See the <a href="/documents/agenda-summaries">Agenda Summaries</a> for what is coming up.') +
           '</p>' +
         '</div>' +
         '<div class="dp-block" style="grid-column:1/-1;">' +
@@ -345,7 +249,7 @@
   window.MDCW.home = { schema: schema };
 
   ready(function () {
-    loadBriefing();
+    loadNextMeeting();
     initFinder();
   });
 })();

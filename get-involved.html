@@ -21,7 +21,7 @@
 <link rel="icon" type="image/png" sizes="32x32" href="assets/img/favicon-32x32.png">
 <link rel="icon" type="image/png" sizes="16x16" href="assets/img/favicon-16x16.png">
 <link rel="apple-touch-icon" sizes="180x180" href="assets/img/apple-touch-icon.png">
-<link rel="stylesheet" href="css/style.css?v=20260902a">
+<link rel="stylesheet" href="css/style.css?v=20261019a">
 <!-- build:jsonld -->
 <script type="application/ld+json">{"@context":"https://schema.org","@type":"NewsMediaOrganization","@id":"https://www.miamidadecommissionwatch.com/#organization","name":"Miami-Dade Commission Watch","alternateName":["Miami Dade Commission Watch","MDCW","Miami-Dade County Commission Watch"],"url":"https://www.miamidadecommissionwatch.com/","logo":{"@type":"ImageObject","url":"https://www.miamidadecommissionwatch.com/assets/img/og-image.png","width":1200,"height":630},"image":"https://www.miamidadecommissionwatch.com/assets/img/og-image.png","description":"Independent, nonpartisan tracking of the Miami-Dade County Board of County Commissioners: plain-language meeting summaries, a commissioner directory, and ways to get involved.","founder":[{"@type":"Person","name":"Conrad Gelber"},{"@type":"Person","name":"Daniel Llobet"}],"sameAs":["https://instagram.com/miamidadecommissionwatch"],"areaServed":{"@type":"AdministrativeArea","name":"Miami-Dade County, Florida"},"knowsAbout":["Miami-Dade Board of County Commissioners","Miami-Dade County government","county commission meetings","local government transparency"],"publishingPrinciples":"https://www.miamidadecommissionwatch.com/about.html","isAccessibleForFree":true,"disambiguatingDescription":"An independent, student-run civic project. Not affiliated with, operated by, or endorsed by Miami-Dade County government."}</script>
 <script type="application/ld+json">{"@context":"https://schema.org","@type":"WebSite","@id":"https://www.miamidadecommissionwatch.com/#website","url":"https://www.miamidadecommissionwatch.com/","name":"Miami-Dade Commission Watch","inLanguage":"en-US","publisher":{"@id":"https://www.miamidadecommissionwatch.com/#organization"}}</script>
@@ -65,7 +65,14 @@
 
   <nav class="site-nav" id="site-nav" aria-label="Primary">
     <a href="/">Home</a>
-    <a href="meetings.html">Meetings</a>
+    <details class="nav-menu">
+      <summary>Documents</summary>
+      <div class="nav-menu-list">
+        <a href="/documents/meeting-summaries">Meeting Summaries</a>
+        <a href="/documents/agenda-summaries">Agenda Summaries</a>
+        <a href="/documents">All documents</a>
+      </div>
+    </details>
     <a href="officials.html">Officials</a>
     <a href="elections.html">Elections</a>
     <a href="municipalities.html">Cover Your City</a>
@@ -167,7 +174,7 @@
 
         <div class="card">
           <h3>1. Read the agenda before the meeting</h3>
-          <p>Full BCC and committee agendas are published in advance through the county's legislative system. Our <a href="meetings.html">Meeting Tracker</a> highlights select items, but the full agenda always has more.</p>
+          <p>Full BCC and committee agendas are published in advance through the county's legislative system. Our <a href="/documents/agenda-summaries">Agenda Summaries</a> explain each item in plain language, but the official agenda is the complete record.</p>
           <p><a href="https://www.miamidade.gov/govaction/home.asp" target="_blank" rel="noopener">Browse legislation &#8599;</a></p>
         </div>
 
@@ -190,7 +197,7 @@
 
         <div class="card">
           <h3>5. Follow along between meetings</h3>
-          <p>We post plain-language summaries after each meeting we cover. Check back on the tracker, or reach out if you'd like to be notified.</p>
+          <p>We publish a <a href="/documents/meeting-summaries">Meeting Summary</a> after each meeting we cover. Check back there, or reach out if you'd like to be notified.</p>
           <p><a href="news.html">Read our updates</a></p>
         </div>
 
@@ -223,7 +230,7 @@
 
         <div class="card">
           <h3>2. Attend a BCC meeting with us</h3>
-          <p>Come to a Board of County Commissioners meeting in person alongside the team. Check the <a href="meetings.html">Meeting Tracker</a> for the next one, then <a href="contact.html">reach out</a> to join us there.</p>
+          <p>Come to a Board of County Commissioners meeting in person alongside the team. Check the <a href="/documents#upcoming-meetings">upcoming meetings</a> for the next one, then <a href="contact.html">reach out</a> to join us there.</p>
         </div>
 
         <div class="card">
@@ -271,12 +278,14 @@
       <div>
         <h4>Site</h4>
         <ul>
-          <li><a href="meetings.html">Meeting Tracker</a></li>
+          <li><a href="/documents/meeting-summaries">Meeting Summaries</a></li>
+          <li><a href="/documents/agenda-summaries">Agenda Summaries</a></li>
           <li><a href="officials.html">Officials</a></li>
           <li><a href="elections.html">Elections</a></li>
           <li><a href="municipalities.html">Cover your city</a></li>
           <li><a href="get-involved.html">Get Involved</a></li>
           <li><a href="news.html">Student Editorials</a></li>
+          <li><a href="meetings.html">Meeting Tracker Archive</a></li>
         </ul>
       </div>
       <div>
@@ -317,7 +326,7 @@
 </footer>
 
 <div id="google_translate_element"></div>
-<script src="js/main.js?v=20260830c"></script>
+<script src="js/main.js?v=20261019a"></script>
 <script src="js/newsletter.js?v=20260820"></script>
 <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" integrity="sha384-cxOPjt7s7Iz04uaHJceBmS+qpjv2JkIHNVcuOrM+YHwZOmJGBXI00mdUXEq65HTH" crossorigin="anonymous"></script>
 <script src="js/find-district.js?v=20260823"></script>
