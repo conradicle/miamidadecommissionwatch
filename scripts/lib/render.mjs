@@ -302,7 +302,8 @@ export function makeEditorialSlugger() {
   };
 }
 
-export function renderEditorials(rows, publicByline) {
+// row.byline arrives already reduced by public_byline() in the database.
+export function renderEditorials(rows) {
   const slugify = makeEditorialSlugger();
   return rows.map((row) => {
     const id = slugify(row.title);
@@ -310,7 +311,7 @@ export function renderEditorials(rows, publicByline) {
     return '<div class="meeting-card editorial-card" id="' + esc(id) + '">' +
       '<div class="meeting-card-date">Editorial &middot; ' + esc(editorialDate(row.submitted_at)) + '</div>' +
       '<h3>' + esc(row.title) + '</h3>' +
-      '<p class="editorial-byline">By ' + esc(publicByline(row.name)) + '</p>' +
+      '<p class="editorial-byline">By ' + esc(row.byline) + '</p>' +
       '<p class="editorial-body" id="' + esc(bodyId) + '">' + esc(row.body) + '</p>' +
       '<button class="editorial-toggle" type="button" aria-expanded="false" aria-controls="' + esc(bodyId) + '">' +
       '<span class="editorial-toggle-label">Read more</span>' + CHEVRON + '</button>' +
