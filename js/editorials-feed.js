@@ -139,7 +139,7 @@
     if (typeof supabaseClient === 'undefined') return;
 
     supabaseClient
-      // Submitters are minors. The view (supabase/migration_27) holds approved
+      // Submitters are minors. The view (supabase/migration_28) holds approved
       // rows only and hands back the byline already cut to "First L." in the
       // database, so the full name never reaches the browser at all.
       .from('published_editorials')

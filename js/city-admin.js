@@ -57,7 +57,7 @@
     return checked(checkboxId) ? 'published' : 'draft';
   }
 
-  // Live rows are the owner's to change or remove (supabase/migration_27).
+  // Live rows are the owner's to change or remove (supabase/migration_28).
   // The trigger refuses an editor's save or delete with a message; this just
   // keeps the Delete button off rows it would refuse.
   function canRemove(row) {

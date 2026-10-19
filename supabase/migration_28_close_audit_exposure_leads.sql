@@ -212,7 +212,7 @@ select public.public_byline(e.name) as byline,
  where e.status = 'approved';
 
 comment on view public.published_editorials is
-  'Public editorial feed: approved rows, author reduced to "First L." by public_byline(). See migration_27.';
+  'Public editorial feed: approved rows, author reduced to "First L." by public_byline(). See migration_28.';
 
 revoke all on public.published_editorials from public, anon, authenticated;
 grant select on public.published_editorials to anon, authenticated;
