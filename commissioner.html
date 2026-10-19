@@ -20,7 +20,7 @@
 <link rel="icon" type="image/png" sizes="32x32" href="assets/img/favicon-32x32.png">
 <link rel="icon" type="image/png" sizes="16x16" href="assets/img/favicon-16x16.png">
 <link rel="apple-touch-icon" sizes="180x180" href="assets/img/apple-touch-icon.png">
-<link rel="stylesheet" href="css/style.css?v=20260902a">
+<link rel="stylesheet" href="css/style.css?v=20261019a">
 <meta name="robots" content="noindex">
 </head>
 <body>
@@ -61,7 +61,14 @@
 
   <nav class="site-nav" id="site-nav" aria-label="Primary">
     <a href="/">Home</a>
-    <a href="meetings.html">Meetings</a>
+    <details class="nav-menu">
+      <summary>Documents</summary>
+      <div class="nav-menu-list">
+        <a href="/documents/meeting-summaries">Meeting Summaries</a>
+        <a href="/documents/agenda-summaries">Agenda Summaries</a>
+        <a href="/documents">All documents</a>
+      </div>
+    </details>
     <a href="officials.html" aria-current="page">Officials</a>
     <a href="elections.html">Elections</a>
     <a href="municipalities.html">Cover Your City</a>
@@ -95,7 +102,7 @@
         <span class="eyebrow">The useful part</span>
         <h2>How this commissioner voted on the last 20 tracked items</h2>
       </div>
-      <p class="mt-0" style="max-width:65ch; color:var(--ink-600);">Only items where we recorded a roll call appear here. A tally like &ldquo;Passed 12&ndash;1&rdquo; on the <a href="meetings.html">Meeting Tracker</a> tells you the result; this tells you who was on which side. We record the votes and take no position on them.</p>
+      <p class="mt-0" style="max-width:65ch; color:var(--ink-600);">Only items where we recorded a roll call appear here. A tally like &ldquo;Passed 12&ndash;1&rdquo; on the <a href="meetings.html">Meeting Tracker Archive</a> tells you the result; this tells you who was on which side. We record the votes and take no position on them.</p>
 
       <div class="vote-summary" id="vote-summary" hidden></div>
       <div id="vote-history"></div>
@@ -130,12 +137,14 @@
       <div>
         <h4>Site</h4>
         <ul>
-          <li><a href="meetings.html">Meeting Tracker</a></li>
+          <li><a href="/documents/meeting-summaries">Meeting Summaries</a></li>
+          <li><a href="/documents/agenda-summaries">Agenda Summaries</a></li>
           <li><a href="officials.html">Officials</a></li>
           <li><a href="elections.html">Elections</a></li>
           <li><a href="municipalities.html">Cover your city</a></li>
           <li><a href="get-involved.html">Get Involved</a></li>
           <li><a href="news.html">Student Editorials</a></li>
+          <li><a href="meetings.html">Meeting Tracker Archive</a></li>
         </ul>
       </div>
       <div>
@@ -178,11 +187,11 @@
 <div id="google_translate_element"></div>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.112.3" integrity="sha384-l8ah+VgaWtk1mvOe9VC+OirC6qHFF4yH7l7mKRidV9MSti3E9F463bMp6ZVN4kuC" crossorigin="anonymous"></script>
 <script src="js/supabase-client.js"></script>
-<script src="js/main.js?v=20260830c"></script>
+<script src="js/main.js?v=20261019a"></script>
 <script src="js/newsletter.js?v=20260820"></script>
 <script src="js/mdcw-format.js?v=20260823"></script>
 <script src="js/commissioner-data.js?v=20260823"></script>
-<script src="js/commissioner.js?v=20260823"></script>
+<script src="js/commissioner.js?v=20261019a"></script>
 <script src="js/translate.js?v=20260820"></script>
 <script src="https://translate.google.com/translate_a/element.js?cb=googleTranslateElementInit"></script>
 </body>

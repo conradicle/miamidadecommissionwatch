@@ -28,7 +28,7 @@ function readBrowserCredentials() {
 }
 
 const creds = readBrowserCredentials();
-const SUPABASE_URL = process.env.SUPABASE_PUBLIC_URL || creds.url;
+export const SUPABASE_URL = process.env.SUPABASE_PUBLIC_URL || creds.url;
 const SUPABASE_ANON_KEY = process.env.SUPABASE_ANON_KEY || creds.key;
 
 async function rest(path) {
@@ -98,6 +98,63 @@ export async function fetchEditorials() {
   );
 }
 
+// Published documents (Meeting Summaries, Agenda Summaries) with every
+// published version, newest first. No fallback when the table is missing,
+// for the reason fetchMeetings gives: a build that quietly skipped them would
+// publish a site with the document library empty. Zero rows is fine -- that
+// is simply a library nobody has published to yet.
+//
+// The version list leaves out body_html: a 60-page document is a few hundred
+// KB of HTML, and only the current version's is rendered. Those come in a
+// second request.
+const DOCUMENT_COLUMNS =
+  'id,doc_type,meeting_date,language,translation_of,status,current_version_id,title,summary,' +
+  'document_number,item_numbers,keywords,page_count,first_published_at,updated_at';
+const VERSION_COLUMNS =
+  'id,document_id,version,version_major,version_minor,status,title,summary,document_number,' +
+  'item_numbers,keywords,issued_on,change_note,page_count,pdf_bytes,public_pdf_path,published_at';
+
+export async function fetchDocuments() {
+  let docs;
+  try {
+    docs = await rest(
+      `documents?select=${encodeURIComponent(
+        DOCUMENT_COLUMNS + ',document_versions!document_versions_document_id_fkey(' + VERSION_COLUMNS + ')'
+      )}` +
+      '&status=eq.published' +
+      '&document_versions.status=eq.published' +
+      '&order=meeting_date.desc'
+    );
+  } catch (err) {
+    if (/documents/.test(err.message) && /(does not exist|42P01|PGRST20[05]|schema cache)/.test(err.message)) {
+      throw new Error(
+        'The documents table is missing from the database.\n' +
+        'Apply supabase/migration_27_documents.sql in the Supabase SQL editor, then deploy again.\n' +
+        'Original error: ' + err.message
+      );
+    }
+    throw err;
+  }
+
+  const currentIds = docs.map((d) => d.current_version_id).filter(Boolean);
+  const bodies = new Map();
+  // In batches, to keep each URL well under PostgREST's length limit.
+  for (let i = 0; i < currentIds.length; i += 40) {
+    const ids = currentIds.slice(i, i + 40);
+    const rows = await rest(`document_versions?select=id,body_html&id=in.(${ids.join(',')})`);
+    for (const r of rows) bodies.set(r.id, r.body_html || '');
+  }
+
+  for (const d of docs) {
+    d.versions = (d.document_versions || []).slice()
+      .sort((a, b) => (b.version_major - a.version_major) || (b.version_minor - a.version_minor));
+    delete d.document_versions;
+    d.current = d.versions.find((v) => v.id === d.current_version_id) || d.versions[0] || null;
+    if (d.current) d.current.body_html = bodies.get(d.current.id) || '';
+  }
+  return docs.filter((d) => d.current && d.current.body_html);
+}
+
 export async function fetchCities() {
   return rest('cities?select=slug,name,status,sort_order&order=sort_order.asc');
 }
@@ -114,6 +171,18 @@ export function loadPublicByline() {
     throw new Error('js/public-byline.js did not define window.publicByline');
   }
   return scope.window.publicByline;
+}
+
+// Loads js/document-view.js, the renderer the staff preview page also runs,
+// so a published page and its draft preview come from the same code.
+export function loadDocumentView() {
+  const src = readFileSync(join(ROOT, 'js', 'document-view.js'), 'utf8');
+  const scope = {};
+  new Function('window', src)(scope);
+  if (!scope.MDCWDocument || typeof scope.MDCWDocument.renderDocumentMain !== 'function') {
+    throw new Error('js/document-view.js did not define window.MDCWDocument');
+  }
+  return scope.MDCWDocument;
 }
 
 // The team roster. Unlike meetings and editorials this is a checked-in file,

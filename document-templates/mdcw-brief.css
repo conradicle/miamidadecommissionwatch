@@ -1,0 +1,187 @@
+/* Miami-Dade Commission Watch: official document stylesheet
+   Used for both the Meeting Summary (after each meeting) and the Agenda Summary (before each meeting, about 60 pages).
+   Render with WeasyPrint: npm run build-doc -- path/to/file.html (see README.md)
+   Inter ships in assets/ so the build does not depend on fonts installed on the machine.
+   The website mirrors this look in css/document.css. Change one, check the other. */
+
+@font-face { font-family: "Lora"; src: url(assets/Lora-Regular.ttf); font-weight: 400; }
+@font-face { font-family: "Lora"; src: url(assets/Lora-SemiBold.ttf); font-weight: 600; }
+@font-face { font-family: "Lora"; src: url(assets/Lora-Bold.ttf); font-weight: 700; }
+@font-face { font-family: "Lora"; src: url(assets/Lora-Italic.ttf); font-style: italic; }
+@font-face { font-family: "Inter"; src: url(assets/Inter-Regular.otf); font-weight: 400; }
+@font-face { font-family: "Inter"; src: url(assets/Inter-Italic.otf); font-weight: 400; font-style: italic; }
+@font-face { font-family: "Inter"; src: url(assets/Inter-Medium.otf); font-weight: 500; }
+@font-face { font-family: "Inter"; src: url(assets/Inter-SemiBold.otf); font-weight: 600; }
+@font-face { font-family: "Inter"; src: url(assets/Inter-Bold.otf); font-weight: 700; }
+
+:root {
+  --navy: #1B365D; --gold: #C9A227; --dgold: #A07C12; --ink: #374256;
+  --cream: #F3F0E6; --card: #FAF8F2; --line: #DED6BE; --muted: #6B7385;
+}
+
+/* ---------- Page setup ---------- */
+@page {
+  size: letter;
+  margin: 0.95in 0.8in 0.85in 0.8in;
+  background:
+    url(assets/frame.svg) no-repeat -0.8in -0.95in / 8.5in 11in,
+    url(assets/watermark.png) no-repeat 0.65in 2.0in / 5.6in 5.6in,
+    white;
+  @top-left {
+    content: url(assets/seal-header.png) "  " string(doctype);
+    font: 600 7.5pt Inter; color: var(--navy); letter-spacing: 0.12em;
+    vertical-align: bottom; padding-bottom: 8pt; image-resolution: 300dpi;
+  }
+  @top-right {
+    content: string(docno);
+    font: 600 7.5pt Inter; color: var(--dgold); letter-spacing: 0.08em;
+    vertical-align: bottom; padding-bottom: 10pt;
+  }
+  @bottom-left {
+    content: "Miami-Dade Commission Watch  \00B7  miamidadecommissionwatch.com";
+    font: 500 7pt Inter; color: var(--muted); vertical-align: top; padding-top: 10pt;
+  }
+  @bottom-right {
+    content: "Page " counter(page) " of " counter(pages);
+    font: 600 7pt Inter; color: var(--dgold); vertical-align: top; padding-top: 10pt;
+  }
+}
+@page :first {
+  margin-top: 0.6in;
+  background:
+    url(assets/frame.svg) no-repeat -0.8in -0.6in / 8.5in 11in,
+    url(assets/watermark.png) no-repeat 0.65in 2.35in / 5.6in 5.6in,
+    white;
+  @top-left { content: none; } @top-right { content: none; }
+}
+@page cover {
+  margin: 0.6in;
+  background:
+    url(assets/frame.svg) no-repeat -0.6in -0.6in / 8.5in 11in,
+    var(--cream);
+  @top-left { content: none; } @top-right { content: none; }
+  @bottom-left { content: none; } @bottom-right { content: none; }
+}
+
+html { font: 400 9.6pt/1.5 Inter, sans-serif; color: var(--ink); }
+body { margin: 0; }
+.doctype-string { string-set: doctype content(); height: 0; overflow: hidden; font-size: 0; margin: 0; }
+.docno-string { string-set: docno content(); height: 0; overflow: hidden; font-size: 0; margin: 0; }
+
+h1, h2, h3, h4 { font-family: Lora, serif; color: var(--navy); margin: 0; }
+p { margin: 0 0 7pt; text-align: left; orphans: 2; widows: 2; }
+strong { color: var(--navy); font-weight: 600; }
+a { color: var(--navy); text-decoration: none; }
+
+/* ---------- Masthead (page 1 of the Meeting Summary) ---------- */
+.masthead { display: flex; align-items: center; gap: 14pt; padding-bottom: 10pt; border-bottom: 2.2pt solid var(--navy); }
+.masthead img { width: 66pt; height: 66pt; }
+.masthead .org { font: 700 8pt Inter; letter-spacing: 0.2em; color: var(--dgold); text-transform: uppercase; }
+.masthead h1 { font-size: 26pt; line-height: 1.05; margin-top: 2pt; }
+.masthead .sub { font: 500 8.6pt Inter; white-space: nowrap; color: var(--ink); margin-top: 3pt; }
+.masthead .release { margin-left: auto; white-space: nowrap; flex: none; text-align: right; font: 700 7pt Inter; letter-spacing: 0.14em; color: var(--navy); text-transform: uppercase; line-height: 1.7; }
+.masthead .release span { display: block; color: var(--dgold); }
+.gold-rule { height: 0; border-top: 0.8pt solid var(--gold); margin-top: 2pt; }
+
+/* Document control strip */
+.control { display: flex; margin: 9pt 0 14pt; border: 0.6pt solid var(--line); background: var(--card); }
+.control div { flex: 1; white-space: nowrap; padding: 5pt 8pt; border-right: 0.6pt solid var(--line); }
+.control div:last-child { border-right: 0; }
+.control b { display: block; font: 700 6.3pt Inter; letter-spacing: 0.14em; color: var(--dgold); text-transform: uppercase; }
+.control span { font: 500 8.3pt Inter; color: var(--navy); }
+
+/* ---------- Section headings ---------- */
+.section { margin-top: 15pt; }
+.kicker { font: 700 7.2pt Inter; letter-spacing: 0.18em; color: var(--dgold); text-transform: uppercase; margin-bottom: 2pt; }
+h2 { font-size: 15.5pt; line-height: 1.2; padding-bottom: 4pt; border-bottom: 0.8pt solid var(--gold); margin-bottom: 8pt; }
+h3 { font-size: 12.5pt; line-height: 1.25; margin-bottom: 4pt; }
+h4 { font: 700 7.5pt Inter; letter-spacing: 0.14em; text-transform: uppercase; color: var(--navy); margin: 8pt 0 3pt; }
+
+/* Executive summary box */
+.summary { border-left: 3pt solid var(--navy); background: var(--card); padding: 9pt 12pt 3pt; margin-bottom: 4pt; }
+.summary p { font-size: 10pt; line-height: 1.55; }
+
+/* Stat tiles */
+.stats { display: flex; gap: 7pt; margin: 10pt 0 4pt; }
+.stat { flex: 1; border: 0.6pt solid var(--line); background: white; padding: 7pt 9pt; border-top: 2.2pt solid var(--gold); }
+.stat .v { font: 700 17pt/1.1 Lora; color: var(--navy); }
+.stat .l { font: 500 7.3pt/1.35 Inter; color: var(--ink); margin-top: 3pt; }
+
+/* Tables */
+table { width: 100%; border-collapse: collapse; font-size: 8.4pt; line-height: 1.4; margin: 4pt 0 6pt; }
+thead th { background: var(--navy); color: white; font: 700 6.8pt Inter; letter-spacing: 0.12em; text-transform: uppercase; text-align: left; padding: 5pt 6pt; }
+tbody td { padding: 5.5pt 6pt; border-bottom: 0.6pt solid var(--line); vertical-align: top; background: rgba(255,255,255,0.75); }
+tbody tr:nth-child(even) td { background: rgba(250,248,242,0.85); }
+td.num { font-weight: 700; color: var(--dgold); white-space: nowrap; }
+td.t { font-family: Lora; font-weight: 700; color: var(--navy); }
+/* Outcome label in the Meeting Summary results table. One neutral style for
+   every outcome: the word carries the result, not a color. */
+.outcome { display: inline-block; font: 700 6.6pt Inter; letter-spacing: 0.12em; text-transform: uppercase; color: var(--navy); border: 0.6pt solid var(--navy); padding: 1pt 4pt; white-space: nowrap; }
+tr { page-break-inside: avoid; }
+
+/* Item blocks */
+.item { page-break-inside: avoid; margin: 0 0 13pt; padding: 10pt 12pt 6pt; border: 0.6pt solid var(--line); background: rgba(255,255,255,0.8); position: relative; }
+.item .head { display: flex; align-items: baseline; gap: 10pt; }
+.item .n { font: 700 22pt/1 Lora; color: var(--gold); }
+.item .tag { font: 700 7pt Inter; letter-spacing: 0.15em; color: var(--dgold); text-transform: uppercase; }
+.item h3 { margin-top: 1pt; }
+.facts { display: flex; gap: 0; margin: 6pt 0 7pt; border: 0.6pt solid var(--line); background: var(--card); }
+.facts div { flex: 1; padding: 4pt 7pt; border-right: 0.6pt solid var(--line); }
+.facts div:last-child { border-right: 0; }
+.facts b { display: block; font: 700 6.2pt Inter; letter-spacing: 0.13em; color: var(--dgold); text-transform: uppercase; }
+.facts span { font: 600 8.6pt Inter; color: var(--navy); }
+ul { margin: 0 0 7pt; padding-left: 13pt; }
+li { margin-bottom: 3pt; }
+li::marker { color: var(--gold); }
+
+/* Callouts */
+.note { font-size: 8.4pt; background: var(--cream); border: 0.6pt solid var(--line); padding: 7pt 10pt; margin: 8pt 0; }
+.note b { font: 700 7pt Inter; letter-spacing: 0.14em; text-transform: uppercase; color: var(--navy); }
+.two { display: flex; gap: 14pt; }
+.two > div { flex: 1; }
+
+/* Sources */
+ol.sources { font-size: 8pt; padding-left: 15pt; color: var(--ink); }
+ol.sources li::marker { color: var(--dgold); font-weight: 700; }
+
+/* Certification block at the end */
+.certify { margin-top: 16pt; display: flex; gap: 12pt; align-items: center; border-top: 2.2pt solid var(--navy); padding-top: 10pt; page-break-inside: avoid; }
+.certify img { width: 46pt; height: 46pt; }
+.certify p { font-size: 7.6pt; line-height: 1.5; margin: 0; color: var(--muted); }
+.certify strong { font-size: 8pt; }
+
+.break { page-break-before: always; }
+
+/* ---------- Agenda Summary cover ---------- */
+.cover { page: cover; height: 9.8in; display: flex; flex-direction: column; align-items: center; text-align: center; page-break-after: always; }
+.cover .seal { width: 2.6in; height: 2.6in; margin-top: 0.75in; }
+.cover .org { font: 700 9pt Inter; letter-spacing: 0.3em; color: var(--dgold); text-transform: uppercase; margin-top: 22pt; }
+.cover h1 { font-size: 40pt; line-height: 1.05; margin-top: 10pt; }
+.cover .rule { width: 1.4in; border-top: 2.5pt solid var(--gold); margin: 14pt auto; }
+.cover .meet { font: 700 11pt Inter; letter-spacing: 0.16em; color: var(--navy); text-transform: uppercase; }
+.cover .desc { font: 400 11pt/1.5 Lora; font-style: italic; color: var(--ink); max-width: 4.6in; margin-top: 10pt; }
+.cover .ctl { margin-top: 2.3in; width: 100%; display: flex; border-top: 1pt solid var(--navy); border-bottom: 1pt solid var(--navy); }
+.cover .ctl div { flex: 1; padding: 7pt 6pt; text-align: center; border-right: 0.6pt solid var(--line); }
+.cover .ctl div:last-child { border-right: 0; }
+.cover .ctl b { display: block; font: 700 6.5pt Inter; letter-spacing: 0.15em; color: var(--dgold); text-transform: uppercase; }
+.cover .ctl span { font: 600 8.8pt Inter; color: var(--navy); }
+.cover .fine { font: 500 7pt Inter; letter-spacing: 0.08em; color: var(--muted); margin-top: 9pt; }
+
+/* Table of contents */
+.toc { list-style: none; padding: 0; margin: 6pt 0; }
+.toc li { display: flex; border-bottom: 0.6pt dotted var(--line); padding: 6pt 0; margin: 0; font-size: 10pt; }
+.toc li .no { width: 30pt; font: 700 10pt Lora; color: var(--gold); }
+.toc li a { flex: 1; color: var(--navy); font-weight: 500; }
+.toc li a::after { content: target-counter(attr(href), page); float: right; font-weight: 700; color: var(--dgold); }
+.toc li.sub { padding-left: 30pt; font-size: 9pt; }
+.toc li.sub a { color: var(--ink); font-weight: 400; }
+
+/* Chapter opener for the Agenda Summary */
+.chapter { page-break-before: always; }
+.chapter .cnum { font: 700 54pt/1 Lora; color: var(--gold); }
+.chapter h2 { font-size: 22pt; border-bottom-width: 1.4pt; }
+.dropcap::first-letter { font: 700 30pt/0.9 Lora; color: var(--navy); float: left; padding: 2pt 4pt 0 0; }
+
+/* keep headings with what follows */
+.kicker, h2, h3, h4 { break-after: avoid; page-break-after: avoid; }
+.section > .kicker { break-before: auto; }

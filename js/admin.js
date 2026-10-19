@@ -2,6 +2,10 @@
   var currentUserId = null;
   var currentRole = null;
 
+  // Last day the Meeting Tracker covers. Keep in step with
+  // scripts/lib/documents.mjs and guard_tracker_archive in migration_27.
+  var TRACKER_ARCHIVE_THROUGH = '2026-10-31';
+
   // Must stay in sync with public.mdcw_topics() in migration_14, api/_prefs.js
   // and js/meetings-feed.js. Four copies is three too many, but there is no
   // build step here to share one.
@@ -758,6 +762,15 @@
         });
       }
 
+      // The tracker is an archive. guard_tracker_archive (migration_27) refuses
+      // a later date anyway; this says so before anything is sent.
+      if (document.getElementById('m-date').value > TRACKER_ARCHIVE_THROUGH) {
+        statusEl.textContent = 'The Meeting Tracker is an archive through October 2026. ' +
+          'Publish later meetings as a Meeting Summary or Agenda Summary in the Documents tab.';
+        statusEl.className = 'district-status error';
+        return;
+      }
+
       var isPublished = document.getElementById('m-published').checked;
       var meetingFields = {
         meeting_date: document.getElementById('m-date').value,
@@ -1029,6 +1042,10 @@
     });
   }
 
+  // The Documents tab (js/admin-documents.js) starts the same build after
+  // publishing a document.
+  window.mdcwStartSiteBuild = startSiteBuild;
+
   function initPublishSite() {
     var btn = document.getElementById('publish-site-btn');
     var statusEl = document.getElementById('publish-site-status');
@@ -1070,7 +1087,9 @@
   // isn't here (an old card that was renamed, say) still shows, using the
   // raw id, rather than vanishing from the totals.
   var LINK_LABELS = {
-    'meetings': 'Latest meeting recap',
+    // Kept as 'meetings' so its count carries over; the card now opens the
+    // document library.
+    'meetings': 'Meeting and Agenda Summaries',
     'find-district': 'Find your commissioner',
     'public-comment': 'How to speak at public comment',
     'elections': '2026 elections guide',
@@ -1477,6 +1496,9 @@
           }
           if (typeof window.initAdminClaims === 'function') {
             window.initAdminClaims({ userId: currentUserId, role: role, isStaff: isStaff });
+          }
+          if (typeof window.initAdminDocuments === 'function') {
+            window.initAdminDocuments({ userId: currentUserId, role: role, isStaff: isStaff });
           }
 
           if (currentRole === 'owner') {

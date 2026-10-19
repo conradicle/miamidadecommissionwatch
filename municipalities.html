@@ -20,7 +20,7 @@
 <link rel="icon" type="image/png" sizes="32x32" href="/assets/img/favicon-32x32.png">
 <link rel="icon" type="image/png" sizes="16x16" href="/assets/img/favicon-16x16.png">
 <link rel="apple-touch-icon" sizes="180x180" href="/assets/img/apple-touch-icon.png">
-<link rel="stylesheet" href="/css/style.css?v=20260902a">
+<link rel="stylesheet" href="/css/style.css?v=20261019a">
 <style>
   .sr-only { position: absolute; width: 1px; height: 1px; padding: 0; margin: -1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; border: 0; }
   .muni-covered-grid, .muni-open-grid { list-style: none; margin: 0; padding: 0; display: grid; }
@@ -87,7 +87,14 @@
 
   <nav class="site-nav" id="site-nav" aria-label="Primary">
     <a href="/">Home</a>
-    <a href="meetings.html">Meetings</a>
+    <details class="nav-menu">
+      <summary>Documents</summary>
+      <div class="nav-menu-list">
+        <a href="/documents/meeting-summaries">Meeting Summaries</a>
+        <a href="/documents/agenda-summaries">Agenda Summaries</a>
+        <a href="/documents">All documents</a>
+      </div>
+    </details>
     <a href="officials.html">Officials</a>
     <a href="elections.html">Elections</a>
     <a href="municipalities.html" aria-current="page">Cover Your City</a>
@@ -227,13 +234,15 @@
       <div>
         <h4>Site</h4>
         <ul>
-          <li><a href="meetings.html">Meeting Tracker</a></li>
+          <li><a href="/documents/meeting-summaries">Meeting Summaries</a></li>
+          <li><a href="/documents/agenda-summaries">Agenda Summaries</a></li>
           <li><a href="officials.html">Officials</a></li>
           <li><a href="elections.html">Elections</a></li>
           <li><a href="municipalities.html">Cover your city</a></li>
           <li><a href="municipalities.html">Cover your city</a></li>
           <li><a href="get-involved.html">Get Involved</a></li>
           <li><a href="news.html">Student Editorials</a></li>
+          <li><a href="meetings.html">Meeting Tracker Archive</a></li>
         </ul>
       </div>
       <div>
@@ -275,7 +284,7 @@
 <div id="google_translate_element"></div>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.112.3" integrity="sha384-l8ah+VgaWtk1mvOe9VC+OirC6qHFF4yH7l7mKRidV9MSti3E9F463bMp6ZVN4kuC" crossorigin="anonymous"></script>
 <script src="js/supabase-client.js"></script>
-<script src="js/main.js?v=20260830c"></script>
+<script src="js/main.js?v=20261019a"></script>
 <script src="js/newsletter.js?v=20260820"></script>
 <script src="js/municipalities.js?v=20260924b"></script>
 <script src="js/translate.js?v=20260820"></script>
