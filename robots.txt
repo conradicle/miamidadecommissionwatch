@@ -9,7 +9,8 @@
 # crawler has to fetch a page to see that tag. Disallowing them here would
 # block the fetch, leave the noindex unread, and let the bare URLs sit in the
 # index on the strength of any link pointing at them -- the opposite of the
-# intent. Same reasoning for drafts/, which is unpublished and noindexed.
+# intent. Same reasoning for drafts/, which is unpublished and noindexed, and
+# for documents/preview.html and the WeasyPrint sources in document-templates/.
 #
 # /api/ is the one thing genuinely worth blocking: the endpoints return no
 # indexable content and some of them record a write when they are called.

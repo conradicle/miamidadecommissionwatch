@@ -102,7 +102,7 @@
 
     if (!votes.length) {
       listEl.innerHTML = '<p class="data-pending">No roll-call votes have been recorded for this ' +
-        'commissioner yet. The <a href="meetings.html">Meeting Tracker</a> has every item we\'ve covered.</p>';
+        'commissioner yet. The <a href="meetings.html">Meeting Tracker Archive</a> has every item we covered through October 2026.</p>';
       if (summaryEl) summaryEl.hidden = true;
       return;
     }

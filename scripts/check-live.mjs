@@ -21,19 +21,40 @@
 // Without the hook URL it still reports drift, it just cannot repair it,
 // and exits non-zero so the run shows as failed.
 //
+// It also checks the document library: every published document has its
+// page, and every PDF link on that page is on our own domain
+// (/documents/files/..., the rewrite in vercel.json) and really serves a
+// PDF. To run that against a preview deployment instead of the live site:
+//
+//   CHECK_SITE=https://<preview>.vercel.app node scripts/check-live.mjs
+//
+// If the preview is behind Vercel Deployment Protection, also set
+// VERCEL_PROTECTION_BYPASS to the project's "Protection Bypass for
+// Automation" secret. A preview run never triggers a rebuild.
+//
 // It reads with the same anon key the build uses, so it can only see what a
 // visitor can see, and it matches the page the way the build wrote it: the
 // editorial card ids come from makeEditorialSlugger() and the meeting paths
 // from assignMeetingPaths(), the very functions that produced the HTML.
 
-import { fetchEditorials, fetchMeetings } from './lib/data.mjs';
+import { fetchEditorials, fetchMeetings, fetchDocuments } from './lib/data.mjs';
 import { makeEditorialSlugger, assignMeetingPaths } from './lib/render.mjs';
+import { TRACKER_ARCHIVE_THROUGH, pageDocuments, documentPath } from './lib/documents.mjs';
 
-const SITE = 'https://www.miamidadecommissionwatch.com';
-const HOOK_URL = process.env.VERCEL_DEPLOY_HOOK_URL || '';
+const PRODUCTION = 'https://www.miamidadecommissionwatch.com';
+const SITE = (process.env.CHECK_SITE || PRODUCTION).replace(/\/$/, '');
+const IS_PREVIEW = SITE !== PRODUCTION;
+const HOOK_URL = IS_PREVIEW ? '' : (process.env.VERCEL_DEPLOY_HOOK_URL || '');
+const BYPASS = process.env.VERCEL_PROTECTION_BYPASS || '';
+
+function requestHeaders() {
+  const h = { 'Cache-Control': 'no-cache' };
+  if (BYPASS) h['x-vercel-protection-bypass'] = BYPASS;
+  return h;
+}
 
 async function livePage(path) {
-  const res = await fetch(SITE + path, { headers: { 'Cache-Control': 'no-cache' } });
+  const res = await fetch(SITE + path, { headers: requestHeaders() });
   if (!res.ok) throw new Error(`${SITE}${path} answered HTTP ${res.status}`);
   return res.text();
 }
@@ -64,7 +85,8 @@ async function checkEditorials() {
 
 // Published meetings, as the per-meeting links on /meetings.html.
 async function checkMeetings() {
-  const meetings = assignMeetingPaths(await fetchMeetings());
+  const meetings = assignMeetingPaths((await fetchMeetings())
+    .filter((mtg) => String(mtg.meeting_date) <= TRACKER_ARCHIVE_THROUGH));
   const expected = new Set(meetings.map((mtg) => mtg.__path));
 
   const html = await livePage('/meetings.html');
@@ -74,6 +96,42 @@ async function checkMeetings() {
   while ((m = re.exec(html))) actual.add(m[1]);
 
   return { what: 'meetings on /meetings.html', ...setDiff(expected, actual) };
+}
+
+// Published documents: the page exists, and its PDF links point at our own
+// domain and answer with a PDF. A missing page is drift (a rebuild fixes
+// it); a broken or off-domain PDF link is a fault a rebuild will not fix,
+// so it is reported in `faults` and fails the run.
+async function checkDocuments() {
+  const docs = pageDocuments(await fetchDocuments());
+  const expected = new Set(docs.map(documentPath));
+  const actual = new Set();
+  const faults = [];
+  for (const doc of docs) {
+    const path = documentPath(doc);
+    let html;
+    try {
+      html = await livePage(path);
+    } catch {
+      continue; // missing: reported as drift below
+    }
+    if (html.includes(doc.document_number)) actual.add(path);
+    if (/supabase\.co\/storage/.test(html)) faults.push(`${path}: page links to a Supabase storage address`);
+    const pdfs = [...html.matchAll(/href="([^"]+\.pdf)"/g)].map((m) => m[1]);
+    if (!pdfs.length) faults.push(`${path}: no PDF link on the page`);
+    for (const href of new Set(pdfs)) {
+      if (!href.startsWith('/documents/files/')) {
+        faults.push(`${path}: PDF link is not on our domain: ${href}`);
+        continue;
+      }
+      const res = await fetch(SITE + href, { headers: requestHeaders() });
+      const type = res.headers.get('content-type') || '';
+      const head = Buffer.from(await res.arrayBuffer()).subarray(0, 5).toString();
+      if (!res.ok || head !== '%PDF-') faults.push(`${href}: HTTP ${res.status}, ${type || 'no content type'}, not a PDF`);
+      else console.log(`pdf ok   ${href} (${type})`);
+    }
+  }
+  return { what: 'documents', ...setDiff(expected, actual), faults };
 }
 
 async function triggerBuild() {
@@ -95,7 +153,7 @@ async function triggerBuild() {
 }
 
 const results = [];
-for (const check of [checkEditorials, checkMeetings]) {
+for (const check of [checkEditorials, checkMeetings, checkDocuments]) {
   try {
     results.push(await check());
   } catch (err) {
@@ -105,7 +163,12 @@ for (const check of [checkEditorials, checkMeetings]) {
 }
 
 let drift = false;
+let faulty = false;
 for (const r of results) {
+  for (const f of r.faults || []) {
+    faulty = true;
+    console.log(`${r.what}: ${f}`);
+  }
   const problems = r.missing.length + r.stale.length;
   if (!problems) {
     console.log(`${r.what}: in sync`);
@@ -116,5 +179,9 @@ for (const r of results) {
   for (const id of r.stale) console.log(`${r.what}: on the site but no longer public in the database: ${id}`);
 }
 
-if (!drift) process.exit(0);
-process.exit((await triggerBuild()) ? 0 : 1);
+if (!drift) process.exit(faulty ? 1 : 0);
+if (IS_PREVIEW) {
+  console.log(`Drift on a preview (${SITE}): not rebuilding from here.`);
+  process.exit(1);
+}
+process.exit((await triggerBuild()) && !faulty ? 0 : 1);
