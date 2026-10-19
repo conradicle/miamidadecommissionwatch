@@ -1,3 +1,14 @@
+/* Fonts are self-hosted and declared only here, so each page loads Lora and
+   Inter at most once, and only the weights it actually renders. */
+@font-face { font-family: "Lora"; src: url(/assets/fonts/Lora-Regular.woff2) format("woff2"); font-weight: 400; font-display: swap; }
+@font-face { font-family: "Lora"; src: url(/assets/fonts/Lora-SemiBold.woff2) format("woff2"); font-weight: 600; font-display: swap; }
+@font-face { font-family: "Lora"; src: url(/assets/fonts/Lora-Bold.woff2) format("woff2"); font-weight: 700; font-display: swap; }
+@font-face { font-family: "Lora"; src: url(/assets/fonts/Lora-Italic.woff2) format("woff2"); font-style: italic; font-display: swap; }
+@font-face { font-family: "Inter"; src: url(/assets/fonts/Inter-Regular.woff2) format("woff2"); font-weight: 400; font-display: swap; }
+@font-face { font-family: "Inter"; src: url(/assets/fonts/Inter-Medium.woff2) format("woff2"); font-weight: 500; font-display: swap; }
+@font-face { font-family: "Inter"; src: url(/assets/fonts/Inter-SemiBold.woff2) format("woff2"); font-weight: 600; font-display: swap; }
+@font-face { font-family: "Inter"; src: url(/assets/fonts/Inter-Bold.woff2) format("woff2"); font-weight: 700; font-display: swap; }
+
 /* Miami-Dade Commission Watch: shared stylesheet
    Palette is inspired by (but not copied from) Miami-Dade County's official
    site, which is blue-and-white with a small orange accent. This site leads
@@ -64,7 +75,28 @@
   --district-12: #3d6b8a;
   --district-13: #6b4226;
 
-  --font-display: Georgia, 'Times New Roman', serif;
+  /* Documents palette (mirrors document-templates/mdcw-brief.css). Headings
+     and eyebrow labels across the whole site use these. */
+  --doc-navy: #1B365D;
+  --doc-gold: #C9A227;
+  /* mdcw-brief's #A07C12 measured 3.3-3.9:1 on our backgrounds, short of the
+     4.5:1 AA needs for 12px text. This is the same hue darkened just enough
+     to clear 4.5:1 on the lightest one it sits on (green-100, 4.51:1). */
+  --doc-dgold: #85670F;
+  --doc-ink: #374256;
+  --doc-cream: #F3F0E6;
+  --doc-card: #FAF8F2;
+  --doc-line: #DED6BE;
+  --doc-muted: #5F677A; /* mdcw-brief's #6B7385, darkened for 4.5:1 on cream */
+  --doc-serif: "Lora", Georgia, "Times New Roman", serif;
+  --doc-sans: "Inter", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+
+  --heading-color: var(--doc-navy);
+  --eyebrow-color: var(--doc-dgold);
+
+  --font-display: var(--doc-serif);
+  /* The header wordmark keeps its original Georgia. */
+  --font-wordmark: Georgia, 'Times New Roman', serif;
   --font-body: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
   --font-mono: 'Courier New', ui-monospace, monospace;
 
@@ -121,7 +153,7 @@ h1, h2, h3, h4 {
   font-weight: 700;
   line-height: 1.15;
   margin: 0 0 0.5em;
-  color: var(--ink-900);
+  color: var(--heading-color);
 }
 
 h1 { font-size: clamp(30px, 4.5vw, 44px); }
@@ -137,11 +169,10 @@ p { margin: 0 0 1em; }
 }
 
 .eyebrow {
-  font-family: var(--font-mono);
-  font-size: 12px;
+  font: 700 12px/1.4 var(--doc-sans);
   text-transform: uppercase;
-  letter-spacing: 0.08em;
-  color: var(--green-700);
+  letter-spacing: 0.16em;
+  color: var(--eyebrow-color);
   margin-bottom: 12px;
   display: block;
 }
@@ -265,7 +296,7 @@ iframe.skiptranslate { display: none !important; }
   color: #fff;
 }
 .wordmark .mark {
-  font-family: var(--font-display);
+  font-family: var(--font-wordmark);
   font-weight: 700;
   font-size: 20px;
   letter-spacing: -0.01em;
@@ -1294,14 +1325,14 @@ iframe.skiptranslate { display: none !important; }
   color: var(--ink-400);
 }
 .x-feed-mark { width: 12px; height: 12px; flex: none; }
+/* A card label rather than a section heading, so it takes the eyebrow
+   treatment at a smaller size. */
 .x-feed-title {
   margin: 0;
-  font-family: var(--font-mono);
-  font-size: 10px;
-  font-weight: 700;
-  letter-spacing: 0.06em;
+  font: 700 11px/1.3 var(--doc-sans);
+  letter-spacing: 0.14em;
   text-transform: uppercase;
-  color: inherit;
+  color: var(--eyebrow-color);
 }
 .x-feed-title a { color: inherit; text-decoration: none; border-bottom: 1px solid var(--line); }
 .x-feed-title a:hover { color: var(--green-700); }
