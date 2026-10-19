@@ -1,4 +1,5 @@
-// One entry point for the city-platform actions.
+// One entry point for the city-platform actions, and for the staff document
+// operations that also need the service role.
 //
 // Vercel's Hobby plan allows 12 Serverless Functions per deployment and this
 // project was already at the ceiling, so filing a claim, deciding a claim and
@@ -19,6 +20,7 @@ var decideClaim = require('./_decide-claim.js');
 var cityInvite = require('./_city-invite.js');
 var staffOps = require('./_staff-ops.js');
 var officialPhoto = require('./_official-photo.js');
+var documents = require('./_documents.js');
 
 var OPS = {
   submit_claim: submitClaim,
@@ -33,7 +35,14 @@ var OPS = {
   // "is this an active staff member" preamble.
   provision_domain: staffOps,
   transfer_ownership: staffOps,
-  decide_invite: staffOps
+  decide_invite: staffOps,
+
+  // Staff-only official documents (Meeting and Agenda Summaries). Here rather
+  // than in a function of their own only because of the Hobby plan ceiling
+  // above; they share nothing else with the city platform.
+  save_document_draft: documents,
+  publish_document_version: documents,
+  discard_document_draft: documents
 };
 
 module.exports = async function handler(req, res) {

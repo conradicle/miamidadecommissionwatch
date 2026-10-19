@@ -27,7 +27,8 @@
 <link rel="icon" type="image/png" sizes="32x32" href="assets/img/favicon-32x32.png">
 <link rel="icon" type="image/png" sizes="16x16" href="assets/img/favicon-16x16.png">
 <link rel="apple-touch-icon" sizes="180x180" href="assets/img/apple-touch-icon.png">
-<link rel="stylesheet" href="css/style.css?v=20260902a">
+<link rel="stylesheet" href="css/style.css?v=20261019a">
+<link rel="stylesheet" href="css/document.css?v=20261019b">
 <!-- build:jsonld -->
 <script type="application/ld+json">{"@context":"https://schema.org","@type":"NewsMediaOrganization","@id":"https://www.miamidadecommissionwatch.com/#organization","name":"Miami-Dade Commission Watch","alternateName":["Miami Dade Commission Watch","MDCW","Miami-Dade County Commission Watch"],"url":"https://www.miamidadecommissionwatch.com/","logo":{"@type":"ImageObject","url":"https://www.miamidadecommissionwatch.com/assets/img/og-image.png","width":1200,"height":630},"image":"https://www.miamidadecommissionwatch.com/assets/img/og-image.png","description":"Independent, nonpartisan tracking of the Miami-Dade County Board of County Commissioners: plain-language meeting summaries, a commissioner directory, and ways to get involved.","founder":[{"@type":"Person","name":"Conrad Gelber"},{"@type":"Person","name":"Daniel Llobet"}],"sameAs":["https://instagram.com/miamidadecommissionwatch"],"areaServed":{"@type":"AdministrativeArea","name":"Miami-Dade County, Florida"},"knowsAbout":["Miami-Dade Board of County Commissioners","Miami-Dade County government","county commission meetings","local government transparency"],"publishingPrinciples":"https://www.miamidadecommissionwatch.com/about.html","isAccessibleForFree":true,"disambiguatingDescription":"An independent, student-run civic project. Not affiliated with, operated by, or endorsed by Miami-Dade County government."}</script>
 <script type="application/ld+json">{"@context":"https://schema.org","@type":"WebSite","@id":"https://www.miamidadecommissionwatch.com/#website","url":"https://www.miamidadecommissionwatch.com/","name":"Miami-Dade Commission Watch","inLanguage":"en-US","publisher":{"@id":"https://www.miamidadecommissionwatch.com/#organization"}}</script>
@@ -71,7 +72,14 @@
 
   <nav class="site-nav" id="site-nav" aria-label="Primary">
     <a href="/" aria-current="page">Home</a>
-    <a href="meetings.html">Meetings</a>
+    <details class="nav-menu">
+      <summary>Documents</summary>
+      <div class="nav-menu-list">
+        <a href="/documents/meeting-summaries">Meeting Summaries</a>
+        <a href="/documents/agenda-summaries">Agenda Summaries</a>
+        <a href="/documents">All documents</a>
+      </div>
+    </details>
     <a href="officials.html">Officials</a>
     <a href="elections.html">Elections</a>
     <a href="municipalities.html">Cover Your City</a>
@@ -91,16 +99,17 @@
         <h1>What your county commission did, and why it's worth five minutes.</h1>
         <p class="lede">Thirteen commissioners, one per district, vote on the things that touch your block directly: zoning, transit, rent, permits, the budget. Miami-Dade Commission Watch reads the agendas and reports back in plain language. No spin, no endorsements.</p>
         <div class="btn-row">
-          <a class="btn btn-primary" href="meetings.html">See the latest meeting</a>
+          <a class="btn btn-primary" href="/documents">Read the latest summaries</a>
           <a class="btn btn-secondary" href="#find-district">Find your commissioner</a>
         </div>
         <div class="next-meeting">
-          <!-- Filled from the meetings table by js/home.js. The markup below is
-               the no-JS fallback; it is deliberately the only hard-coded date
-               left on this page. -->
+          <!-- From the meeting_schedule table (Schedule tab of the dashboard):
+               written in at build time by scripts/build.mjs, then refreshed
+               in the browser by js/home.js so it moves on to the next date
+               the day after a meeting even without a rebuild. -->
           <div id="next-meeting-live">
-            <div class="label">Next regular BCC meeting</div>
-            <div class="date">Tuesday, October 20, 2026 &middot; 9:30 AM</div>
+<!-- build:next-meeting -->
+<!-- /build:next-meeting -->
           </div>
           <a href="http://www.miamidade.gov/govaction/agendas.asp?Action=Agendas&amp;Oper=DisplayAgenda&amp;Agenda=CC&amp;AgendaName=Board+of+County+Commissioners" class="mono" style="font-size:13px;">Posted agendas &#8599;</a>
         </div>
@@ -140,18 +149,19 @@
        3-languages figures already shown on the seal above it, and told a
        returning visitor nothing they didn't know. What changed since they last
        looked is more useful, so that goes here instead. -->
-  <section class="section" id="briefing" aria-labelledby="briefing-heading">
+  <section class="section" id="latest-documents" aria-labelledby="latest-documents-heading">
     <div class="wrap">
       <div class="section-head">
-        <span class="eyebrow">The short version</span>
-        <h2 id="briefing-heading">What the Board just did</h2>
+        <span class="eyebrow">Official documents</span>
+        <h2 id="latest-documents-heading">Latest Meeting and Agenda Summaries</h2>
       </div>
-
-      <div class="briefing">
-        <span class="label">Since the last meeting</span>
-        <p class="briefing-line" id="briefing-line">Loading the latest meeting&hellip;</p>
-        <div class="briefing-foot" id="briefing-foot"></div>
-      </div>
+      <p class="mt-0" style="max-width:65ch; color:var(--ink-600);">An Agenda Summary before each meeting, a Meeting Summary after it. Read them here or download the official PDF.</p>
+      <!-- Filled at build time by scripts/build.mjs from the published
+           documents. What is written here is the fallback for a build that
+           has not run yet. -->
+<!-- build:home-documents -->
+<p><a href="/documents">Meeting and Agenda Summaries &#8594;</a></p>
+<!-- /build:home-documents -->
     </div>
   </section>
 
@@ -199,9 +209,9 @@
         <h2>Three ways to use this site</h2>
       </div>
       <div class="card-grid">
-        <a class="card" href="meetings.html">
-          <h3>Meeting Tracker</h3>
-          <p>Plain-language summaries of what the Board discussed and decided, meeting by meeting.</p>
+        <a class="card" href="/documents">
+          <h3>Meeting and Agenda Summaries</h3>
+          <p>Official documents for every Board meeting: an in-depth guide to the agenda before it, and what passed or failed after it.</p>
         </a>
         <a class="card" href="officials.html">
           <h3>Elected Officials</h3>
@@ -236,12 +246,14 @@
       <div>
         <h4>Site</h4>
         <ul>
-          <li><a href="meetings.html">Meeting Tracker</a></li>
+          <li><a href="/documents/meeting-summaries">Meeting Summaries</a></li>
+          <li><a href="/documents/agenda-summaries">Agenda Summaries</a></li>
           <li><a href="officials.html">Officials</a></li>
           <li><a href="elections.html">Elections</a></li>
           <li><a href="municipalities.html">Cover your city</a></li>
           <li><a href="get-involved.html">Get Involved</a></li>
           <li><a href="news.html">Student Editorials</a></li>
+          <li><a href="meetings.html">Meeting Tracker Archive</a></li>
         </ul>
       </div>
       <div>
@@ -284,11 +296,11 @@
 <div id="google_translate_element"></div>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.112.3" integrity="sha384-l8ah+VgaWtk1mvOe9VC+OirC6qHFF4yH7l7mKRidV9MSti3E9F463bMp6ZVN4kuC" crossorigin="anonymous"></script>
 <script src="js/supabase-client.js"></script>
-<script src="js/main.js?v=20260830c"></script>
+<script src="js/main.js?v=20261019b"></script>
 <script src="js/newsletter.js?v=20260820"></script>
 <script src="js/mdcw-format.js?v=20260823"></script>
 <script src="js/find-district.js?v=20260823"></script>
-<script src="js/home.js?v=20260830"></script>
+<script src="js/home.js?v=20261019b"></script>
 <script src="js/translate.js?v=20260820"></script>
 <script src="https://translate.google.com/translate_a/element.js?cb=googleTranslateElementInit"></script>
 </body>
