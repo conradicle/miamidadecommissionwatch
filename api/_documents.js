@@ -282,6 +282,9 @@ module.exports = async function handler(req, res) {
         keywords: keywords,
         issued_on: issuedOn,
         change_note: changeNote || null,
+        // Only a correction can be marked for email; a first publication is
+        // always mailed (api/notify-subscribers.js).
+        notify_subscribers: published.length > 0 && body.notify_subscribers === true,
         page_count: pageCount,
         pdf_bytes: pdf.length,
         upload_pdf_path: pdfPath,

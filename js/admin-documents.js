@@ -171,7 +171,7 @@
     if (showLoading) setStatus('doc-admin-status', 'Loading...');
     return supabaseClient
       .from('documents')
-      .select('*, document_versions!document_versions_document_id_fkey(id, version, version_major, version_minor, status, issued_on, change_note, page_count, public_pdf_path, title, document_number, published_at, created_at)')
+      .select('*, document_versions!document_versions_document_id_fkey(id, version, version_major, version_minor, status, issued_on, change_note, page_count, public_pdf_path, title, document_number, published_at, created_at, notify_subscribers)')
       .order('meeting_date', { ascending: false })
       .then(function (res) {
         if (res.error) {
@@ -234,7 +234,9 @@
         actions.push('<button type="button" class="btn btn-danger btn-small" data-discard="' + escapeHtml(draft.id) +
           '">Discard draft</button>');
       }
-      if (published.length && !d.subscribers_notified_at) {
+      var owesCorrectionEmail = current && published.length > 1 && current.notify_subscribers &&
+        d.last_notified_version !== current.version;
+      if ((published.length && !d.subscribers_notified_at) || owesCorrectionEmail) {
         actions.push('<button type="button" class="btn btn-secondary btn-small" data-notify="' + escapeHtml(d.id) +
           '">Email subscribers</button>');
       }
@@ -252,8 +254,13 @@
         (current ? '<p style="margin:0 0 4px; font-size:14px; color:var(--ink-600);">Readers see version ' + escapeHtml(current.version) +
           (current.published_at ? ', published ' + escapeHtml(formatDate(current.published_at)) : '') + '.</p>' : '') +
         (published.length ? '<p style="margin:0 0 4px; font-size:14px; color:var(--ink-600);">' +
-          (d.subscribers_notified_at ? 'Subscribers emailed ' + escapeHtml(formatDate(d.subscribers_notified_at)) + '.'
-            : 'Subscribers have not been emailed about this document.') + '</p>' : '') +
+          (d.subscribers_notified_at ? 'Subscribers emailed ' + escapeHtml(formatDate(d.subscribers_notified_at)) +
+            (d.last_notified_version && published.length > 1 ? '; last email was about version ' + escapeHtml(d.last_notified_version) : '') + '.'
+            : 'Subscribers have not been emailed about this document.') +
+          (owesCorrectionEmail ? ' Correction v' + escapeHtml(current.version) + ' is marked for email and has not been sent.' : '') +
+          '</p>' : '') +
+        (draft && published.length && draft.notify_subscribers ? '<p style="margin:0 0 4px; font-size:14px; color:var(--gold-700);">Draft v' +
+          escapeHtml(draft.version) + ' is marked for email: subscribers get a correction notice when it is published.</p>' : '') +
         (draft && published.length ? '<p style="margin:0 0 4px; font-size:14px; color:var(--gold-700);">Draft correction v' +
           escapeHtml(draft.version) + ' is waiting to be published.</p>' : '') +
         versionsHtml +
@@ -442,6 +449,7 @@
         version: el('doc-version').value.trim(),
         issued_on: el('doc-issued').value,
         change_note: el('doc-change').value.trim(),
+        notify_subscribers: hasPublished && el('doc-notify').checked,
         item_numbers: el('doc-items').value,
         keywords: el('doc-keywords').value,
         page_count: el('doc-pages').value ? Number(el('doc-pages').value) : undefined,
@@ -480,11 +488,17 @@
     if (!window.confirm('Publish ' + label + '?\n\n' +
       'It goes on the public site and cannot be changed or taken down afterwards. ' +
       'A later correction becomes a new version, and this one stays downloadable.\n\n' +
+      (willEmail
+        ? (firstPublication ? 'Subscribers are emailed once the page is live.\n\n'
+          : 'This correction is marked for email: subscribers get "Correction: ' + found.version.title + '" once the page is live.\n\n')
+        : 'This correction is not emailed to subscribers.\n\n') +
       'Did you check the preview?')) return;
 
-    // Subscribers hear about a document once, when it first goes out. A
-    // correction shows on the page and in its version history instead.
+    // Subscribers hear about a document when it first goes out. A correction
+    // is mailed only if it was marked for email on upload; otherwise it shows
+    // on the page and in its version history.
     var firstPublication = !found.doc.versions.some(function (v) { return v.status === 'published'; });
+    var willEmail = firstPublication || !!found.version.notify_subscribers;
 
     button.disabled = true;
     setStatus('doc-admin-status', 'Publishing ' + label + '...');
@@ -497,12 +511,12 @@
         return build.then(function (result) {
           if (!result.ok) {
             setStatus('doc-admin-status', 'Published ' + label + ', but the rebuild did not start: ' + result.message +
-              (firstPublication ? ' Subscribers are emailed once the page is live; use Email subscribers on the document after the rebuild.' : ''), 'error');
+              (willEmail ? ' Subscribers are emailed once the page is live; use Email subscribers on the document after the rebuild.' : ''), 'error');
             return load();
           }
-          if (!firstPublication) {
+          if (!willEmail) {
             setStatus('doc-admin-status', 'Published ' + label + '. The site is rebuilding; the page updates in about a minute. ' +
-              'Corrections are not emailed to subscribers.', 'success');
+              'This correction was not marked for email, so subscribers were not emailed.', 'success');
             return load();
           }
           load();

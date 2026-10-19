@@ -111,7 +111,7 @@ In the staff dashboard, **Documents** tab:
    and a link to the page, as soon as that page is live. Keep the tab open
    for a minute or two; if you close it first, the document's card shows an
    **Email subscribers** button. Each document is emailed once, on its first
-   publication. Corrections are not emailed.
+   publication. Corrections are emailed only when marked (see below).
 
 Publishing is permanent. Nothing published can be edited, unpublished or
 deleted, from the dashboard or from the database. The one exception is
@@ -128,7 +128,12 @@ A correction is a new version, never an overwrite:
 2. Rebuild the PDF.
 3. In the dashboard, click **Upload a correction** on the document, choose
    both files and say what the version corrects. The note is public.
-4. Preview, then publish.
+4. If the correction changes a fact (a vote count, a dollar figure, an
+   outcome), tick **Email subscribers about this correction**. It is off by
+   default. Subscribers then get an email with the subject "Correction:"
+   plus the document title, the correction note and a link, once the
+   corrected page is live.
+5. Preview, then publish.
 
 The public page then says "Updated [date], version 1.1" with the note, and
 the version history lists every version with its own PDF.
