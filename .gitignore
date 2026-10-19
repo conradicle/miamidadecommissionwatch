@@ -3,3 +3,6 @@
 !.env.example
 graphify-out/
 .DS_Store
+node_modules/
+document-templates/*.pdf
+document-templates/*_pages/

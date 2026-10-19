@@ -99,28 +99,7 @@ export function meetingArticle(meeting, { published, modified }) {
     isAccessibleForFree: true,
     author: { '@id': ORG_ID },
     publisher: { '@id': ORG_ID },
-    about: {
-      '@type': 'Event',
-      name: `${meeting.meeting_type} of the Miami-Dade Board of County Commissioners`,
-      startDate: meeting.meeting_date,
-      eventStatus: 'https://schema.org/EventScheduled',
-      eventAttendanceMode: 'https://schema.org/OfflineEventAttendanceMode',
-      organizer: {
-        '@type': 'GovernmentOrganization',
-        name: 'Miami-Dade Board of County Commissioners',
-        url: 'https://www.miamidade.gov/commission/'
-      },
-      location: {
-        '@type': 'Place',
-        name: 'Stephen P. Clark Government Center',
-        address: {
-          '@type': 'PostalAddress',
-          addressLocality: 'Miami',
-          addressRegion: 'FL',
-          addressCountry: 'US'
-        }
-      }
-    }
+    about: boardMeetingEvent(meeting.meeting_date, meeting.meeting_type)
   };
   if (published) node.datePublished = published;
   if (modified) node.dateModified = modified;
@@ -129,6 +108,70 @@ export function meetingArticle(meeting, { published, modified }) {
     .map((i) => i.topic).filter(Boolean);
   if (sections.length) node.keywords = Array.from(new Set(sections)).join(', ');
 
+  return node;
+}
+
+// The meeting a recap or a document is about.
+function boardMeetingEvent(meetingDate, meetingType) {
+  return {
+    '@type': 'Event',
+    name: `${meetingType || 'Regular Meeting'} of the Miami-Dade Board of County Commissioners`,
+    startDate: meetingDate,
+    eventStatus: 'https://schema.org/EventScheduled',
+    eventAttendanceMode: 'https://schema.org/OfflineEventAttendanceMode',
+    organizer: {
+      '@type': 'GovernmentOrganization',
+      name: 'Miami-Dade Board of County Commissioners',
+      url: 'https://www.miamidade.gov/commission/'
+    },
+    location: {
+      '@type': 'Place',
+      name: 'Stephen P. Clark Government Center',
+      address: {
+        '@type': 'PostalAddress',
+        addressLocality: 'Miami',
+        addressRegion: 'FL',
+        addressCountry: 'US'
+      }
+    }
+  };
+}
+
+// A Meeting Summary or Agenda Summary. Report, the Article subtype for a
+// document issued by an organization, with its number, version and the
+// official PDF as an encoding of the same work.
+export function documentReport(doc, { url, pdfUrl, label }) {
+  const v = doc.current;
+  const node = {
+    '@context': 'https://schema.org',
+    '@type': 'Report',
+    '@id': `${url}#document`,
+    mainEntityOfPage: { '@type': 'WebPage', '@id': url },
+    url,
+    name: `${label}: ${doc.title}`,
+    headline: doc.title,
+    description: doc.summary,
+    identifier: doc.document_number,
+    version: v.version,
+    inLanguage: doc.language === 'en' ? 'en-US' : doc.language,
+    isAccessibleForFree: true,
+    author: { '@id': ORG_ID },
+    publisher: { '@id': ORG_ID },
+    about: boardMeetingEvent(doc.meeting_date)
+  };
+  if (doc.first_published_at) node.datePublished = doc.first_published_at;
+  if (v.published_at) node.dateModified = v.published_at;
+  if (doc.keywords && doc.keywords.length) node.keywords = doc.keywords.join(', ');
+  if (v.page_count) node.numberOfPages = v.page_count;
+  if (pdfUrl) {
+    node.encoding = {
+      '@type': 'MediaObject',
+      encodingFormat: 'application/pdf',
+      contentUrl: pdfUrl,
+      name: `${doc.document_number}, version ${v.version} (PDF)`
+    };
+    if (v.pdf_bytes) node.encoding.contentSize = `${Math.round(v.pdf_bytes / 1024)} KB`;
+  }
   return node;
 }
 

@@ -8,6 +8,38 @@ document.addEventListener('DOMContentLoaded', function () {
     });
   }
 
+  // Prerendered meeting dates (the upcoming list on /documents) carry
+  // data-hide-after="YYYY-MM-DD". Once that day is over the card goes, so
+  // the list does not show a past meeting as upcoming while it waits for the
+  // next rebuild.
+  var now = new Date();
+  var todayLocal = now.getFullYear() + '-' + String(now.getMonth() + 1).padStart(2, '0') + '-' +
+    String(now.getDate()).padStart(2, '0');
+  document.querySelectorAll('[data-hide-after]').forEach(function (el) {
+    if (el.getAttribute('data-hide-after') < todayLocal) el.hidden = true;
+  });
+
+  // The Documents menu is a <details>, which opens and closes on its own.
+  // On a desktop dropdown it should also close when you click elsewhere or
+  // press Escape, the way every other menu does.
+  var navMenus = document.querySelectorAll('.nav-menu');
+  if (navMenus.length) {
+    document.addEventListener('click', function (e) {
+      navMenus.forEach(function (menu) {
+        if (menu.open && !menu.contains(e.target)) menu.open = false;
+      });
+    });
+    document.addEventListener('keydown', function (e) {
+      if (e.key !== 'Escape') return;
+      navMenus.forEach(function (menu) {
+        if (menu.open) {
+          menu.open = false;
+          menu.querySelector('summary').focus();
+        }
+      });
+    });
+  }
+
   // Sticky header gains a shadow once the page has scrolled past the top.
   // The newsletter bar within it also hides on scroll-down (past a small
   // threshold, so it doesn't flicker from jitter near the top) and reappears

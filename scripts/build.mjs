@@ -9,10 +9,14 @@
 //
 // What it produces:
 //   meetings/<date>.html   one indexable page per meeting
-//   meetings.html          tracker list, prerendered
+//   meetings.html          tracker list (the archive), prerendered
 //   news.html              approved editorials, prerendered
 //   municipalities.html    city registry, prerendered
 //   about.html             the team roster, prerendered
+//   documents/<type>/<date>.html   one page per published Meeting Summary
+//                          or Agenda Summary, with its full text
+//   documents/index.html, documents/meeting-summaries.html,
+//   documents/agenda-summaries.html   the document library, prerendered
 //   sitemap.xml            every indexable URL, with real lastmod values
 //   <every public page>    Organization / WebSite / page-level JSON-LD
 //
@@ -25,7 +29,10 @@ import { readFileSync, writeFileSync, readdirSync, mkdirSync, statSync } from 'n
 import { join } from 'node:path';
 import { execFileSync } from 'node:child_process';
 
-import { ROOT, fetchMeetings, fetchEditorials, fetchCities, loadPublicByline, loadContributors } from './lib/data.mjs';
+import {
+  ROOT, fetchMeetings, fetchEditorials, fetchCities, fetchDocuments, fetchSchedule,
+  loadPublicByline, loadContributors, loadDocumentView
+} from './lib/data.mjs';
 import { SITE_ORIGIN, formatDate, formatDateShort, isoDay, clip, escapeHtml } from './lib/fmt.mjs';
 import {
   assignMeetingPaths, meetingTouchedAt, renderMeetingList, renderItems,
@@ -34,6 +41,11 @@ import {
 import { setHead, setJsonLd, upsertRegion, rewriteToRootRelative, splitShell } from './lib/page.mjs';
 import { fetchXPosts, renderXFeed, HANDLE as xHandle } from './lib/x-feed.mjs';
 import * as schema from './lib/schema.mjs';
+import {
+  DOC_TYPES, TRACKER_ARCHIVE_THROUGH, TRACKER_ARCHIVE_LABEL, pageDocuments, cleanBodies,
+  documentPath, documentUrl, publicPdfUrl, renderDocumentList, renderFilterOptions,
+  renderLatestCard, pageOptions, todayInMiami, renderNextMeeting, renderUpcomingList
+} from './lib/documents.mjs';
 
 const DRY_RUN = process.argv.includes('--dry-run');
 
@@ -142,10 +154,12 @@ function meetingBody(meeting, { older, newer }) {
       <nav class="breadcrumb" aria-label="Breadcrumb">
         <a href="/">Home</a>
         <span class="breadcrumb-sep" aria-hidden="true">&rsaquo;</span>
-        <a href="/meetings.html">Meeting Tracker</a>
+        <a href="/meetings.html">Meeting Tracker Archive</a>
         <span class="breadcrumb-sep" aria-hidden="true">&rsaquo;</span>
         <span aria-current="page">${esc(formatDateShort(meeting.meeting_date))}</span>
       </nav>
+
+      <p class="archive-note"><strong>${esc(TRACKER_ARCHIVE_LABEL)}.</strong> The Meeting Tracker no longer adds new meetings. New meetings are covered in official <a href="/documents/meeting-summaries">Meeting Summaries</a> and <a href="/documents/agenda-summaries">Agenda Summaries</a>.</p>
 
       <span class="eyebrow">${esc(meeting.meeting_type)} &middot; ${esc(formatDate(meeting.meeting_date))}</span>
       <h1 style="max-width:24ch;">${esc(meeting.title)}</h1>
@@ -157,7 +171,7 @@ ${renderItems(meeting, counter)}
 
       ${navLinks.length ? `<nav class="meeting-nav" aria-label="Nearby meetings">${navLinks.join('')}</nav>` : ''}
 
-      <p class="meeting-back"><a href="/meetings.html">All meeting summaries &#8594;</a></p>
+      <p class="meeting-back"><a href="/meetings.html">Meeting Tracker Archive &#8594;</a></p>
     </div>
   </section>
 `;
@@ -188,11 +202,54 @@ function buildMeetingPage(shellSource, meeting, neighbours) {
     }),
     schema.breadcrumbs([
       { name: 'Home', url: `${SITE_ORIGIN}/` },
-      { name: 'Meeting Tracker', url: `${SITE_ORIGIN}/meetings.html` },
+      { name: 'Meeting Tracker Archive', url: `${SITE_ORIGIN}/meetings.html` },
       { name: formatDateShort(meeting.meeting_date), url: meeting.__url }
     ])
   ]);
 
+  return html;
+}
+
+// ---------------------------------------------------------------------
+// Document pages
+// ---------------------------------------------------------------------
+
+function documentTitle(doc) {
+  return `${clip(doc.title, 70)} - ${DOC_TYPES[doc.doc_type].label}, ${formatDate(doc.meeting_date)}`;
+}
+
+// The shell is documents/index.html: its header, footer and stylesheets,
+// with the nav pointing at this document's section instead of the landing
+// page.
+function buildDocumentPage(shellSource, docView, doc, allDocs) {
+  const shell = splitShell(shellSource);
+  const type = DOC_TYPES[doc.doc_type];
+  let head = shell.head
+    .replace('<a href="/documents" aria-current="page">All documents</a>', '<a href="/documents">All documents</a>')
+    .replace(`<a href="${type.index}">`, `<a href="${type.index}" aria-current="page">`);
+  const tail = shell.tail.replace('<script src="/js/translate.js',
+    '<script src="/js/document-page.js?v=20261019a"></script>\n<script src="/js/translate.js');
+
+  let html = head + shell.mainOpenTag + '\n' + docView.renderDocumentMain(pageOptions(doc, allDocs)) + '</main>' + tail;
+
+  const url = documentUrl(doc);
+  html = setHead(html, {
+    title: documentTitle(doc),
+    description: clip(doc.summary, 155),
+    canonical: url,
+    ogType: 'article'
+  });
+  html = setJsonLd(html, 'jsonld', [
+    schema.organization(),
+    schema.website(),
+    schema.documentReport(doc, { url, pdfUrl: SITE_ORIGIN + publicPdfUrl(doc.current.public_pdf_path), label: type.label }),
+    schema.breadcrumbs([
+      { name: 'Home', url: `${SITE_ORIGIN}/` },
+      { name: 'Documents', url: `${SITE_ORIGIN}/documents` },
+      { name: type.plural, url: SITE_ORIGIN + type.index },
+      { name: formatDateShort(doc.meeting_date), url }
+    ])
+  ]);
   return html;
 }
 
@@ -254,14 +311,24 @@ async function main() {
   const t0 = Date.now();
   console.log(DRY_RUN ? '· dry run: nothing will be written\n' : '');
 
-  const [rawMeetings, editorials, cities] = await Promise.all([
-    fetchMeetings(), fetchEditorials(), fetchCities()
+  const [allMeetings, editorials, cities, documents, schedule] = await Promise.all([
+    fetchMeetings(), fetchEditorials(), fetchCities(), fetchDocuments(), fetchSchedule()
   ]);
+  const today = todayInMiami();
   const publicByline = loadPublicByline();
   const teams = loadContributors();
+  const docView = loadDocumentView();
+
+  // The tracker is an archive now. The freeze lives here and in the
+  // dashboard form, not in the database: the meetings table still accepts
+  // any date, and a later row simply never reaches the archive pages.
+  const rawMeetings = allMeetings.filter((m) => String(m.meeting_date) <= TRACKER_ARCHIVE_THROUGH);
   const meetings = assignMeetingPaths(rawMeetings);
 
-  console.log(`fetched  ${meetings.length} meetings, ${editorials.length} editorials, ${cities.length} cities`);
+  cleanBodies(documents);
+  const docPages = pageDocuments(documents);
+
+  console.log(`fetched  ${meetings.length} meetings, ${editorials.length} editorials, ${cities.length} cities, ${documents.length} documents, ${schedule.length} scheduled meetings`);
 
   if (!meetings.length) throw new Error('Supabase returned zero meetings; refusing to publish an empty tracker.');
   if (!cities.length) throw new Error('Supabase returned zero cities; refusing to publish an empty registry.');
@@ -294,10 +361,71 @@ async function main() {
       }),
       schema.breadcrumbs([
         { name: 'Home', url: `${SITE_ORIGIN}/` },
-        { name: 'Meeting Tracker', url: `${SITE_ORIGIN}/meetings.html` }
+        { name: 'Meeting Tracker Archive', url: `${SITE_ORIGIN}/meetings.html` }
       ])
     ]);
     write('meetings.html', html);
+  }
+
+  // --- document pages, from documents/index.html as the shell -------------
+  const docShellSource = read('documents/index.html');
+  for (const type of Object.keys(DOC_TYPES)) {
+    if (!DRY_RUN) mkdirSync(join(ROOT, 'documents', type), { recursive: true });
+  }
+  for (const doc of docPages) {
+    write(`${documentPath(doc).slice(1)}.html`, buildDocumentPage(docShellSource, docView, doc, documents));
+  }
+  console.log(`wrote    ${docPages.length} document pages`);
+
+  // --- documents/index.html ------------------------------------------------
+  {
+    let html = docShellSource;
+    html = upsertRegion(html, 'latest-agenda-summary', renderLatestCard(documents, 'agenda-summary'), '</main>');
+    html = upsertRegion(html, 'latest-meeting-summary', renderLatestCard(documents, 'meeting-summary'), '</main>');
+    html = upsertRegion(html, 'upcoming-meetings', renderUpcomingList(schedule, documents, today), '</main>');
+    html = setJsonLd(html, 'jsonld', [
+      schema.organization(),
+      schema.website(),
+      schema.collectionPage({
+        url: `${SITE_ORIGIN}/documents`,
+        name: headMeta(html).title,
+        description: headMeta(html).description,
+        items: [
+          { name: 'Meeting Summaries', url: `${SITE_ORIGIN}/documents/meeting-summaries` },
+          { name: 'Agenda Summaries', url: `${SITE_ORIGIN}/documents/agenda-summaries` }
+        ]
+      }),
+      schema.breadcrumbs([
+        { name: 'Home', url: `${SITE_ORIGIN}/` },
+        { name: 'Documents', url: `${SITE_ORIGIN}/documents` }
+      ])
+    ]);
+    write('documents/index.html', html);
+  }
+
+  // --- documents/meeting-summaries.html, documents/agenda-summaries.html ---
+  for (const [docType, type] of Object.entries(DOC_TYPES)) {
+    let html = read(type.file);
+    const options = renderFilterOptions(documents, docType);
+    html = upsertRegion(html, 'doc-list', renderDocumentList(documents, docType), '</main>');
+    html = upsertRegion(html, 'doc-years', options.yearOptions, '</main>');
+    html = upsertRegion(html, 'doc-months', options.monthOptions, '</main>');
+    html = setJsonLd(html, 'jsonld', [
+      schema.organization(),
+      schema.website(),
+      schema.collectionPage({
+        url: SITE_ORIGIN + type.index,
+        name: headMeta(html).title,
+        description: headMeta(html).description,
+        items: docPages.filter((d) => d.doc_type === docType).map((d) => ({ name: d.title, url: documentUrl(d) }))
+      }),
+      schema.breadcrumbs([
+        { name: 'Home', url: `${SITE_ORIGIN}/` },
+        { name: 'Documents', url: `${SITE_ORIGIN}/documents` },
+        { name: type.plural, url: SITE_ORIGIN + type.index }
+      ])
+    ]);
+    write(type.file, html);
   }
 
   // --- news.html -----------------------------------------------------------
@@ -362,6 +490,12 @@ async function main() {
       console.log(`x feed   follow card (${feed.reason})`);
     }
     html = upsertRegion(html, 'xfeed', renderXFeed(feed.posts), '</aside>');
+    html = upsertRegion(html, 'next-meeting', renderNextMeeting(schedule, today), '</main>');
+    html = upsertRegion(html, 'home-documents',
+      '<div class="doc-sections">' +
+      renderLatestCard(documents, 'meeting-summary') +
+      renderLatestCard(documents, 'agenda-summary') +
+      '</div>', '</main>');
     html = setJsonLd(html, 'jsonld', [schema.organization(), schema.website()]);
     write('home.html', html);
   }
@@ -383,7 +517,18 @@ async function main() {
   // --- sitemap -------------------------------------------------------------
   const entries = [
     ...pages.map((p) => ({ url: p.url, lastmod: lastModified(p.file) })),
-    ...meetings.map((m) => ({ url: m.__url, lastmod: isoDay(meetingTouchedAt(m)) }))
+    ...meetings.map((m) => ({ url: m.__url, lastmod: isoDay(meetingTouchedAt(m)) })),
+    ...['documents/index.html', 'documents/meeting-summaries.html', 'documents/agenda-summaries.html'].map((f) => {
+      const docType = f.includes('meeting-') ? 'meeting-summary' : f.includes('agenda-') ? 'agenda-summary' : null;
+      const newest = docPages.filter((d) => !docType || d.doc_type === docType)
+        .map((d) => isoDay(d.current.published_at)).filter(Boolean).sort().pop();
+      const fileDate = lastModified(f);
+      return {
+        url: SITE_ORIGIN + '/' + f.replace(/(index)?\.html$/, '').replace(/\/$/, ''),
+        lastmod: [newest, fileDate].filter(Boolean).sort().pop()
+      };
+    }),
+    ...docPages.map((d) => ({ url: documentUrl(d), lastmod: isoDay(d.current.published_at || d.updated_at) }))
   ];
   const result = writeSitemap(entries);
   console.log(`sitemap  ${result.urls} URLs across ${result.files} file(s)`);
