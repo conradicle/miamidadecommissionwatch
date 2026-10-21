@@ -1044,6 +1044,7 @@
     // Kept as 'meetings' so its count carries over; the card now opens the
     // document library.
     'meetings': 'Meeting and Agenda Summaries',
+    'attend': 'Sign up to attend the next meeting',
     'find-district': 'Find your commissioner',
     'public-comment': 'How to speak at public comment',
     'elections': '2026 elections guide',
