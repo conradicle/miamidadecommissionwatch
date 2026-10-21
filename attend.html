@@ -179,7 +179,8 @@
 
           <div class="field">
             <label for="attend-phone">Phone number</label>
-            <input type="tel" id="attend-phone" name="phone" autocomplete="tel" inputmode="tel" placeholder="(305) 555-0123" maxlength="20" required>
+            <input type="tel" id="attend-phone" name="phone" autocomplete="tel" inputmode="tel" placeholder="(305) 555-0123" maxlength="20" required aria-describedby="attend-phone-hint">
+            <p class="attend-hint" id="attend-phone-hint">We&rsquo;ll use this number to add you to a WhatsApp group chat where we coordinate everything for the meeting.</p>
             <p class="attend-field-error" id="attend-phone-error" hidden></p>
           </div>
 
@@ -216,6 +217,7 @@
         <span class="eyebrow">You&rsquo;re signed up</span>
         <h2 class="attend-h2">See you on <span id="attend-success-date"></span></h2>
         <p id="attend-success-detail"></p>
+        <p><strong>Watch for a WhatsApp invite.</strong> We&rsquo;ll add the number you gave us to a group chat for this meeting. That&rsquo;s where we coordinate everything.</p>
         <p>There&rsquo;s no confirmation text or email, so screenshot this page if you want a reminder. Need to change something? Just fill out the form again with the same student ID and we&rsquo;ll update your sign-up.</p>
         <a class="btn btn-primary attend-btn" href="https://instagram.com/miamidadecommissionwatch" target="_blank" rel="noopener">Follow us for meeting updates</a>
       </div>
