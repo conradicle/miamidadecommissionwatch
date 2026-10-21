@@ -21,6 +21,7 @@ var cityInvite = require('./_city-invite.js');
 var staffOps = require('./_staff-ops.js');
 var officialPhoto = require('./_official-photo.js');
 var documents = require('./_documents.js');
+var bccSignup = require('./_bcc-signup.js');
 
 var OPS = {
   submit_claim: submitClaim,
@@ -42,7 +43,11 @@ var OPS = {
   // above; they share nothing else with the city platform.
   save_document_draft: documents,
   publish_document_version: documents,
-  discard_document_draft: documents
+  discard_document_draft: documents,
+
+  // Public: a sign-up for the next BCC meeting from /attend. Turnstile-gated
+  // inside the handler. Here for the same ceiling reason.
+  submit_bcc_signup: bccSignup
 };
 
 module.exports = async function handler(req, res) {

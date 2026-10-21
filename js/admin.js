@@ -1457,6 +1457,9 @@
           if (typeof window.initAdminSchedule === 'function') {
             window.initAdminSchedule({ userId: currentUserId, role: role, isStaff: isStaff });
           }
+          if (typeof window.initAdminBcc === 'function') {
+            window.initAdminBcc({ userId: currentUserId, role: role, isStaff: isStaff });
+          }
 
           if (currentRole === 'owner') {
             staffTabBtn.style.display = 'inline-block';
