@@ -80,6 +80,15 @@
   .doc-admin-versions .v { font-weight: 700; min-width: 7ch; }
   .doc-admin-versions .note { flex-basis: 100%; color: var(--ink-600); }
   .submission-status.published { background: rgba(26,125,100,0.14); color: var(--green-700); }
+
+  /* BCC Sign-ups tab */
+  .bcc-meeting-card { padding: 16px 20px; margin-bottom: 12px; }
+  .bcc-meeting-card.is-selected { border-color: var(--doc-navy); box-shadow: inset 4px 0 0 var(--doc-navy); }
+  .bcc-table-wrap { overflow-x: auto; }
+  .bcc-table { width: 100%; border-collapse: collapse; font-size: 14px; }
+  .bcc-table th { text-align: left; font-family: var(--font-mono); font-size: 11px; text-transform: uppercase; letter-spacing: .05em; color: var(--ink-600); padding: 8px 10px; border-bottom: 2px solid var(--line); white-space: nowrap; }
+  .bcc-table td { padding: 8px 10px; border-bottom: 1px solid var(--line); vertical-align: middle; }
+  .bcc-table td:first-child { color: var(--ink-400); }
 </style>
 </head>
 <body>
@@ -120,6 +129,7 @@
         <button type="button" class="admin-tab active" data-tab="editorials">Editorials</button>
         <button type="button" class="admin-tab" data-tab="documents">Documents</button>
         <button type="button" class="admin-tab" data-tab="schedule">Schedule</button>
+        <button type="button" class="admin-tab" data-tab="bcc">BCC Sign-ups</button>
         <button type="button" class="admin-tab" data-tab="meetings">Tracker archive</button>
         <button type="button" class="admin-tab" data-tab="newsletter">Newsletter</button>
         <button type="button" class="admin-tab" data-tab="links">Links page</button>
@@ -223,6 +233,55 @@
           <div id="schedule-status" class="district-status" style="margin-top:12px;" role="status" aria-live="polite"></div>
         </form>
         <div id="schedule-list"></div>
+      </div>
+
+      <div class="admin-panel" id="panel-bcc" style="display:none;">
+        <div class="notice" style="margin-bottom:20px;">
+          Meetings students can sign up for at <a href="/attend" target="_blank" rel="noopener">/attend</a>. The page shows the earliest meeting that is open and before its close time, and updates as soon as you save. Sign-ups hold students&rsquo; phone numbers and IDs: keep exports off shared drives, and every sign-up is deleted automatically 30 days after its meeting.
+        </div>
+        <form id="bcc-meeting-form" class="admin-form">
+          <h3 style="margin-top:0;" id="bcc-form-heading">Add a meeting</h3>
+          <div class="field"><select id="bcc-from-schedule" aria-label="Fill from the Schedule tab" hidden></select></div>
+          <div class="field-row">
+            <div class="field"><label for="bcc-date">Meeting date</label><input type="date" id="bcc-date" required></div>
+            <div class="field"><label for="bcc-time">Start time</label><input type="time" id="bcc-time" value="09:30"></div>
+          </div>
+          <div class="field"><label for="bcc-title">Title <span class="field-hint">shown on /attend</span></label><input type="text" id="bcc-title" required maxlength="200"></div>
+          <div class="field"><label for="bcc-location">Location <span class="field-hint">shown on /attend</span></label><input type="text" id="bcc-location" maxlength="300"></div>
+          <div class="field">
+            <label for="bcc-closes">Sign-ups close</label>
+            <input type="datetime-local" id="bcc-closes">
+            <span class="field-hint">Leave blank for the Saturday before the meeting at 11:59 PM. Times are in your computer&rsquo;s time zone.</span>
+          </div>
+          <div class="field"><label for="bcc-notes">Staff notes <span class="field-hint">never shown publicly</span></label><input type="text" id="bcc-notes" maxlength="2000"></div>
+          <div class="field">
+            <label style="display:flex; align-items:center; gap:9px; font-weight:400; cursor:pointer;">
+              <input type="checkbox" id="bcc-open" style="width:auto; margin:0;"> <span>Open for sign-ups</span>
+            </label>
+          </div>
+          <div style="margin-top:16px; display:flex; gap:10px; flex-wrap:wrap;">
+            <button type="submit" class="btn btn-primary" id="bcc-submit-btn">Save meeting</button>
+            <button type="button" class="btn btn-secondary" id="bcc-cancel-btn" hidden>Cancel edit</button>
+          </div>
+          <div id="bcc-form-status" class="district-status" style="margin-top:12px;" role="status" aria-live="polite"></div>
+        </form>
+        <div id="bcc-meeting-list"></div>
+        <div id="bcc-roster" class="admin-form" style="margin-top:24px;" hidden>
+          <h3 style="margin-top:0;" id="bcc-roster-heading">Roster</h3>
+          <div class="link-stats-controls">
+            <label for="bcc-roster-filter">Public comment</label>
+            <select id="bcc-roster-filter">
+              <option value="all">Everyone</option>
+              <option value="yes">Yes</option>
+              <option value="yes-maybe">Yes or maybe</option>
+              <option value="maybe">Maybe</option>
+              <option value="no">No</option>
+            </select>
+            <button type="button" class="btn btn-secondary btn-small" id="bcc-export">Export CSV</button>
+          </div>
+          <p class="submission-meta" id="bcc-roster-count" style="margin-bottom:12px;"></p>
+          <div id="bcc-roster-body"></div>
+        </div>
       </div>
 
       <div class="admin-panel" id="panel-meetings" style="display:none;">
@@ -625,6 +684,7 @@
 <script src="js/admin-claims.js?v=20260827"></script>
 <script src="js/admin-documents.js?v=20261019c"></script>
 <script src="js/admin-schedule.js?v=20261019b"></script>
-<script src="js/admin.js?v=20261019d"></script>
+<script src="js/admin-bcc.js?v=20261021"></script>
+<script src="js/admin.js?v=20261021"></script>
 </body>
 </html>
