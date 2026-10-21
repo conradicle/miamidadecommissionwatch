@@ -139,6 +139,7 @@
           '<button type="button" class="btn btn-secondary btn-small" data-toggle="' + escapeHtml(m.id) + '">' +
             (m.is_open ? 'Close sign-ups' : 'Open sign-ups') + '</button>' +
           '<button type="button" class="btn btn-secondary btn-small" data-edit="' + escapeHtml(m.id) + '">Edit</button>' +
+          '<button type="button" class="btn btn-danger btn-small" data-delete-meeting="' + escapeHtml(m.id) + '">Delete</button>' +
         '</div></div>';
     }
     var upcoming = meetings.filter(function (m) { return m.meeting_date >= today; }).reverse();
@@ -226,6 +227,29 @@
     el('bcc-cancel-btn').hidden = false;
     setStatus('bcc-form-status', '');
     el('bcc-meeting-form').scrollIntoView({ behavior: 'smooth', block: 'start' });
+  }
+
+  // Sign-ups go with the meeting (on delete cascade in migration_29), so the
+  // prompt says how many before anything is removed.
+  function deleteMeeting(id) {
+    var m = meetings.filter(function (x) { return x.id === id; })[0];
+    if (!m) return;
+    var n = counts[id] || 0;
+    if (!window.confirm('Delete the ' + formatDate(m.meeting_date) + ' meeting' +
+      (n ? ' and its ' + n + ' sign-up' + (n === 1 ? '' : 's') : '') + '? This can’t be undone.')) return;
+    supabaseClient.from('bcc_meetings').delete().eq('id', id).then(function (res) {
+      if (res.error) {
+        setStatus('bcc-form-status', 'Could not delete: ' + res.error.message, 'error');
+        return;
+      }
+      if (editingId === id) resetForm();
+      if (rosterMeetingId === id) {
+        rosterMeetingId = null;
+        el('bcc-roster').hidden = true;
+      }
+      setStatus('bcc-form-status', 'Meeting deleted.', 'success');
+      load();
+    });
   }
 
   function toggleOpen(id) {
@@ -361,6 +385,7 @@
       if (btn.dataset.roster) loadRoster(btn.dataset.roster);
       else if (btn.dataset.toggle) toggleOpen(btn.dataset.toggle);
       else if (btn.dataset.edit) startEdit(btn.dataset.edit);
+      else if (btn.dataset.deleteMeeting) deleteMeeting(btn.dataset.deleteMeeting);
     });
     el('bcc-roster-filter').addEventListener('change', renderRoster);
     el('bcc-export').addEventListener('click', exportCsv);
