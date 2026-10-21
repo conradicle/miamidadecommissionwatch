@@ -12,10 +12,9 @@
 // not-closed rule is also a trigger in migration_29, so a sign-up for a
 // closed meeting cannot land even if this check were skipped.
 
-// MDCPS student ID length. The single place it is set: the database only
-// checks for 5 to 12 digits, and js/attend.js only checks for digits, so
+// MDCPS student IDs are 7 digits. The single place that is set: the database
+// only checks for 5 to 12 digits, and js/attend.js only checks for digits, so
 // changing this one number is all a correction takes.
-// TODO(Conrad): confirm the exact length. 7 is a placeholder.
 var STUDENT_ID_LENGTH = 7;
 
 var LIMITS = { full_name: 120 };
