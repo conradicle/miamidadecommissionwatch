@@ -12,6 +12,7 @@
 // fill the table with arbitrary strings.
 var LINK_IDS = [
   'meetings',
+  'attend',
   'find-district',
   'public-comment',
   'elections',
