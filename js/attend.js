@@ -194,8 +194,10 @@
       (v.wants_public_comment === 'yes' ? ' You said you want to give public comment.' :
         v.wants_public_comment === 'maybe' ? ' You said you might give public comment.' : '');
     show('attend-success');
-    el('attend-success').focus();
-    window.scrollTo({ top: el('attend-success').getBoundingClientRect().top + window.pageYOffset - 16 });
+    el('attend-success').focus({ preventScroll: true });
+    // scroll-margin-top in attend.html keeps the card clear of the sticky
+    // header, which grows back to full height on any scroll up.
+    el('attend-success').scrollIntoView({ block: 'start' });
   }
 
   function load() {
