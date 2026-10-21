@@ -75,6 +75,19 @@ function read(relPath) {
   return readFileSync(join(ROOT, relPath), 'utf8');
 }
 
+// The Turnstile site key is public (it ships to every visitor), but it lives
+// in the Vercel environment beside its secret so the pair is set in one place.
+// Without it the meta stays empty and /attend says sign-ups aren't set up.
+function setTurnstileSiteKey(html) {
+  const key = (process.env.TURNSTILE_SITE_KEY || '').trim();
+  if (!key) {
+    console.warn('turnstile  TURNSTILE_SITE_KEY is not set; /attend will not accept sign-ups');
+    return html;
+  }
+  return html.replace(/<meta name="turnstile-site-key" content="[^"]*">/,
+    `<meta name="turnstile-site-key" content="${escapeHtml(key)}">`);
+}
+
 // ---------------------------------------------------------------------
 // Which pages are public
 // ---------------------------------------------------------------------
@@ -83,6 +96,8 @@ function read(relPath) {
 // indexable unless it says otherwise in its own robots meta. Adding a new page
 // therefore puts it in the sitemap automatically, and adding noindex to one
 // takes it out, with no second place to remember.
+const CLEAN_PATHS = { 'home.html': '/', 'attend.html': '/attend' };
+
 function publicPages() {
   const out = [];
   for (const file of readdirSync(ROOT).sort()) {
@@ -90,8 +105,9 @@ function publicPages() {
     const html = readFileSync(join(ROOT, file), 'utf8');
     const robots = /<meta name="robots" content="([^"]*)"/i.exec(html);
     if (robots && /noindex/i.test(robots[1])) continue;
-    // home.html is served at / by the rewrite in vercel.json; / is its canonical.
-    const urlPath = file === 'home.html' ? '/' : `/${file}`;
+    // home.html and attend.html are served at clean paths by the rewrites in
+    // vercel.json; those paths are their canonicals.
+    const urlPath = CLEAN_PATHS[file] || `/${file}`;
     out.push({ file, urlPath, url: SITE_ORIGIN + urlPath });
   }
   return out;
@@ -521,6 +537,7 @@ async function main() {
     if (handled.has(page.file)) continue;
     let html = read(page.file);
     html = setJsonLd(html, 'jsonld', [schema.organization(), schema.website()]);
+    if (page.file === 'attend.html') html = setTurnstileSiteKey(html);
     write(page.file, html);
     plainCount++;
   }

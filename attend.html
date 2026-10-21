@@ -1,0 +1,292 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Attend a County Commission Meeting: Student Sign-up</title>
+<meta name="description" content="Miami-Dade students: sign up to attend the next Board of County Commissioners meeting with Miami-Dade Commission Watch, and speak at public comment if you want to.">
+<meta property="og:type" content="website">
+<meta property="og:site_name" content="Miami-Dade Commission Watch">
+<meta property="og:url" content="https://www.miamidadecommissionwatch.com/attend">
+<link rel="canonical" href="https://www.miamidadecommissionwatch.com/attend">
+<meta property="og:title" content="Attend the next County Commission meeting with us">
+<meta property="og:description" content="Miami-Dade students: sign up to sit in on the Board of County Commissioners with Miami-Dade Commission Watch, and speak at public comment if you want to.">
+<meta property="og:image" content="https://www.miamidadecommissionwatch.com/assets/img/og-image.png">
+<meta property="og:image:width" content="1200">
+<meta property="og:image:height" content="630">
+<meta property="og:image:alt" content="Miami-Dade Commission Watch">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:title" content="Attend the next County Commission meeting with us">
+<meta name="twitter:description" content="Miami-Dade students: sign up to sit in on the Board of County Commissioners with Miami-Dade Commission Watch, and speak at public comment if you want to.">
+<meta name="twitter:image" content="https://www.miamidadecommissionwatch.com/assets/img/og-image.png">
+<!-- Filled from the TURNSTILE_SITE_KEY env var by scripts/build.mjs. Empty
+     here on purpose: js/attend.js falls back to Cloudflare's always-pass test
+     key on localhost only. -->
+<meta name="turnstile-site-key" content="">
+<link rel="icon" type="image/png" sizes="32x32" href="/assets/img/favicon-32x32.png">
+<link rel="icon" type="image/png" sizes="16x16" href="/assets/img/favicon-16x16.png">
+<link rel="apple-touch-icon" sizes="180x180" href="/assets/img/apple-touch-icon.png">
+<link rel="stylesheet" href="/css/style.css?v=20261019d">
+<style>
+  /* Mobile first: most visitors arrive from Instagram's in-app browser. */
+  .attend-hero { padding-bottom: 8px; }
+  .attend-hero h1 { max-width: 18ch; }
+  .attend-section { padding-top: 16px; }
+  .attend-wrap { max-width: 640px; }
+  .attend-card { background: var(--doc-card); border: 1px solid var(--doc-line); border-radius: var(--radius); padding: 20px; margin-bottom: 20px; }
+  .attend-h2 { font-family: var(--doc-serif); color: var(--doc-navy); font-size: 24px; line-height: 1.25; margin: 0 0 14px; }
+  .attend-muted { color: var(--doc-muted); }
+  .attend-facts { margin: 0 0 16px; display: grid; gap: 10px; }
+  .attend-facts div { display: grid; grid-template-columns: 64px 1fr; gap: 10px; align-items: baseline; }
+  .attend-facts dt { font: 700 11px/1.4 var(--doc-sans); text-transform: uppercase; letter-spacing: .12em; color: var(--doc-dgold); }
+  .attend-facts dd { margin: 0; color: var(--doc-ink); font-size: 16px; }
+  .attend-callout { margin: 0; padding: 12px 14px; background: var(--doc-cream); border-left: 4px solid var(--doc-gold); border-radius: 0 var(--radius) var(--radius) 0; font-size: 15px; color: var(--doc-ink); }
+  /* 16px keeps iOS from zooming the page when a field is focused. */
+  .attend-card .field input { font-size: 16px; padding: 12px 14px; min-height: 48px; background: #fff; }
+  .attend-choice { border: none; padding: 0; margin: 0 0 16px; }
+  .attend-choice legend { font-weight: 600; font-size: 15px; margin-bottom: 8px; padding: 0; }
+  .attend-choice-row { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; }
+  .attend-choice-row label { display: flex; align-items: center; justify-content: center; gap: 8px; min-height: 48px; border: 1px solid var(--line); border-radius: var(--radius); background: #fff; font-weight: 600; cursor: pointer; margin: 0; }
+  .attend-choice-row label:has(input:checked) { border-color: var(--doc-navy); background: var(--doc-cream); box-shadow: inset 0 0 0 1px var(--doc-navy); }
+  .attend-choice-row input { width: 18px; height: 18px; margin: 0; accent-color: var(--doc-navy); }
+  .attend-hint { font-size: 14px; color: var(--doc-muted); margin: 8px 0 0; }
+  .attend-why { font-size: 14px; color: var(--doc-ink); background: var(--doc-cream); border-radius: var(--radius); padding: 12px 14px; margin-bottom: 16px; }
+  .attend-field-error { color: var(--red-600); font-size: 14px; margin: 6px 0 0; }
+  .field input[aria-invalid="true"] { border-color: var(--red-600); }
+  .attend-turnstile { min-height: 65px; margin-bottom: 12px; }
+  .attend-btn { display: block; width: 100%; text-align: center; padding: 14px 22px; font-size: 16px; }
+  .attend-btn[disabled] { opacity: .6; cursor: wait; transform: none; }
+  /* The sticky header, newsletter strip included, is about 200px on a phone
+     and reappears whenever the page scrolls up, as it does to reach this. */
+  .attend-success { border-left: 5px solid var(--green-700); scroll-margin-top: 216px; }
+  .attend-success:focus { outline: none; }
+  @media (min-width: 640px) {
+    .attend-card { padding: 28px; }
+    .attend-btn { display: inline-block; width: auto; }
+  }
+</style>
+<!-- build:jsonld -->
+<script type="application/ld+json">{"@context":"https://schema.org","@type":"NewsMediaOrganization","@id":"https://www.miamidadecommissionwatch.com/#organization","name":"Miami-Dade Commission Watch","alternateName":["Miami Dade Commission Watch","MDCW","Miami-Dade County Commission Watch"],"url":"https://www.miamidadecommissionwatch.com/","logo":{"@type":"ImageObject","url":"https://www.miamidadecommissionwatch.com/assets/img/og-image.png","width":1200,"height":630},"image":"https://www.miamidadecommissionwatch.com/assets/img/og-image.png","description":"Independent, nonpartisan tracking of the Miami-Dade County Board of County Commissioners: plain-language meeting summaries, a commissioner directory, and ways to get involved.","founder":[{"@type":"Person","name":"Conrad Gelber"},{"@type":"Person","name":"Daniel Llobet"}],"sameAs":["https://instagram.com/miamidadecommissionwatch"],"areaServed":{"@type":"AdministrativeArea","name":"Miami-Dade County, Florida"},"knowsAbout":["Miami-Dade Board of County Commissioners","Miami-Dade County government","county commission meetings","local government transparency"],"publishingPrinciples":"https://www.miamidadecommissionwatch.com/about.html","isAccessibleForFree":true,"disambiguatingDescription":"An independent, student-run civic project. Not affiliated with, operated by, or endorsed by Miami-Dade County government."}</script>
+<script type="application/ld+json">{"@context":"https://schema.org","@type":"WebSite","@id":"https://www.miamidadecommissionwatch.com/#website","url":"https://www.miamidadecommissionwatch.com/","name":"Miami-Dade Commission Watch","inLanguage":"en-US","publisher":{"@id":"https://www.miamidadecommissionwatch.com/#organization"}}</script>
+<!-- /build:jsonld -->
+</head>
+<body>
+<a class="skip-link" href="#main">Skip to content</a>
+
+<header class="site-header">
+  <div class="wrap">
+    <a class="wordmark" href="/">
+      <span class="mark">Miami-Dade <span class="accent">Commission</span> Watch</span>
+      <span class="tagline">BCC · Plain Language</span>
+    </a>
+    <div class="header-actions">
+      <div class="lang-toggle" role="group" aria-label="Language">
+        <button type="button" class="lang-btn" data-lang="en">EN</button>
+        <button type="button" class="lang-btn" data-lang="es">ES</button>
+        <button type="button" class="lang-btn" data-lang="ht">HT</button>
+      </div>
+      <div class="social-icons">
+        <a class="social-icon" href="https://instagram.com/miamidadecommissionwatch" target="_blank" rel="noopener" aria-label="Miami-Dade Commission Watch on Instagram">
+          <svg viewBox="0 0 24 24" aria-hidden="true"><rect x="2" y="2" width="20" height="20" rx="6" fill="none" stroke="currentColor" stroke-width="2"/><circle cx="12" cy="12" r="5" fill="none" stroke="currentColor" stroke-width="2"/><circle cx="17.5" cy="6.5" r="1.3" fill="currentColor"/></svg>
+        </a>
+      </div>
+      <button class="nav-toggle" aria-expanded="false" aria-controls="site-nav">Menu</button>
+    </div>
+  </div>
+  <div class="header-newsletter">
+    <div class="wrap">
+      <form class="newsletter-form" id="newsletter-form" aria-label="Subscribe for meeting emails">
+        <label for="newsletter-email" class="newsletter-label">Get agendas &amp; recaps in your inbox</label>
+        <div class="newsletter-input-row">
+          <input type="email" id="newsletter-email" class="newsletter-input" placeholder="you@email.com" required aria-label="Email address">
+          <button type="submit" class="btn btn-primary btn-small">Subscribe</button>
+        </div>
+      </form>
+      <p class="newsletter-status" id="newsletter-status" role="status" aria-live="polite"></p>
+    </div>
+  </div>
+
+  <nav class="site-nav" id="site-nav" aria-label="Primary">
+    <a href="/">Home</a>
+    <details class="nav-menu">
+      <summary>Documents</summary>
+      <div class="nav-menu-list">
+        <a href="/documents/meeting-summaries">Meeting Summaries</a>
+        <a href="/documents/agenda-summaries">Agenda Summaries</a>
+        <a href="/documents">All documents</a>
+      </div>
+    </details>
+    <a href="officials.html">Officials</a>
+    <a href="elections.html">Elections</a>
+    <a href="municipalities.html">Cover Your City</a>
+    <a href="get-involved.html">Get Involved</a>
+    <a href="news.html">Student Editorials</a>
+    <a href="about.html">About</a>
+  </nav>
+</header>
+
+<main id="main">
+
+  <section class="hero attend-hero">
+    <div class="wrap">
+      <span class="eyebrow">Attend a meeting</span>
+      <h1>Come to the next County Commission meeting with us</h1>
+      <p class="lede">Miami-Dade students: sit in on the Board of County Commissioners with the Commission Watch team, and speak during public comment if you want to. Sign up below so we know you&rsquo;re coming.</p>
+    </div>
+  </section>
+
+  <section class="section attend-section">
+    <div class="wrap attend-wrap">
+
+      <div id="attend-loading" class="attend-card" aria-live="polite">
+        <p class="attend-muted" style="margin:0;">Loading the next meeting&hellip;</p>
+      </div>
+
+      <div id="attend-closed" class="attend-card" hidden>
+        <span class="eyebrow">Sign-ups are closed</span>
+        <h2 class="attend-h2">There isn&rsquo;t a meeting open for sign-ups right now</h2>
+        <p>We open sign-ups before each Board meeting we attend as a group. Follow us on Instagram and we&rsquo;ll post the link as soon as the next one opens.</p>
+        <a class="btn btn-primary attend-btn" href="https://instagram.com/miamidadecommissionwatch" target="_blank" rel="noopener">Follow @miamidadecommissionwatch</a>
+        <p class="attend-muted" style="margin-top:16px;">In the meantime, read what&rsquo;s coming up in our <a href="/documents/agenda-summaries">Agenda Summaries</a>.</p>
+      </div>
+
+      <div id="attend-error" class="attend-card" hidden>
+        <span class="eyebrow">Something went wrong</span>
+        <h2 class="attend-h2">We couldn&rsquo;t load the sign-up form</h2>
+        <p>Check your connection and <a href="/attend">reload the page</a>. If it still doesn&rsquo;t work, DM us on <a href="https://instagram.com/miamidadecommissionwatch" target="_blank" rel="noopener">Instagram</a> and we&rsquo;ll sign you up by hand.</p>
+      </div>
+
+      <div id="attend-open" hidden>
+        <div class="attend-card attend-meeting">
+          <span class="eyebrow">Next meeting</span>
+          <h2 class="attend-h2" id="attend-title">Board of County Commissioners Meeting</h2>
+          <dl class="attend-facts">
+            <div><dt>Date</dt><dd id="attend-date"></dd></div>
+            <div><dt>Starts</dt><dd id="attend-time"></dd></div>
+            <div><dt>Where</dt><dd id="attend-location"></dd></div>
+          </dl>
+          <p class="attend-callout">The meeting starts at <strong id="attend-time-inline">9:30 AM</strong> on a school day. Plan ahead with your family and your school before you sign up.</p>
+        </div>
+
+        <form id="attend-form" class="attend-card" novalidate>
+          <h2 class="attend-h2">Sign up</h2>
+
+          <div class="field">
+            <label for="attend-name">Full name</label>
+            <input type="text" id="attend-name" name="full_name" autocomplete="name" maxlength="120" required>
+            <p class="attend-field-error" id="attend-name-error" hidden></p>
+          </div>
+
+          <div class="field">
+            <label for="attend-phone">Phone number</label>
+            <input type="tel" id="attend-phone" name="phone" autocomplete="tel" inputmode="tel" placeholder="(305) 555-0123" maxlength="20" required>
+            <p class="attend-field-error" id="attend-phone-error" hidden></p>
+          </div>
+
+          <div class="field">
+            <label for="attend-student-id">MDCPS student ID</label>
+            <input type="text" id="attend-student-id" name="mdcps_student_id" inputmode="numeric" autocomplete="off" pattern="[0-9]*" maxlength="12" required aria-describedby="attend-why">
+            <p class="attend-field-error" id="attend-student-id-error" hidden></p>
+          </div>
+
+          <fieldset class="field attend-choice" id="attend-comment">
+            <legend>Do you want to give public comment?</legend>
+            <div class="attend-choice-row">
+              <label><input type="radio" name="wants_public_comment" value="yes" required> Yes</label>
+              <label><input type="radio" name="wants_public_comment" value="maybe"> Maybe</label>
+              <label><input type="radio" name="wants_public_comment" value="no"> No</label>
+            </div>
+            <p class="attend-hint">Public comment is a short turn at the microphone to tell commissioners what you think about an item.</p>
+            <p class="attend-field-error" id="attend-comment-error" hidden></p>
+          </fieldset>
+
+          <div class="attend-why" id="attend-why">
+            <strong>Why we ask for your student ID.</strong> Only to confirm you&rsquo;re a Miami-Dade County Public Schools student. Only our staff can see it, and we delete your whole sign-up 30 days after the meeting.
+          </div>
+
+          <div id="attend-turnstile" class="attend-turnstile"></div>
+
+          <div id="attend-status" class="district-status" role="status" aria-live="polite"></div>
+
+          <button type="submit" class="btn btn-primary attend-btn" id="attend-submit">Sign me up</button>
+        </form>
+      </div>
+
+      <div id="attend-success" class="attend-card attend-success" hidden tabindex="-1">
+        <span class="eyebrow">You&rsquo;re signed up</span>
+        <h2 class="attend-h2">See you on <span id="attend-success-date"></span></h2>
+        <p id="attend-success-detail"></p>
+        <p>There&rsquo;s no confirmation text or email, so screenshot this page if you want a reminder. Need to change something? Just fill out the form again with the same student ID and we&rsquo;ll update your sign-up.</p>
+        <a class="btn btn-primary attend-btn" href="https://instagram.com/miamidadecommissionwatch" target="_blank" rel="noopener">Follow us for meeting updates</a>
+      </div>
+
+    </div>
+  </section>
+
+</main>
+
+
+<footer class="site-footer">
+  <div class="wrap">
+    <div class="footer-grid">
+      <div>
+        <h4>Site</h4>
+        <ul>
+          <li><a href="/documents/meeting-summaries">Meeting Summaries</a></li>
+          <li><a href="/documents/agenda-summaries">Agenda Summaries</a></li>
+          <li><a href="officials.html">Officials</a></li>
+          <li><a href="elections.html">Elections</a></li>
+          <li><a href="municipalities.html">Cover your city</a></li>
+          <li><a href="get-involved.html">Get Involved</a></li>
+          <li><a href="news.html">Student Editorials</a></li>
+          <li><a href="meetings.html">Meeting Tracker Archive</a></li>
+        </ul>
+      </div>
+      <div>
+        <h4>About</h4>
+        <ul>
+          <li><a href="about.html">Mission &amp; founders</a></li>
+          <li><a href="faq.html">FAQ &amp; glossary</a></li>
+          <li><a href="contact.html">Contact / report an error</a></li>
+          <li><a href="privacy.html">Privacy &amp; Terms</a></li>
+          <li><a href="accessibility.html">Accessibility</a></li>
+        </ul>
+      </div>
+      <div>
+        <h4>Official sources</h4>
+        <ul>
+          <li><a href="https://www.miamidade.gov/commission/" target="_blank" rel="noopener">Board of County Commissioners</a></li>
+          <li><a href="https://www.miamidade.gov/govaction/home.asp" target="_blank" rel="noopener">Legislation &amp; agendas</a></li>
+        </ul>
+      </div>
+      <div>
+        <h4>Connect</h4>
+        <div class="social-icons" style="margin-bottom:12px;">
+          <a class="social-icon" href="https://instagram.com/miamidadecommissionwatch" target="_blank" rel="noopener" aria-label="Miami-Dade Commission Watch on Instagram">
+            <svg viewBox="0 0 24 24" aria-hidden="true"><rect x="2" y="2" width="20" height="20" rx="6" fill="none" stroke="currentColor" stroke-width="2"/><circle cx="12" cy="12" r="5" fill="none" stroke="currentColor" stroke-width="2"/><circle cx="17.5" cy="6.5" r="1.3" fill="currentColor"/></svg>
+          </a>
+        </div>
+        <ul>
+          <li><a href="https://instagram.com/miamidadecommissionwatch" target="_blank" rel="noopener">@miamidadecommissionwatch</a></li>
+        </ul>
+      </div>
+    </div>
+    <div class="footer-disclaimer">
+      <p style="margin-bottom:8px;">Miami-Dade Commission Watch is an independent, student-run project founded by Conrad Gelber and Daniel Llobet. It is <strong>not affiliated with, operated by, or endorsed by Miami-Dade County government</strong>. All information is sourced from public records; see the official Board of County Commissioners site linked above for authoritative agendas and legislation.</p>
+      <p style="margin-bottom:8px;">Spanish and Haitian Creole translations on this site are generated automatically by Google Translate and are not reviewed by us. They may contain errors, especially for legal and government terms. When in doubt, refer to the English original.</p>
+      <p style="margin-bottom:0;">&copy; 2026 Miami-Dade Commission Watch. <a href="login.html" style="color:inherit; opacity:0.7; text-decoration:underline;">Staff</a></p>
+    </div>
+  </div>
+</footer>
+
+<div id="google_translate_element"></div>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.112.3" integrity="sha384-l8ah+VgaWtk1mvOe9VC+OirC6qHFF4yH7l7mKRidV9MSti3E9F463bMp6ZVN4kuC" crossorigin="anonymous"></script>
+<script src="/js/supabase-client.js"></script>
+<script src="/js/main.js?v=20261019b"></script>
+<script src="/js/newsletter.js?v=20260820"></script>
+<script src="/js/attend.js?v=20261021"></script>
+<script src="https://challenges.cloudflare.com/turnstile/v0/api.js?render=explicit&onload=onTurnstileReady" async defer></script>
+<script src="/js/translate.js?v=20260820"></script>
+<script src="https://translate.google.com/translate_a/element.js?cb=googleTranslateElementInit"></script>
+</body>
+</html>
