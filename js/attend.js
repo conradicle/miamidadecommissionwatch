@@ -1,8 +1,9 @@
 // /attend: sign-up form for the next BCC meeting.
 //
-// The meeting comes from next_bcc_meeting() (migration_29), which returns
-// date, title, location and start time for the earliest meeting that is open
-// and still taking sign-ups, and nothing at all otherwise. The sign-up itself
+// The meeting comes from js/next-bcc-meeting.js (next_bcc_meeting(),
+// migration_29), the same lookup the homepage's "Attend with us" section
+// uses: the earliest meeting that is open and still taking sign-ups, and
+// nothing at all otherwise. The sign-up itself
 // goes to api/city-platform.js (op submit_bcc_signup), which checks Turnstile
 // and writes with the service role; the browser can't insert directly.
 (function () {
@@ -30,19 +31,8 @@
     return /^(localhost|127\.0\.0\.1)$/.test(location.hostname) ? TEST_SITE_KEY : '';
   }
 
-  function formatDate(iso) {
-    var m = /^(\d{4})-(\d{2})-(\d{2})/.exec(iso || '');
-    if (!m) return iso || '';
-    return new Date(Number(m[1]), Number(m[2]) - 1, Number(m[3]))
-      .toLocaleDateString('en-US', { weekday: 'long', month: 'long', day: 'numeric', year: 'numeric' });
-  }
-
-  function formatTime(t) {
-    var m = /^(\d{1,2}):(\d{2})/.exec(t || '');
-    if (!m) return '9:30 AM';
-    var h = Number(m[1]);
-    return (((h + 11) % 12) + 1) + ':' + m[2] + ' ' + (h < 12 ? 'AM' : 'PM');
-  }
+  var formatDate = window.MDCW.nextBcc.formatDate;
+  var formatTime = window.MDCW.nextBcc.formatTime;
 
   function renderTurnstile() {
     if (!turnstileReady || !meeting || widgetId !== null || !window.turnstile) return;
@@ -201,11 +191,10 @@
   }
 
   function load() {
-    if (typeof supabaseClient === 'undefined') { show('attend-error'); return; }
-    supabaseClient.rpc('next_bcc_meeting').then(function (res) {
-      if (res.error) { show('attend-error'); return; }
-      meeting = res.data && res.data[0];
-      if (!meeting) { show('attend-closed'); return; }
+    window.MDCW.nextBcc.load().then(function (result) {
+      if (result.status === 'error') { show('attend-error'); return; }
+      if (result.status === 'closed') { show('attend-closed'); return; }
+      meeting = result.meeting;
       el('attend-title').textContent = meeting.title;
       el('attend-date').textContent = formatDate(meeting.meeting_date);
       el('attend-time').textContent = formatTime(meeting.start_time);

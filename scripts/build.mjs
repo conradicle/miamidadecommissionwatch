@@ -39,7 +39,6 @@ import {
   renderEditorials, renderMunicipalities, renderTeam, makeCounter
 } from './lib/render.mjs';
 import { setHead, setJsonLd, upsertRegion, rewriteToRootRelative, splitShell } from './lib/page.mjs';
-import { fetchXPosts, renderXFeed, HANDLE as xHandle } from './lib/x-feed.mjs';
 import * as schema from './lib/schema.mjs';
 import {
   DOC_TYPES, TRACKER_ARCHIVE_THROUGH, TRACKER_ARCHIVE_LABEL, pageDocuments, cleanBodies,
@@ -511,13 +510,6 @@ async function main() {
   // --- home.html -----------------------------------------------------------
   {
     let html = read('home.html');
-    const feed = await fetchXPosts();
-    if (feed.posts.length) {
-      console.log(`x feed   ${feed.posts.length} post(s) from @${xHandle}`);
-    } else {
-      console.log(`x feed   follow card (${feed.reason})`);
-    }
-    html = upsertRegion(html, 'xfeed', renderXFeed(feed.posts), '</aside>');
     html = upsertRegion(html, 'next-meeting', renderNextMeeting(schedule, today), '</main>');
     html = upsertRegion(html, 'home-documents',
       '<div class="doc-sections">' +

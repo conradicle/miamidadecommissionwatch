@@ -83,6 +83,36 @@
   }
 
   // ---------------------------------------------------------------------
+  // "Attend with us"
+  // ---------------------------------------------------------------------
+  // The meeting comes from js/next-bcc-meeting.js, the lookup /attend uses.
+  // The heading, copy and button are already in the page, so an error (or a
+  // lookup that never answers) just leaves them as they are. textContent
+  // only, so Google Translate sees plain text nodes.
+  function renderAttend(result) {
+    var section = document.getElementById('attend-cta');
+    if (!section) return;
+    var when = document.getElementById('attend-cta-when');
+    var soon = document.getElementById('attend-cta-soon');
+    section.setAttribute('data-state', result.status);
+    when.hidden = result.status !== 'open';
+    soon.hidden = result.status !== 'closed';
+    if (result.status !== 'open') return;
+    var bcc = window.MDCW.nextBcc;
+    var m = result.meeting;
+    document.getElementById('attend-cta-date').textContent =
+      bcc.formatDate(m.meeting_date) + ' · ' + bcc.formatTime(m.start_time);
+    var closes = bcc.formatCloses(m);
+    document.getElementById('attend-cta-closes').textContent =
+      closes ? 'Sign-ups close ' + closes + '.' : '';
+  }
+
+  function loadAttend() {
+    if (!window.MDCW.nextBcc) return Promise.resolve();
+    return window.MDCW.nextBcc.load().then(renderAttend);
+  }
+
+  // ---------------------------------------------------------------------
   // District panel
   // ---------------------------------------------------------------------
   function commissionerForDistrict(district) {
@@ -255,10 +285,11 @@
   }
 
   window.MDCW = window.MDCW || {};
-  window.MDCW.home = { schema: schema };
+  window.MDCW.home = { schema: schema, loadAttend: loadAttend };
 
   ready(function () {
     loadNextMeeting();
+    loadAttend();
     initFinder();
   });
 })();
