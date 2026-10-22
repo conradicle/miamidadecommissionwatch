@@ -27,7 +27,7 @@
 <link rel="icon" type="image/png" sizes="32x32" href="assets/img/favicon-32x32.png">
 <link rel="icon" type="image/png" sizes="16x16" href="assets/img/favicon-16x16.png">
 <link rel="apple-touch-icon" sizes="180x180" href="assets/img/apple-touch-icon.png">
-<link rel="stylesheet" href="css/style.css?v=20261019d">
+<link rel="stylesheet" href="css/style.css?v=20261021">
 <link rel="stylesheet" href="css/document.css?v=20261019c">
 <!-- build:jsonld -->
 <script type="application/ld+json">{"@context":"https://schema.org","@type":"NewsMediaOrganization","@id":"https://www.miamidadecommissionwatch.com/#organization","name":"Miami-Dade Commission Watch","alternateName":["Miami Dade Commission Watch","MDCW","Miami-Dade County Commission Watch"],"url":"https://www.miamidadecommissionwatch.com/","logo":{"@type":"ImageObject","url":"https://www.miamidadecommissionwatch.com/assets/img/og-image.png","width":1200,"height":630},"image":"https://www.miamidadecommissionwatch.com/assets/img/og-image.png","description":"Independent, nonpartisan tracking of the Miami-Dade County Board of County Commissioners: plain-language meeting summaries, a commissioner directory, and ways to get involved.","founder":[{"@type":"Person","name":"Conrad Gelber"},{"@type":"Person","name":"Daniel Llobet"}],"sameAs":["https://instagram.com/miamidadecommissionwatch"],"areaServed":{"@type":"AdministrativeArea","name":"Miami-Dade County, Florida"},"knowsAbout":["Miami-Dade Board of County Commissioners","Miami-Dade County government","county commission meetings","local government transparency"],"publishingPrinciples":"https://www.miamidadecommissionwatch.com/about.html","isAccessibleForFree":true,"disambiguatingDescription":"An independent, student-run civic project. Not affiliated with, operated by, or endorsed by Miami-Dade County government."}</script>
@@ -123,25 +123,26 @@
           <div class="seal-float sf-2"><div class="n">3</div><div class="l">Languages</div></div>
         </div>
         <p class="text-center" style="margin-top:22px; margin-bottom:0;"><a class="btn btn-secondary" href="#find-district">Find your district &#8599;</a></p>
-
-        <!-- The X panel. The build replaces everything between the xfeed
-             markers with the account's latest posts; see scripts/lib/x-feed.mjs
-             for why they are fetched at build time rather than in the browser.
-             The card written here is the fallback, not a placeholder: with no
-             API token, with X down at build time, or with nothing posted yet,
-             this is what a reader sees, so the panel is never an empty box. -->
-        <aside class="x-feed" id="x-feed" aria-labelledby="x-feed-heading">
-          <div class="x-feed-head">
-            <svg class="x-feed-mark" viewBox="0 0 24 24" aria-hidden="true"><path fill="currentColor" d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-5.214-6.817L4.99 21.75H1.68l7.73-8.835L1.254 2.25H8.08l4.713 6.231zm-1.161 17.52h1.833L7.084 4.126H5.117z"/></svg>
-            <h2 class="x-feed-title" id="x-feed-heading">Latest from <a href="https://x.com/MiamiDadeCW" target="_blank" rel="noopener">@MiamiDadeCW</a></h2>
-          </div>
-          <div class="x-feed-body">
-<!-- build:xfeed -->
-            <p class="x-feed-empty">Agenda alerts and quick takes, posted as meetings happen. <a href="https://x.com/MiamiDadeCW" target="_blank" rel="noopener">Follow on X &#8599;</a></p>
-<!-- /build:xfeed -->
-          </div>
-        </aside>
       </div>
+    </div>
+  </section>
+
+  <!-- Student sign-ups for /attend. The heading, copy and button are static
+       so the section reads fine before (or without) the meeting lookup;
+       js/home.js fills #attend-cta-when from js/next-bcc-meeting.js, the same
+       query /attend runs. data-state: loading | open | closed | error. -->
+  <section class="section section-alt attend-cta" id="attend-cta" data-state="loading" aria-labelledby="attend-cta-heading">
+    <div class="wrap">
+      <span class="eyebrow">Attend with us</span>
+      <h2 id="attend-cta-heading">Come to the next County Commission meeting with us</h2>
+      <p class="attend-cta-copy">Miami-Dade students: sit in on a Board of County Commissioners meeting with the Commission Watch team. If you want to, you can speak during public comment.</p>
+      <div class="attend-cta-when" id="attend-cta-when" hidden>
+        <span class="attend-cta-label">Next meeting</span>
+        <span class="attend-cta-date" id="attend-cta-date"></span>
+        <span class="attend-cta-closes" id="attend-cta-closes"></span>
+      </div>
+      <p class="attend-cta-soon" id="attend-cta-soon" hidden>Sign-ups for the next meeting open soon.</p>
+      <a class="btn btn-primary attend-cta-btn" href="/attend">Sign up to attend</a>
     </div>
   </section>
 
@@ -300,7 +301,8 @@
 <script src="js/newsletter.js?v=20260820"></script>
 <script src="js/mdcw-format.js?v=20260823"></script>
 <script src="js/find-district.js?v=20260823"></script>
-<script src="js/home.js?v=20261019b"></script>
+<script src="js/next-bcc-meeting.js?v=20261021"></script>
+<script src="js/home.js?v=20261021"></script>
 <script src="js/translate.js?v=20260820"></script>
 <script src="https://translate.google.com/translate_a/element.js?cb=googleTranslateElementInit"></script>
 </body>
