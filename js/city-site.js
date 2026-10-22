@@ -274,11 +274,12 @@
   function renderMap(city) {
     if (city.governance === 'at-large') {
       setText('map-heading', 'Every seat is citywide');
+      // js/city-map.js rewrites the .js-boundary-ref span if the outline
+      // fails to load, so the sentence never points at a missing map.
       setHtml('city-map-intro',
-        '<p style="max-width:66ch;">' + escapeHtml(city.name) + ' has no commission districts. ' +
-        'Every member of the ' + escapeHtml(city.body_name || 'city commission') + ' is elected citywide, ' +
-        'which means <strong>every resident is represented by all of them</strong> — there is no single ' +
-        'commissioner assigned to your address, and you may contact any of them.</p>');
+        '<p style="max-width:66ch;">The mayor and all commissioners are elected by voters across the ' +
+        'whole city, so every one of them represents you if you live inside ' +
+        '<span class="js-boundary-ref">this boundary</span>.</p>');
     } else {
       setText('map-heading', 'Find your district');
       setHtml('city-map-intro',
