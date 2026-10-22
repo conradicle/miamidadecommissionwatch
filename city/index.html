@@ -22,7 +22,7 @@
      Root-absolute asset paths throughout - a city subdomain serves the same
      deployment as the root domain, so /css and /js resolve normally. -->
 <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" integrity="sha384-sHL9NAb7lN7rfvG5lfHpm643Xkcjzp4jFvuavGOndn6pjVqS6ny56CAt3nsEVT4H" crossorigin="anonymous">
-<link rel="stylesheet" href="/css/style.css?v=20261019d">
+<link rel="stylesheet" href="/css/style.css?v=20261021">
 </head>
 <body>
 <a class="skip-link" href="#main">Skip to content</a>
@@ -94,16 +94,14 @@
       </div>
       <div id="city-map-intro"></div>
 
-      <!-- The address lookup only appears for a district city. An at-large
-           city has nothing to look an address up against, so js/city-map.js
-           leaves this hidden and shows the city outline alone. -->
-      <form id="city-district-form" class="district-search" style="display:none; margin-bottom:14px;">
-        <label for="city-district-input" class="city-bar-label">Your address</label>
-        <div class="newsletter-input-row">
-          <input type="text" id="city-district-input" class="newsletter-input"
-                 placeholder="123 Main St" aria-label="Your address">
-          <button type="submit" class="btn btn-primary btn-small">Find my district</button>
-        </div>
+      <!-- Hidden until js/city-map.js has a boundary to test an address
+           against. A district city gets "Find my district"; an at-large city
+           gets "Check your address", which only answers inside or outside
+           the city limits. No boundary, no form. -->
+      <form id="city-district-form" class="district-search-form" style="display:none;">
+        <label for="city-district-input" style="display:block; font-weight:600; margin-bottom:-4px; width:100%;">Your address</label>
+        <input type="text" id="city-district-input" name="address" placeholder="e.g. 123 Main St" autocomplete="street-address">
+        <button type="submit" class="btn btn-primary">Find my district</button>
       </form>
       <p class="district-status" id="city-district-status" role="status" aria-live="polite"></p>
 
@@ -149,7 +147,7 @@
 <script src="/js/supabase-client.js"></script>
 <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" integrity="sha384-cxOPjt7s7Iz04uaHJceBmS+qpjv2JkIHNVcuOrM+YHwZOmJGBXI00mdUXEq65HTH" crossorigin="anonymous"></script>
 <script src="/js/main.js?v=20261019b"></script>
-<script src="/js/city-map.js?v=20260826"></script>
-<script src="/js/city-site.js?v=20260924b"></script>
+<script src="/js/city-map.js?v=20261021"></script>
+<script src="/js/city-site.js?v=20261021"></script>
 </body>
 </html>

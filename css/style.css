@@ -854,6 +854,23 @@ iframe.skiptranslate { display: none !important; }
   border-radius: 0 var(--radius) var(--radius) 0;
   color: var(--ink-900);
 }
+/* City map results (js/city-map.js). Navy for a match and gold for a miss,
+   rather than green and red, so the two stay apart for red-green colorblind
+   readers. The wording carries the answer either way. */
+.district-status.inside,
+.district-status.outside {
+  padding: 12px 16px;
+  border-radius: 0 var(--radius) var(--radius) 0;
+  color: var(--ink-900);
+}
+.district-status.inside {
+  background: #e6ebf2;
+  border-left: 4px solid var(--doc-navy);
+}
+.district-status.outside {
+  background: var(--gold-100);
+  border-left: 4px solid var(--gold-600);
+}
 
 #district-map {
   position: relative;
