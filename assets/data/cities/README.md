@@ -23,8 +23,8 @@ result show.
 
 **`at-large` cities** — a single Feature holding the city limits outline, with
 no `district` property. Miami Beach is at-large: the Mayor and all six
-Commissioners are elected citywide, so there is nothing to look an address up
-against and the map shows only the city boundary.
+Commissioners are elected citywide, so the map shows only the city boundary
+and the address check answers just "inside the city limits or not".
 
 Do not split an at-large city into invented districts to make the map look
 busier. An at-large city with fake districts is worse than no map.
@@ -55,6 +55,34 @@ WGS84 (EPSG:4326). Check the coordinate order after converting: GeoJSON is
 swapped. Simplify aggressively before committing — an unsimplified city
 boundary can run to several megabytes, and this site loads it over the wire on
 a phone.
+
+## Files in this directory
+
+| File | Source | Retrieved |
+| --- | --- | --- |
+| `miamibeach.geojson` | Miami-Dade County GIS Open Data, "Municipal Boundary" layer (gis-mdc.opendata.arcgis.com), features where `NAME = 'MIAMI BEACH'` | 2026-10-21 |
+
+`miamibeach.geojson` is the city limits as the county draws them: one
+MultiPolygon, the main outline (with 12 holes for the other jurisdictions it
+surrounds, such as Indian Creek Village) plus one detached piece. Keep the
+holes when refreshing it: the address check treats a point inside a hole as
+outside the city.
+
+### Refreshing a city limits file
+
+The layer is served at
+`https://services.arcgis.com/8Pc9XBTAsYuxx9Ny/arcgis/rest/services/Municipalitypoly_gdb/FeatureServer/0`.
+
+1. Download the whole layer as WGS84 GeoJSON:
+   `<layer url>/query?where=1%3D1&outFields=*&outSR=4326&f=geojson`
+2. Keep the features whose `NAME` is the city (uppercase, e.g. `MIAMI BEACH`;
+   a city can have more than one feature) and merge them into a single
+   MultiPolygon Feature with `name`, `source` and `retrieved` properties.
+3. Simplify and round with mapshaper:
+   `npx mapshaper in.geojson -simplify 50% keep-shapes -o out.geojson precision=0.000001`
+   For Miami Beach that takes 2,359 points / 87 KB down to 1,194 points /
+   27 KB with every island and hole intact.
+4. Update the table above.
 
 ## Placeholders
 
