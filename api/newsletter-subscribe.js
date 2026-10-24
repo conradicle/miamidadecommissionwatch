@@ -3,6 +3,7 @@
 // never reaches the browser, and so the subscriber table can stay closed to
 // the public anon key entirely -- see supabase/migration_4_newsletter.sql.
 var prefsLib = require("./_prefs");
+var botCheck = require('./_bot-check.js');
 
 module.exports = async function handler(req, res) {
   if (req.method !== 'POST') {
@@ -18,7 +19,15 @@ module.exports = async function handler(req, res) {
     return;
   }
 
-  var email = req.body && typeof req.body.email === 'string' ? req.body.email.trim().toLowerCase() : '';
+  // Every signup sends a welcome email to the address given, so without this
+  // a script could use us to mail anyone.
+  var bot = await botCheck.check(req, req.body, 'newsletter');
+  if (!bot.ok) {
+    res.status(400).json({ error: botCheck.MESSAGE });
+    return;
+  }
+
+  var email =req.body && typeof req.body.email === 'string' ? req.body.email.trim().toLowerCase() : '';
   if (!email || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email) || email.length > 254) {
     res.status(400).json({ error: 'Please enter a valid email address' });
     return;

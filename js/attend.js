@@ -141,7 +141,11 @@
       body: JSON.stringify(Object.assign({
         op: 'submit_bcc_signup',
         meeting_date: meeting.meeting_date,
-        turnstile_token: token
+        turnstile_token: token,
+        // Checked by api/_bot-check.js: the honeypot, and time on page from
+        // the browser's own clock (immune to a wrong system clock).
+        website: el('attend-website').value,
+        form_elapsed_ms: Math.round(performance.now())
       }, v))
     })
       .then(function (r) {

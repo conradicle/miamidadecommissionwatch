@@ -9,6 +9,8 @@
 // and must actually be unclaimed -- otherwise a crafted request could claim a
 // city that already has a team, or invent a slug that later collides with a
 // real one.
+var botCheck = require('./_bot-check.js');
+
 module.exports = async function handler(req, res) {
   if (req.method !== 'POST') {
     res.status(405).json({ error: 'Method not allowed' });
@@ -23,7 +25,16 @@ module.exports = async function handler(req, res) {
   }
 
   var body = req.body || {};
-  var slug = typeof body.city_slug === 'string' ? body.city_slug.trim().toLowerCase() : '';
+
+  // On 2026-10-24 a scanner filed a fake claim for Bay Harbor Islands through
+  // this form. Bots stop here, before anything is read or written.
+  var bot = await botCheck.check(req, body, 'claim');
+  if (!bot.ok) {
+    res.status(400).json({ error: botCheck.MESSAGE });
+    return;
+  }
+
+  var slug =typeof body.city_slug === 'string' ? body.city_slug.trim().toLowerCase() : '';
   var name = typeof body.requester_name === 'string' ? body.requester_name.trim() : '';
   var email = typeof body.requester_email === 'string' ? body.requester_email.trim() : '';
   var affiliation = typeof body.affiliation === 'string' ? body.affiliation.trim() : '';
@@ -52,13 +63,19 @@ module.exports = async function handler(req, res) {
   };
 
   try {
-    // Two claims per address per hour, and ten per IP per day. The first stops
-    // someone spamming the same form; the second stops one machine claiming
-    // every city in the county.
+    // Two claims per address per hour, three per IP per hour, and ten per IP
+    // per day. The first stops someone spamming the same form; the others stop
+    // one machine claiming every city in the county.
     var byEmail = await checkRateLimit(SUPABASE_URL, SERVICE_ROLE_KEY,
       'claim:email:' + email.toLowerCase(), 2, 3600);
     if (!byEmail) {
       res.status(429).json({ error: 'You’ve already sent a request recently. Give us a little time to reply.' });
+      return;
+    }
+    var byIpHour = await checkRateLimit(SUPABASE_URL, SERVICE_ROLE_KEY,
+      'claim:ip-hour:' + clientIp(req), 3, 3600);
+    if (!byIpHour) {
+      res.status(429).json({ error: "Too many requests from this connection. Please try again in an hour." });
       return;
     }
     var byIp = await checkRateLimit(SUPABASE_URL, SERVICE_ROLE_KEY,
