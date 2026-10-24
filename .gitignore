@@ -6,3 +6,4 @@ graphify-out/
 node_modules/
 document-templates/*.pdf
 document-templates/*_pages/
+dist/
