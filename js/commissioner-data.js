@@ -28,22 +28,23 @@
   }
 
   // Under the charter's staggered schedule, even-numbered districts were on
-  // the 2026 ballot and odd-numbered ones were last elected in 2024 and are
-  // next up in 2028. Districts 1 and 5 are exceptions in 2026 -- see
+  // the 2026 ballot (all six were settled by the August 18 primary, so they
+  // are next up in 2030) and odd-numbered ones were last elected in 2024 and
+  // are next up in 2028. Districts 1 and 5 are exceptions in 2026 -- see
   // elections.html, which is the sourced version of this.
   var NEXT_ELECTION = {
     1: '2028 (the 2026 special election filled the remainder of the term)',
-    2: 'November 3, 2026',
+    2: '2030 (re-elected in 2026)',
     3: '2028',
-    4: 'November 3, 2026',
+    4: '2030 (re-elected in 2026)',
     5: 'Runoff on the November 3, 2026 ballot',
-    6: 'November 3, 2026',
+    6: '2030 (re-elected in 2026)',
     7: '2028',
-    8: 'November 3, 2026',
+    8: '2030 (re-elected in 2026)',
     9: '2028',
-    10: 'November 3, 2026',
+    10: '2030 (re-elected in 2026)',
     11: '2028',
-    12: 'November 3, 2026',
+    12: '2030 (re-elected in 2026)',
     13: '2028'
   };
 
@@ -95,7 +96,7 @@
     'Elected unopposed in the 2026 District 1 special election when qualifying closed June 9. Takes office January 3, 2027.';
 
   PROFILES['vicki-l-lopez'].bio =
-    'Appointed to the District 5 seat by the Board in November 2025. The seat is on the November 3, 2026 ballot in a runoff.';
+    'Appointed to the District 5 seat by the Board in November 2025. Faces Rob Piper in the November 3, 2026 runoff for the rest of the term, through November 2028.';
 
   window.MDCW = window.MDCW || {};
   window.MDCW.profiles = PROFILES;
