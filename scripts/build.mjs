@@ -97,6 +97,22 @@ function setTurnstileSiteKey(html) {
     `<meta name="turnstile-site-key" content="${escapeHtml(key)}">`);
 }
 
+// The same key for every other form (claim, editorial, newsletter, login),
+// which read it from js/bot-guard.js rather than a meta tag on each page.
+// Without it the widget never renders and the API turns every submission away.
+function stampBotGuardSiteKey() {
+  const key = (process.env.TURNSTILE_SITE_KEY || '').trim();
+  if (!key) {
+    console.warn('turnstile  TURNSTILE_SITE_KEY is not set; public forms and login will not work');
+    return;
+  }
+  if (!/^[\w-]+$/.test(key)) throw new Error('TURNSTILE_SITE_KEY has unexpected characters');
+  const file = join(OUT, 'js/bot-guard.js');
+  const src = readFileSync(file, 'utf8');
+  if (!src.includes('__TURNSTILE_SITE_KEY__')) throw new Error('js/bot-guard.js lost its site key placeholder');
+  writeFileSync(file, src.replace('__TURNSTILE_SITE_KEY__', key));
+}
+
 // ---------------------------------------------------------------------
 // What goes into dist/
 // ---------------------------------------------------------------------
@@ -462,7 +478,10 @@ async function main() {
   cleanBodies(documents);
   const docPages = pageDocuments(documents);
 
-  if (!DRY_RUN) console.log(`copied   ${copyPublicFiles()} public files into dist/`);
+  if (!DRY_RUN) {
+    console.log(`copied   ${copyPublicFiles()} public files into dist/`);
+    stampBotGuardSiteKey();
+  }
   console.log(`fetched  ${meetings.length} meetings, ${editorials.length} editorials, ${cities.length} cities, ${documents.length} documents, ${schedule.length} scheduled meetings`);
 
   if (!meetings.length) throw new Error('Supabase returned zero meetings; refusing to publish an empty tracker.');

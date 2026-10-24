@@ -17,6 +17,8 @@
 // changing this one number is all a correction takes.
 var STUDENT_ID_LENGTH = 7;
 
+var botCheck = require('./_bot-check.js');
+
 var LIMITS = { full_name: 120 };
 
 var COMMENT_CHOICES = { yes: true, no: false, maybe: null };
@@ -31,13 +33,21 @@ module.exports = async function handler(req, res) {
   }
 
   var body = req.body || {};
+
+  // Honeypot, time on page, then Turnstile, before any field is read. A
+  // failure here never says which; the reason is in the function log.
+  var bot = await botCheck.check(req, body, 'bcc-signup');
+  if (!bot.ok) {
+    res.status(403).json({ error: botCheck.MESSAGE, retryTurnstile: true });
+    return;
+  }
+
   var fullName = str(body.full_name).replace(/\s+/g, ' ');
   var phone = str(body.phone).replace(/\D/g, '');
   if (phone.length === 11 && phone.charAt(0) === '1') phone = phone.slice(1);
   var studentId = str(body.mdcps_student_id).replace(/\s/g, '');
   var comment = str(body.wants_public_comment).toLowerCase();
   var meetingDate = str(body.meeting_date);
-  var token = str(body.turnstile_token);
 
   if (fullName.length < 2 || fullName.length > LIMITS.full_name) {
     return fieldError(res, 'full_name', 'Please enter your full name.');
@@ -51,11 +61,6 @@ module.exports = async function handler(req, res) {
   if (!Object.prototype.hasOwnProperty.call(COMMENT_CHOICES, comment)) {
     return fieldError(res, 'wants_public_comment', 'Please choose yes, no, or maybe.');
   }
-  if (!token) {
-    res.status(400).json({ error: 'Please complete the security check above the button.' });
-    return;
-  }
-
   var serviceHeaders = {
     Authorization: 'Bearer ' + SERVICE_ROLE_KEY,
     apikey: SERVICE_ROLE_KEY,
@@ -64,14 +69,6 @@ module.exports = async function handler(req, res) {
 
   try {
     var ip = clientIp(req);
-
-    // Turnstile first: it is the real gate, and a failed check shouldn't
-    // spend the rate limit budget of a whole school's shared wifi.
-    var human = await verifyTurnstile(TURNSTILE_SECRET_KEY, token, ip);
-    if (!human) {
-      res.status(403).json({ error: 'The security check didn’t go through. Please try it again.', retryTurnstile: true });
-      return;
-    }
 
     // Twenty an hour per IP. A class signing up together from one school
     // network is the case to leave room for; Turnstile stops scripts.
@@ -155,26 +152,6 @@ function clientIp(req) {
   var forwarded = req.headers['x-forwarded-for'];
   if (forwarded) return forwarded.split(',')[0].trim();
   return (req.socket && req.socket.remoteAddress) || 'unknown';
-}
-
-// Fails closed: if Cloudflare can't be reached, the sign-up is refused and
-// the student is asked to retry, rather than letting unverified traffic in.
-async function verifyTurnstile(secret, token, ip) {
-  var form = new URLSearchParams();
-  form.append('secret', secret);
-  form.append('response', token);
-  if (ip && ip !== 'unknown') form.append('remoteip', ip);
-  try {
-    var r = await fetch('https://challenges.cloudflare.com/turnstile/v0/siteverify', {
-      method: 'POST',
-      body: form
-    });
-    if (!r.ok) return false;
-    var data = await r.json();
-    return data.success === true;
-  } catch (err) {
-    return false;
-  }
 }
 
 async function checkRateLimit(SUPABASE_URL, SERVICE_ROLE_KEY, key, limit, windowSeconds) {

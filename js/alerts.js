@@ -74,6 +74,9 @@
 
     renderControls(districtsEl, topicsEl);
 
+    // js/bot-guard.js is loaded by get-involved.html before this file.
+    var guard = window.MDCW.botGuard.attach(form, { action: 'newsletter' });
+
     // Arriving from the homepage district panel: "Get District 5 alerts"
     // should land with District 5 already ticked.
     var preset = qs('district');
@@ -95,19 +98,22 @@
       statusEl.textContent = 'Saving...';
       statusEl.className = 'newsletter-status';
 
-      fetch('/api/newsletter-subscribe', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          email: email,
-          districts: districts,
-          topics: topics,
-          all_meetings: districts.length === 0 && topics.length === 0
-        })
+      guard.getToken().then(function (token) {
+        return fetch('/api/newsletter-subscribe', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(Object.assign({
+            email: email,
+            districts: districts,
+            topics: topics,
+            all_meetings: districts.length === 0 && topics.length === 0
+          }, guard.fields(token)))
+        });
       })
         .then(function (r) { return r.json().then(function (d) { return { ok: r.ok, data: d }; }); })
         .then(function (result) {
           submitBtn.disabled = false;
+          guard.reset();
           if (!result.ok) {
             statusEl.textContent = result.data.error || 'Something went wrong. Please try again.';
             statusEl.className = 'newsletter-status error';
@@ -124,6 +130,7 @@
         })
         .catch(function () {
           submitBtn.disabled = false;
+          guard.reset();
           statusEl.textContent = 'Could not reach the server. Please try again.';
           statusEl.className = 'newsletter-status error';
         });
