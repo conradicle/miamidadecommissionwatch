@@ -170,6 +170,12 @@
             <span>I confirm I am a high school student (grades 9&ndash;12), this is my own original work not previously published elsewhere, and I understand it will be reviewed before publishing and may be edited or declined. I've read the <a href="privacy.html">Privacy Policy</a>.</span>
           </label>
         </div>
+        <!-- Honeypot: off screen and out of the tab order, so only bots fill it. -->
+        <div class="hp-field" aria-hidden="true" style="position:absolute; left:-10000px; top:auto; width:1px; height:1px; overflow:hidden;">
+          <label for="editorial-website">Website</label>
+          <input type="text" id="editorial-website" name="website" tabindex="-1" autocomplete="off">
+        </div>
+        <div id="editorial-turnstile" style="margin-bottom:12px;"></div>
         <button type="submit" class="btn btn-primary btn-large">Submit editorial</button>
       </form>
 
@@ -236,8 +242,9 @@
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.112.3" integrity="sha384-l8ah+VgaWtk1mvOe9VC+OirC6qHFF4yH7l7mKRidV9MSti3E9F463bMp6ZVN4kuC" crossorigin="anonymous"></script>
 <script src="js/supabase-client.js"></script>
 <script src="js/main.js?v=20261019b"></script>
-<script src="js/newsletter.js?v=20260820"></script>
-<script src="js/submit-editorial.js"></script>
+<script src="js/newsletter.js?v=20261024"></script>
+<script src="js/bot-guard.js?v=20261024"></script>
+<script src="js/submit-editorial.js?v=20261024"></script>
 <script src="js/translate.js?v=20260820"></script>
 <script src="https://translate.google.com/translate_a/element.js?cb=googleTranslateElementInit"></script>
 </body>

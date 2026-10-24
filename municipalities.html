@@ -192,6 +192,13 @@
           site goes up at its own address, and you run it. We don't review every post.
         </p>
 
+        <!-- Honeypot: off screen and out of the tab order, so only bots fill it. -->
+        <div class="hp-field" aria-hidden="true" style="position:absolute; left:-10000px; top:auto; width:1px; height:1px; overflow:hidden;">
+          <label for="claim-website">Website</label>
+          <input type="text" id="claim-website" name="website" tabindex="-1" autocomplete="off">
+        </div>
+        <div id="claim-turnstile" style="margin-bottom:12px;"></div>
+
         <div class="submission-actions">
           <button type="submit" class="btn btn-primary btn-small" id="claim-submit">Send request</button>
           <button type="button" class="btn btn-secondary btn-small" id="claim-cancel">Cancel</button>
@@ -285,8 +292,9 @@
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.112.3" integrity="sha384-l8ah+VgaWtk1mvOe9VC+OirC6qHFF4yH7l7mKRidV9MSti3E9F463bMp6ZVN4kuC" crossorigin="anonymous"></script>
 <script src="js/supabase-client.js"></script>
 <script src="js/main.js?v=20261019b"></script>
-<script src="js/newsletter.js?v=20260820"></script>
-<script src="js/municipalities.js?v=20260924b"></script>
+<script src="js/newsletter.js?v=20261024"></script>
+<script src="js/bot-guard.js?v=20261024"></script>
+<script src="js/municipalities.js?v=20261024"></script>
 <script src="js/translate.js?v=20260820"></script>
 <script src="https://translate.google.com/translate_a/element.js?cb=googleTranslateElementInit"></script>
 </body>
