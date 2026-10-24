@@ -10,6 +10,7 @@
 // INSERT on claim_requests precisely so this is the only way in.
 (function () {
   var cities = [];
+  var guard = null; // js/bot-guard.js, attached on load
 
   // Only for cities that are neither covered nor open to claim.
   var STATUS = {
@@ -117,16 +118,19 @@
       has_team: el('claim-has-team').checked
     };
 
-    fetch('/api/city-platform', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(Object.assign({ op: 'submit_claim' }, payload))
+    guard.getToken().then(function (token) {
+      return fetch('/api/city-platform', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(Object.assign({ op: 'submit_claim' }, payload, guard.fields(token)))
+      });
     })
       .then(function (res) {
         return res.json().then(function (body) { return { ok: res.ok, body: body }; });
       })
       .then(function (result) {
         button.disabled = false;
+        guard.reset();
         if (!result.ok) {
           setStatus('claim-status', (result.body && result.body.error) || 'Something went wrong.', 'error');
           return;
@@ -138,6 +142,7 @@
       })
       .catch(function () {
         button.disabled = false;
+        guard.reset();
         setStatus('claim-status', 'Could not reach the server. Please try again.', 'error');
       });
   }
@@ -172,6 +177,13 @@
       openClaim(link.getAttribute('data-claim'));
     });
 
+    // Lazy: the form starts hidden, and opening it focuses the name field,
+    // which is what starts the widget.
+    guard = window.MDCW.botGuard.attach(el('claim-form'), {
+      action: 'claim',
+      lazy: true,
+      container: el('claim-turnstile')
+    });
     el('claim-form').addEventListener('submit', submitClaim);
     el('claim-cancel').addEventListener('click', closeClaim);
 

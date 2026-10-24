@@ -10,6 +10,8 @@
 // checks exist here as well to give the student a useful message instead of a
 // constraint violation.
 
+var botCheck = require('./_bot-check.js');
+
 var GRADES = ['9th grade', '10th grade', '11th grade', '12th grade'];
 
 // Miami-Dade County Public Schools issues students <id>@students.dadeschools.net.
@@ -33,6 +35,13 @@ module.exports = async function handler(req, res) {
   }
 
   var body = req.body || {};
+
+  var bot = await botCheck.check(req, body, 'editorial');
+  if (!bot.ok) {
+    res.status(400).json({ error: botCheck.MESSAGE });
+    return;
+  }
+
   var fields = {
     name: str(body.name),
     grade: str(body.grade),

@@ -17,6 +17,10 @@
 
     var statusEl = document.getElementById('editorial-status');
     var emailInput = document.getElementById('editorial-email');
+    var guard = window.MDCW.botGuard.attach(form, {
+      action: 'editorial',
+      container: document.getElementById('editorial-turnstile')
+    });
 
     form.addEventListener('submit', function (e) {
       e.preventDefault();
@@ -58,18 +62,20 @@
       // the submission is rate limited per IP and the table can stay closed to
       // the public anon key. See supabase/migration_15_editorial_school_email_
       // and_submit_lockdown.sql.
-      fetch('/api/submit-editorial', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          name: name,
-          grade: grade,
-          school: school,
-          school_email: email,
-          title: title,
-          topic: topic || null,
-          body: body
-        })
+      guard.getToken().then(function (token) {
+        return fetch('/api/submit-editorial', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(Object.assign({
+            name: name,
+            grade: grade,
+            school: school,
+            school_email: email,
+            title: title,
+            topic: topic || null,
+            body: body
+          }, guard.fields(token)))
+        });
       })
         .then(function (res) {
           return res.json().then(function (data) {
@@ -78,6 +84,7 @@
         })
         .then(function (result) {
           submitBtn.disabled = false;
+          guard.reset();
           if (!result.ok) {
             // The API's own message is the useful one for a rejected email
             // address, a bad grade, or a throttled connection.
@@ -92,6 +99,7 @@
         })
         .catch(function () {
           submitBtn.disabled = false;
+          guard.reset();
           statusEl.textContent = 'Something went wrong submitting your editorial. Please try again, or email contact@miamidadecommissionwatch.com directly.';
           statusEl.className = 'district-status error';
         });

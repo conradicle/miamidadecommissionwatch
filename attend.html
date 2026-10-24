@@ -205,6 +205,12 @@
             <strong>Why we ask for your student ID.</strong> Only to confirm you&rsquo;re a Miami-Dade County Public Schools student. Only our staff can see it, and we delete your whole sign-up 30 days after the meeting.
           </div>
 
+          <!-- Honeypot: off screen and out of the tab order, so only bots fill it. -->
+          <div class="hp-field" aria-hidden="true" style="position:absolute; left:-10000px; top:auto; width:1px; height:1px; overflow:hidden;">
+            <label for="attend-website">Website</label>
+            <input type="text" id="attend-website" name="website" tabindex="-1" autocomplete="off">
+          </div>
+
           <div id="attend-turnstile" class="attend-turnstile"></div>
 
           <div id="attend-status" class="district-status" role="status" aria-live="polite"></div>
@@ -285,9 +291,9 @@
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.112.3" integrity="sha384-l8ah+VgaWtk1mvOe9VC+OirC6qHFF4yH7l7mKRidV9MSti3E9F463bMp6ZVN4kuC" crossorigin="anonymous"></script>
 <script src="/js/supabase-client.js"></script>
 <script src="/js/main.js?v=20261019b"></script>
-<script src="/js/newsletter.js?v=20260820"></script>
+<script src="/js/newsletter.js?v=20261024"></script>
 <script src="/js/next-bcc-meeting.js?v=20261021"></script>
-<script src="/js/attend.js?v=20261021b"></script>
+<script src="/js/attend.js?v=20261024"></script>
 <script src="https://challenges.cloudflare.com/turnstile/v0/api.js?render=explicit&onload=onTurnstileReady" async defer></script>
 <script src="/js/translate.js?v=20260820"></script>
 <script src="https://translate.google.com/translate_a/element.js?cb=googleTranslateElementInit"></script>

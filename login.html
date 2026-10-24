@@ -69,6 +69,7 @@
           <label for="login-password">Password</label>
           <input type="password" id="login-password" name="password" autocomplete="current-password" required>
         </div>
+        <div id="login-turnstile" style="margin-bottom:12px;"></div>
         <button type="submit" class="btn btn-primary btn-large">Log in</button>
       </form>
 
@@ -83,6 +84,7 @@
           <label for="forgot-email">Email</label>
           <input type="email" id="forgot-email" name="email" autocomplete="username" required>
         </div>
+        <div id="forgot-turnstile" style="margin-bottom:12px;"></div>
         <button type="submit" class="btn btn-secondary">Send reset link</button>
       </form>
 
@@ -104,6 +106,7 @@
 <script src="js/supabase-client.js"></script>
 <script src="js/main.js?v=20261019b"></script>
 <script src="js/route-after-login.js?v=20260826"></script>
-<script src="js/login.js?v=20260826"></script>
+<script src="js/bot-guard.js?v=20261024"></script>
+<script src="js/login.js?v=20261024"></script>
 </body>
 </html>
