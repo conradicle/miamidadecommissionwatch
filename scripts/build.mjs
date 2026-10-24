@@ -7,7 +7,13 @@
 // runs JavaScript still sees the meeting summaries, the editorials and the
 // municipality registry.
 //
-// What it produces:
+// Everything Vercel serves comes out of dist/. The repo root holds the source
+// pages (read here, never written) next to things that must not be public:
+// supabase/, scripts/, vercel.json, package.json. So dist/ starts empty, gets
+// only the files PUBLIC_FILES names, and the build's own pages are written on
+// top. checkDist() fails the build if anything else got in.
+//
+// What it produces (all under dist/):
 //   meetings/<date>.html   one indexable page per meeting
 //   meetings.html          tracker list (the archive), prerendered
 //   news.html              approved editorials, prerendered
@@ -21,12 +27,13 @@
 //   <every public page>    Organization / WebSite / page-level JSON-LD
 //
 // It is idempotent: everything it writes lives between <!-- build:name -->
-// markers, so running it twice produces the same bytes. It fails hard rather
+// markers in a copy of the source page, so running it twice produces the same
+// bytes. It fails hard rather
 // than writing a page with content missing -- a failed build leaves the last
 // good deployment serving, which is the outcome you want.
 
-import { readFileSync, writeFileSync, readdirSync, mkdirSync, statSync } from 'node:fs';
-import { join } from 'node:path';
+import { readFileSync, writeFileSync, readdirSync, mkdirSync, statSync, rmSync, copyFileSync, existsSync } from 'node:fs';
+import { join, dirname, extname } from 'node:path';
 import { execFileSync } from 'node:child_process';
 
 import {
@@ -64,11 +71,14 @@ const DRY_RUN = process.argv.includes('--dry-run');
 // room to spare rather than at the limit.
 const MAX_URLS_PER_SITEMAP = 45000;
 
+const OUT = join(ROOT, 'dist');
+
 const written = [];
 function write(relPath, contents) {
   written.push(relPath);
   if (DRY_RUN) return;
-  writeFileSync(join(ROOT, relPath), contents);
+  mkdirSync(dirname(join(OUT, relPath)), { recursive: true });
+  writeFileSync(join(OUT, relPath), contents);
 }
 function read(relPath) {
   return readFileSync(join(ROOT, relPath), 'utf8');
@@ -85,6 +95,103 @@ function setTurnstileSiteKey(html) {
   }
   return html.replace(/<meta name="turnstile-site-key" content="[^"]*">/,
     `<meta name="turnstile-site-key" content="${escapeHtml(key)}">`);
+}
+
+// ---------------------------------------------------------------------
+// What goes into dist/
+// ---------------------------------------------------------------------
+
+// The allowlist. Nothing is copied unless it is named here, so a new folder
+// or config file stays private until someone decides otherwise. The pages
+// the build writes itself (meetings/*, documents/<type>/*, sitemap.xml) are
+// not copied: they are generated fresh every time.
+const PUBLIC_FILES = {
+  // Top-level pages only. drafts/ and document-templates/ are subfolders and
+  // never match.
+  rootPages: (name) => name.endsWith('.html'),
+  files: [
+    'robots.txt',
+    'city/index.html',
+    'documents/index.html',
+    'documents/meeting-summaries.html',
+    'documents/agenda-summaries.html',
+    'documents/preview.html'
+  ],
+  // Whole folders, limited to the file types the pages load.
+  dirs: {
+    css: ['.css'],
+    js: ['.js'],
+    assets: ['.png', '.jpg', '.jpeg', '.webp', '.svg', '.ico', '.woff2', '.geojson', '.txt']
+  },
+  // Inside those folders but only for the build or for us.
+  skip: [
+    'assets/img/_originals',
+    'assets/data/contributors.json',
+    'assets/data/cities/_placeholder.geojson'
+  ]
+};
+
+function listFiles(relDir) {
+  const out = [];
+  for (const entry of readdirSync(join(ROOT, relDir), { withFileTypes: true })) {
+    const rel = relDir + '/' + entry.name;
+    if (PUBLIC_FILES.skip.includes(rel)) continue;
+    if (entry.isDirectory()) out.push(...listFiles(rel));
+    else out.push(rel);
+  }
+  return out;
+}
+
+function copyPublicFiles() {
+  rmSync(OUT, { recursive: true, force: true });
+  const files = readdirSync(ROOT, { withFileTypes: true })
+    .filter((e) => e.isFile() && PUBLIC_FILES.rootPages(e.name))
+    .map((e) => e.name)
+    .concat(PUBLIC_FILES.files);
+  for (const [dir, exts] of Object.entries(PUBLIC_FILES.dirs)) {
+    files.push(...listFiles(dir).filter((f) => exts.includes(extname(f).toLowerCase())));
+  }
+  for (const rel of files) {
+    mkdirSync(dirname(join(OUT, rel)), { recursive: true });
+    copyFileSync(join(ROOT, rel), join(OUT, rel));
+  }
+  return files.length;
+}
+
+// The second lock: whatever the allowlist says, these never ship.
+const FORBIDDEN = [
+  /^(supabase|scripts|api|node_modules|document-templates|drafts|\.github|\.claude|\.vercel)\//,
+  /(^|\/)\.(env|git)/,
+  /^(vercel|package|package-lock)\.json$/,
+  /\.(md|sql|mjs|cjs|ts|yml|yaml|py|map|pdf|otf|ttf)$/i
+];
+const SERVABLE = new Set(['.html', '.xml', '.css', '.js', '.png', '.jpg', '.jpeg', '.webp', '.svg', '.ico', '.woff2', '.geojson', '.txt']);
+
+// Every rewrite destination in vercel.json resolves inside dist/, so each one
+// has to exist there or its clean URL 404s.
+const REWRITE_TARGETS = [
+  'home.html', 'links.html', 'attend.html', 'city/index.html',
+  'documents/index.html', 'documents/meeting-summaries.html', 'documents/agenda-summaries.html'
+];
+
+function listDist(abs = OUT, prefix = '') {
+  const out = [];
+  for (const entry of readdirSync(abs, { withFileTypes: true })) {
+    const rel = prefix + entry.name;
+    if (entry.isDirectory()) out.push(...listDist(join(abs, entry.name), rel + '/'));
+    else out.push(rel);
+  }
+  return out;
+}
+
+function checkDist(docPages) {
+  const shipped = listDist();
+  const bad = shipped.filter((f) => FORBIDDEN.some((re) => re.test(f)) || !SERVABLE.has(extname(f).toLowerCase()));
+  if (bad.length) throw new Error('dist/ contains files that must not be public:\n  ' + bad.join('\n  '));
+  const required = REWRITE_TARGETS.concat(docPages.map((d) => `${documentPath(d).slice(1)}.html`));
+  const missing = required.filter((f) => !existsSync(join(OUT, f)));
+  if (missing.length) throw new Error('dist/ is missing rewrite destinations:\n  ' + missing.join('\n  '));
+  return shipped.length;
 }
 
 // ---------------------------------------------------------------------
@@ -355,6 +462,7 @@ async function main() {
   cleanBodies(documents);
   const docPages = pageDocuments(documents);
 
+  if (!DRY_RUN) console.log(`copied   ${copyPublicFiles()} public files into dist/`);
   console.log(`fetched  ${meetings.length} meetings, ${editorials.length} editorials, ${cities.length} cities, ${documents.length} documents, ${schedule.length} scheduled meetings`);
 
   if (!meetings.length) throw new Error('Supabase returned zero meetings; refusing to publish an empty tracker.');
@@ -362,7 +470,6 @@ async function main() {
 
   // --- per-meeting pages, from meetings.html as the shell -----------------
   const shellSource = read('meetings.html');
-  if (!DRY_RUN) mkdirSync(join(ROOT, 'meetings'), { recursive: true });
 
   meetings.forEach((meeting, i) => {
     const page = buildMeetingPage(shellSource, meeting, {
@@ -396,9 +503,6 @@ async function main() {
 
   // --- document pages, from documents/index.html as the shell -------------
   const docShellSource = read('documents/index.html');
-  for (const type of Object.keys(DOC_TYPES)) {
-    if (!DRY_RUN) mkdirSync(join(ROOT, 'documents', type), { recursive: true });
-  }
   for (const doc of docPages) {
     write(`${documentPath(doc).slice(1)}.html`, buildDocumentPage(docShellSource, docView, doc, documents));
   }
@@ -553,6 +657,8 @@ async function main() {
   ];
   const result = writeSitemap(entries);
   console.log(`sitemap  ${result.urls} URLs across ${result.files} file(s)`);
+
+  if (!DRY_RUN) console.log(`checked  dist/ holds ${checkDist(docPages)} files, all public`);
 
   console.log(`\ndone in ${Date.now() - t0}ms, ${written.length} files ${DRY_RUN ? 'would be ' : ''}written`);
 }

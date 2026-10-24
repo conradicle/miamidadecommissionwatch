@@ -10,7 +10,7 @@
     {
       "name": "static-preview",
       "runtimeExecutable": "python3",
-      "runtimeArgs": ["-m", "http.server", "4321"],
+      "runtimeArgs": ["-m", "http.server", "4321", "--directory", "dist"],
       "port": 4321
     }
   ]
