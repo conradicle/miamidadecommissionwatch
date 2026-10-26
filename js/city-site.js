@@ -122,13 +122,17 @@
       : 'This page is served from a city subdomain. Open it at a city address to see that city’s coverage.');
     notice('If you think this city should be covered, you can request it on the county site.');
 
-    setHtml('city-what', '');
-    setHtml('city-officials', '');
-    setHtml('city-map-intro', emptyState('No city selected.'));
-    setHtml('city-map-mount', '');
-    setHtml('city-meetings', '');
-    setHtml('city-comment', '');
+    // With no city there is nothing to put under any section heading, so the
+    // sections go, and so do the nav links that would jump to them.
+    UNKNOWN_HIDDEN_SECTIONS.forEach(function (id) {
+      var section = el(id);
+      if (section) section.style.display = 'none';
+      var link = document.querySelector('#site-nav a[href="#' + id + '"]');
+      if (link) link.style.display = 'none';
+    });
   }
+
+  var UNKNOWN_HIDDEN_SECTIONS = ['whatitdoes', 'officials', 'map', 'meetings', 'comment'];
 
   function renderError() {
     setText('city-lede', 'Something went wrong loading this city’s coverage.');
