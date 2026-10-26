@@ -123,13 +123,15 @@
     return line + '.';
   }
 
-  // "All seven officials represent you", counted from the roster rather than
-  // assumed, so a vacancy or an extra seat never makes the sentence wrong.
+  // "All seven officials represent the whole city, including you", counted
+  // from the roster rather than assumed, so a vacancy or an extra seat never
+  // makes the sentence wrong.
   function everyoneLine(officials) {
     var n = officials.length;
     var text = n
-      ? 'All ' + (NUMBER_WORDS[n] || n) + ' official' + (n === 1 ? '' : 's') + ' represent you.'
-      : 'Every member of the commission represents you.';
+      ? 'All ' + (NUMBER_WORDS[n] || n) + ' official' + (n === 1 ? '' : 's') +
+        ' represent' + (n === 1 ? 's' : '') + ' the whole city, including you.'
+      : 'Every member of the commission represents the whole city, including you.';
     return '<a href="#officials">' + text + '</a>';
   }
 
@@ -241,6 +243,25 @@
     });
   }
 
+  // Frame the whole boundary. fitBounds needs the map's on-screen size: a map
+  // built while it has none (a hidden or backgrounded tab) fits a 0x0 box and
+  // lands at maximum zoom on the middle of the outline, which reads as a
+  // close-up of whatever is there. So fit again once it has real dimensions.
+  function fitToLayer(map, layer) {
+    var bounds = layer.getBounds();
+    map.fitBounds(bounds, { padding: [20, 20] });
+
+    var node = map.getContainer();
+    if ((node.clientWidth && node.clientHeight) || typeof ResizeObserver === 'undefined') return;
+    var observer = new ResizeObserver(function () {
+      if (!node.clientWidth || !node.clientHeight) return;
+      observer.disconnect();
+      map.invalidateSize();
+      map.fitBounds(bounds, { padding: [20, 20] });
+    });
+    observer.observe(node);
+  }
+
   // ---------- the two modes ----------
   function renderAtLarge(map, geojson, city, officials) {
     var layer = L.geoJSON(geojson, {
@@ -249,15 +270,16 @@
       }
     }).addTo(map);
 
-    map.fitBounds(layer.getBounds(), { padding: [20, 20] });
+    fitToLayer(map, layer);
 
     layer.bindPopup('<strong>' + escapeHtml(city.name) + '</strong><br>' +
       'Every commissioner is elected citywide.');
 
-    wireAddressLookup(map, city, 'Check your address', function (lng, lat, matched, marker) {
+    wireAddressLookup(map, city, 'Check my address', function (lng, lat, matched, marker) {
       marker.bindPopup(escapeHtml(matched));
       if (findFeatureForPoint(lng, lat, geojson)) {
-        setStatus('You’re in ' + escapeHtml(city.name) + '. ' + everyoneLine(officials), 'inside');
+        setStatus('That address is inside ' + escapeHtml(city.name) + ' city limits. ' +
+          'Every seat is elected citywide, so there are no districts. ' + everyoneLine(officials), 'inside');
         return null;
       }
       setStatus('That address is outside ' + escapeHtml(city.name) + ' city limits.', 'outside');
@@ -288,7 +310,7 @@
       }
     }).addTo(map);
 
-    map.fitBounds(layer.getBounds(), { padding: [20, 20] });
+    fitToLayer(map, layer);
 
     wireAddressLookup(map, city, 'Find my district', function (lng, lat, matched, marker) {
       var match = findFeatureForPoint(lng, lat, geojson);
@@ -323,7 +345,10 @@
       ? Promise.resolve(fromDatabase)
       : fetch('/assets/data/cities/' + encodeURIComponent(city.slug) + '.geojson')
           .then(function (res) {
-            if (res.status === 404) throw new Error('no boundary file');
+            // On a city subdomain a missing file is not a 404: the host
+            // rewrite answers every unknown path with the city page itself.
+            var type = res.headers.get('content-type') || '';
+            if (res.status === 404 || type.indexOf('text/html') !== -1) throw new Error('no boundary file');
             if (!res.ok) throw new Error('boundary failed to load');
             return res.json();
           });
