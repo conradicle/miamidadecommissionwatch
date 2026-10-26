@@ -60,13 +60,18 @@ a phone.
 
 | File | Source | Retrieved |
 | --- | --- | --- |
-| `miamibeach.geojson` | Miami-Dade County GIS Open Data, "Municipal Boundary" layer (gis-mdc.opendata.arcgis.com), features where `NAME = 'MIAMI BEACH'` | 2026-10-21 |
+| `miamibeach.geojson` | Miami-Dade County GIS Open Data, "Municipal Boundary" layer (gis-mdc.opendata.arcgis.com), the main `NAME = 'MIAMI BEACH'` feature only (OBJECTID 57) | 2026-10-26 |
 
 `miamibeach.geojson` is the city limits as the county draws them: one
-MultiPolygon, the main outline (with 12 holes for the other jurisdictions it
-surrounds, such as Indian Creek Village) plus one detached piece. Keep the
-holes when refreshing it: the address check treats a point inside a hole as
-outside the city.
+Polygon with no holes, from South Pointe and Government Cut north to the
+Surfside line, taking in the bay islands and the bay water inside the
+corporate limits. 890 points, 20 KB.
+
+The layer has a second feature named `MIAMI BEACH` (OBJECTID 1, about 0.3%
+of the area): a block on **Fisher Island** with 12 holes, each matching a
+small `UNINCORPORATED MIAMI-DADE` parcel. Fisher Island is unincorporated, and
+merging that feature in made the map outline a patch of Fisher Island in
+parcel-shaped pieces (October 2026). Leave it out.
 
 ### Refreshing a city limits file
 
@@ -75,14 +80,16 @@ The layer is served at
 
 1. Download the whole layer as WGS84 GeoJSON:
    `<layer url>/query?where=1%3D1&outFields=*&outSR=4326&f=geojson`
-2. Keep the features whose `NAME` is the city (uppercase, e.g. `MIAMI BEACH`;
-   a city can have more than one feature) and merge them into a single
-   MultiPolygon Feature with `name`, `source` and `retrieved` properties.
+2. List the features whose `NAME` is the city (uppercase, e.g. `MIAMI BEACH`)
+   with their bounding boxes and `Shape__Area` before merging anything. A
+   city can have more than one feature, and not every one is real city
+   territory (see the Fisher Island note above). Keep the ones that are, as a
+   single Feature with `name`, `source` and `retrieved` properties.
 3. Simplify and round with mapshaper:
    `npx mapshaper in.geojson -simplify 50% keep-shapes -o out.geojson precision=0.000001`
-   For Miami Beach that takes 2,359 points / 87 KB down to 1,194 points /
-   27 KB with every island and hole intact.
-4. Update the table above.
+   For Miami Beach that takes 1,777 points down to 890 / 20 KB.
+4. Check a handful of known addresses inside and just outside the city, then
+   update the table above.
 
 ## Placeholders
 
