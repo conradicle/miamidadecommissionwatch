@@ -19,7 +19,13 @@ var STUDENT_ID_LENGTH = 7;
 
 var botCheck = require('./_bot-check.js');
 
-var LIMITS = { full_name: 120 };
+var LIMITS = { full_name: 120, school_name: 200, school_email: 254 };
+
+// "Where do you go to school?" on /attend. Each answer requires different
+// fields; migration_33 enforces the same rules in the database.
+var SCHOOL_TYPES = { mdcps: true, mdc: true, other: true };
+var MDC_EMAIL = /^[^@\s]+@mymdc\.net$/;
+var EMAIL = /^[^@\s]+@[^@\s]+\.[^@\s]+$/;
 
 var COMMENT_CHOICES = { yes: true, no: false, maybe: null };
 
@@ -45,7 +51,10 @@ module.exports = async function handler(req, res) {
   var fullName = str(body.full_name).replace(/\s+/g, ' ');
   var phone = str(body.phone).replace(/\D/g, '');
   if (phone.length === 11 && phone.charAt(0) === '1') phone = phone.slice(1);
+  var schoolType = str(body.school_type);
   var studentId = str(body.mdcps_student_id).replace(/\s/g, '');
+  var schoolName = str(body.school_name).replace(/\s+/g, ' ');
+  var schoolEmail = str(body.school_email).toLowerCase();
   var comment = str(body.wants_public_comment).toLowerCase();
   var meetingDate = str(body.meeting_date);
 
@@ -55,8 +64,22 @@ module.exports = async function handler(req, res) {
   if (phone.length !== 10) {
     return fieldError(res, 'phone', 'Please enter a 10-digit phone number.');
   }
-  if (!new RegExp('^[0-9]{' + STUDENT_ID_LENGTH + '}$').test(studentId)) {
+  if (!Object.prototype.hasOwnProperty.call(SCHOOL_TYPES, schoolType)) {
+    return fieldError(res, 'school_type', 'Please choose where you go to school.');
+  }
+  if (schoolType === 'mdcps' && !new RegExp('^[0-9]{' + STUDENT_ID_LENGTH + '}$').test(studentId)) {
     return fieldError(res, 'mdcps_student_id', 'Your MDCPS student ID is ' + STUDENT_ID_LENGTH + ' digits, numbers only.');
+  }
+  if (schoolType === 'mdc' && (!MDC_EMAIL.test(schoolEmail) || schoolEmail.length > LIMITS.school_email)) {
+    return fieldError(res, 'school_email', 'Enter your Miami Dade College email, ending in @mymdc.net.');
+  }
+  if (schoolType === 'other') {
+    if (schoolName.length < 2 || schoolName.length > LIMITS.school_name) {
+      return fieldError(res, 'school_name', 'Please enter the name of your school.');
+    }
+    if (!EMAIL.test(schoolEmail) || schoolEmail.length > LIMITS.school_email) {
+      return fieldError(res, 'school_email', 'Please enter your school email.');
+    }
   }
   if (!Object.prototype.hasOwnProperty.call(COMMENT_CHOICES, comment)) {
     return fieldError(res, 'wants_public_comment', 'Please choose yes, no, or maybe.');
@@ -96,8 +119,12 @@ module.exports = async function handler(req, res) {
       return;
     }
 
+    // One sign-up per person per meeting: MDCPS students by student ID,
+    // college students by school email (both unique per meeting, migration_33).
+    // Fields that don't belong to the chosen school type are saved as null.
+    var conflictKey = schoolType === 'mdcps' ? 'meeting_id,mdcps_student_id' : 'meeting_id,school_email';
     var insertRes = await fetch(
-      SUPABASE_URL + '/rest/v1/bcc_signups?on_conflict=meeting_id,mdcps_student_id',
+      SUPABASE_URL + '/rest/v1/bcc_signups?on_conflict=' + conflictKey,
       {
         method: 'POST',
         headers: Object.assign({ Prefer: 'resolution=merge-duplicates,return=minimal' }, serviceHeaders),
@@ -105,7 +132,10 @@ module.exports = async function handler(req, res) {
           meeting_id: meeting.id,
           full_name: fullName,
           phone: phone,
-          mdcps_student_id: studentId,
+          school_type: schoolType,
+          mdcps_student_id: schoolType === 'mdcps' ? studentId : null,
+          school_name: schoolType === 'other' ? schoolName : null,
+          school_email: schoolType === 'mdcps' ? null : schoolEmail,
           wants_public_comment: COMMENT_CHOICES[comment]
         })
       }
