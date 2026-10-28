@@ -42,7 +42,7 @@
   .attend-facts dd { margin: 0; color: var(--doc-ink); font-size: 16px; }
   .attend-callout { margin: 0; padding: 12px 14px; background: var(--doc-cream); border-left: 4px solid var(--doc-gold); border-radius: 0 var(--radius) var(--radius) 0; font-size: 15px; color: var(--doc-ink); }
   /* 16px keeps iOS from zooming the page when a field is focused. */
-  .attend-card .field input { font-size: 16px; padding: 12px 14px; min-height: 48px; background: #fff; }
+  .attend-card .field input, .attend-card .field select { font-size: 16px; padding: 12px 14px; min-height: 48px; background: #fff; }
   .attend-choice { border: none; padding: 0; margin: 0 0 16px; }
   .attend-choice legend { font-weight: 600; font-size: 15px; margin-bottom: 8px; padding: 0; }
   .attend-choice-row { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; }
@@ -52,7 +52,7 @@
   .attend-hint { font-size: 14px; color: var(--doc-muted); margin: 8px 0 0; }
   .attend-why { font-size: 14px; color: var(--doc-ink); background: var(--doc-cream); border-radius: var(--radius); padding: 12px 14px; margin-bottom: 16px; }
   .attend-field-error { color: var(--red-600); font-size: 14px; margin: 6px 0 0; }
-  .field input[aria-invalid="true"] { border-color: var(--red-600); }
+  .field input[aria-invalid="true"], .field select[aria-invalid="true"] { border-color: var(--red-600); }
   .attend-turnstile { min-height: 65px; margin-bottom: 12px; }
   .attend-btn { display: block; width: 100%; text-align: center; padding: 14px 22px; font-size: 16px; }
   .attend-btn[disabled] { opacity: .6; cursor: wait; transform: none; }
@@ -185,9 +185,45 @@
           </div>
 
           <div class="field">
-            <label for="attend-student-id">MDCPS student ID</label>
-            <input type="text" id="attend-student-id" name="mdcps_student_id" inputmode="numeric" autocomplete="off" pattern="[0-9]*" maxlength="12" required aria-describedby="attend-why">
-            <p class="attend-field-error" id="attend-student-id-error" hidden></p>
+            <label for="attend-school-type">Where do you go to school?</label>
+            <select id="attend-school-type" name="school_type" required>
+              <option value="" selected disabled>Choose one</option>
+              <option value="mdcps">MDCPS high school</option>
+              <option value="mdc">Miami Dade College</option>
+              <option value="other">Other college or university</option>
+            </select>
+            <p class="attend-field-error" id="attend-school-type-error" hidden></p>
+          </div>
+
+          <!-- One of these shows, by the answer above (js/attend.js). -->
+          <div id="attend-school-mdcps" hidden>
+            <div class="field">
+              <label for="attend-student-id">MDCPS student ID</label>
+              <input type="text" id="attend-student-id" name="mdcps_student_id" inputmode="numeric" autocomplete="off" pattern="[0-9]*" maxlength="12" required aria-describedby="attend-why">
+              <p class="attend-field-error" id="attend-student-id-error" hidden></p>
+            </div>
+          </div>
+
+          <div id="attend-school-mdc" hidden>
+            <div class="field">
+              <label for="attend-mdc-email">School email</label>
+              <input type="email" id="attend-mdc-email" name="school_email" autocomplete="email" placeholder="you@mymdc.net" maxlength="254" required aria-describedby="attend-mdc-email-hint">
+              <p class="attend-hint" id="attend-mdc-email-hint">Your Miami Dade College email, ending in @mymdc.net.</p>
+              <p class="attend-field-error" id="attend-mdc-email-error" hidden></p>
+            </div>
+          </div>
+
+          <div id="attend-school-other" hidden>
+            <div class="field">
+              <label for="attend-school-name">School name</label>
+              <input type="text" id="attend-school-name" name="school_name" autocomplete="organization" maxlength="200" required>
+              <p class="attend-field-error" id="attend-school-name-error" hidden></p>
+            </div>
+            <div class="field">
+              <label for="attend-other-email">School email</label>
+              <input type="email" id="attend-other-email" name="school_email" autocomplete="email" maxlength="254" required>
+              <p class="attend-field-error" id="attend-other-email-error" hidden></p>
+            </div>
           </div>
 
           <fieldset class="field attend-choice" id="attend-comment">
@@ -293,7 +329,7 @@
 <script src="/js/main.js?v=20261019b"></script>
 <script src="/js/newsletter.js?v=20261024"></script>
 <script src="/js/next-bcc-meeting.js?v=20261021"></script>
-<script src="/js/attend.js?v=20261024"></script>
+<script src="/js/attend.js?v=20261028"></script>
 <script src="https://challenges.cloudflare.com/turnstile/v0/api.js?render=explicit&onload=onTurnstileReady" async defer></script>
 <script src="/js/translate.js?v=20260820"></script>
 <script src="https://translate.google.com/translate_a/element.js?cb=googleTranslateElementInit"></script>

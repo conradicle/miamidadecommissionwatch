@@ -66,12 +66,33 @@
   var FIELDS = {
     full_name: { input: 'attend-name', error: 'attend-name-error' },
     phone: { input: 'attend-phone', error: 'attend-phone-error' },
+    school_type: { input: 'attend-school-type', error: 'attend-school-type-error' },
     mdcps_student_id: { input: 'attend-student-id', error: 'attend-student-id-error' },
+    mdc_email: { input: 'attend-mdc-email', error: 'attend-mdc-email-error' },
+    school_name: { input: 'attend-school-name', error: 'attend-school-name-error' },
+    other_email: { input: 'attend-other-email', error: 'attend-other-email-error' },
     wants_public_comment: { input: null, error: 'attend-comment-error' }
   };
 
+  // Which conditional block each answer to "Where do you go to school?" shows.
+  var SCHOOL_BLOCKS = { mdcps: 'attend-school-mdcps', mdc: 'attend-school-mdc', other: 'attend-school-other' };
+
+  function schoolType() { return el('attend-school-type').value; }
+
+  function onSchoolTypeChange() {
+    var type = schoolType();
+    Object.keys(SCHOOL_BLOCKS).forEach(function (k) { el(SCHOOL_BLOCKS[k]).hidden = k !== type; });
+    fieldError('school_type', '');
+  }
+
+  // The server names the email field school_email whichever block it's in.
+  function fieldKey(name) {
+    if (name === 'school_email') return schoolType() === 'mdc' ? 'mdc_email' : 'other_email';
+    return name;
+  }
+
   function fieldError(name, message) {
-    var f = FIELDS[name];
+    var f = FIELDS[fieldKey(name)];
     if (!f) return;
     var err = el(f.error);
     err.textContent = message || '';
@@ -86,12 +107,20 @@
 
   function values() {
     var choice = document.querySelector('input[name="wants_public_comment"]:checked');
-    return {
+    var v = {
       full_name: el('attend-name').value.trim(),
       phone: el('attend-phone').value.trim(),
-      mdcps_student_id: el('attend-student-id').value.replace(/\s/g, ''),
+      school_type: schoolType(),
       wants_public_comment: choice ? choice.value : ''
     };
+    // Only the visible block's fields are sent.
+    if (v.school_type === 'mdcps') v.mdcps_student_id = el('attend-student-id').value.replace(/\s/g, '');
+    if (v.school_type === 'mdc') v.school_email = el('attend-mdc-email').value.trim();
+    if (v.school_type === 'other') {
+      v.school_name = el('attend-school-name').value.trim().replace(/\s+/g, ' ');
+      v.school_email = el('attend-other-email').value.trim();
+    }
+    return v;
   }
 
   // Format checks only. The exact student ID length is checked on the server
@@ -103,13 +132,19 @@
     var digits = v.phone.replace(/\D/g, '');
     if (digits.length === 11 && digits.charAt(0) === '1') digits = digits.slice(1);
     if (digits.length !== 10) bad('phone', 'Please enter a 10-digit phone number.');
-    if (!/^[0-9]+$/.test(v.mdcps_student_id)) bad('mdcps_student_id', 'Enter your MDCPS student ID, numbers only.');
+    if (!v.school_type) bad('school_type', 'Please choose where you go to school.');
+    if (v.school_type === 'mdcps' && !/^[0-9]+$/.test(v.mdcps_student_id)) bad('mdcps_student_id', 'Enter your MDCPS student ID, numbers only.');
+    if (v.school_type === 'mdc' && !/^[^@\s]+@mymdc\.net$/i.test(v.school_email)) bad('mdc_email', 'Enter your Miami Dade College email, ending in @mymdc.net.');
+    if (v.school_type === 'other') {
+      if (v.school_name.length < 2) bad('school_name', 'Please enter the name of your school.');
+      if (!/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(v.school_email)) bad('other_email', 'Please enter your school email.');
+    }
     if (!v.wants_public_comment) bad('wants_public_comment', 'Please choose yes, maybe, or no.');
     return firstBad;
   }
 
   function focusField(name) {
-    var f = FIELDS[name];
+    var f = FIELDS[fieldKey(name)];
     var node = f && f.input ? el(f.input) : document.querySelector('input[name="wants_public_comment"]');
     if (node) node.focus();
   }
@@ -165,7 +200,7 @@
           show('attend-closed');
           return;
         }
-        if (data.field && FIELDS[data.field]) {
+        if (data.field && FIELDS[fieldKey(data.field)]) {
           fieldError(data.field, data.error);
           focusField(data.field);
           return;
@@ -211,6 +246,9 @@
 
   document.addEventListener('DOMContentLoaded', function () {
     el('attend-form').addEventListener('submit', onSubmit);
+    el('attend-school-type').addEventListener('change', onSchoolTypeChange);
+    // A browser restoring the form on back/forward keeps the select's value.
+    onSchoolTypeChange();
     load();
   });
 })();
