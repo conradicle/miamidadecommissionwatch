@@ -276,7 +276,7 @@
     el('bcc-roster-heading').textContent = m ? 'Roster: ' + formatDate(m.meeting_date) : 'Roster';
     el('bcc-roster-body').innerHTML = '<p class="stat-empty">Loading&hellip;</p>';
     supabaseClient.from('bcc_signups')
-      .select('id, full_name, phone, mdcps_student_id, wants_public_comment, created_at')
+      .select('id, full_name, phone, school_type, school_name, school_email, mdcps_student_id, wants_public_comment, created_at')
       .eq('meeting_id', id)
       .order('created_at', { ascending: true })
       .then(function (res) {
@@ -314,20 +314,29 @@
     }
     el('bcc-roster-body').innerHTML =
       '<div class="bcc-table-wrap"><table class="bcc-table"><thead><tr>' +
-        '<th>#</th><th>Name</th><th>Phone</th><th>Student ID</th><th>Public comment</th><th>Signed up</th><th></th>' +
+        '<th>#</th><th>Name</th><th>Phone</th><th>School</th><th>Student ID</th><th>School email</th><th>Public comment</th><th>Signed up</th><th></th>' +
       '</tr></thead><tbody>' +
       rows.map(function (r, i) {
         return '<tr>' +
           '<td>' + (i + 1) + '</td>' +
           '<td>' + escapeHtml(r.full_name) + '</td>' +
           '<td><a href="tel:+1' + escapeHtml(r.phone) + '">' + escapeHtml(formatPhone(r.phone)) + '</a></td>' +
-          '<td class="mono">' + escapeHtml(r.mdcps_student_id) + '</td>' +
+          '<td>' + escapeHtml(schoolLabel(r)) + '</td>' +
+          '<td class="mono">' + escapeHtml(r.mdcps_student_id || '') + '</td>' +
+          '<td>' + (r.school_email ? '<a href="mailto:' + escapeHtml(r.school_email) + '">' + escapeHtml(r.school_email) + '</a>' : '') + '</td>' +
           '<td>' + commentLabel(r.wants_public_comment) + '</td>' +
           '<td>' + escapeHtml(formatStamp(r.created_at)) + '</td>' +
           '<td><button type="button" class="btn btn-danger btn-small" data-delete-signup="' + escapeHtml(r.id) + '">Delete</button></td>' +
         '</tr>';
       }).join('') +
       '</tbody></table></div>';
+  }
+
+  // school_type and its fields: migration_33.
+  function schoolLabel(r) {
+    if (r.school_type === 'mdc') return 'Miami Dade College';
+    if (r.school_type === 'other') return r.school_name || 'Other college or university';
+    return 'MDCPS high school';
   }
 
   function deleteSignup(id) {
@@ -356,9 +365,9 @@
   function exportCsv() {
     var rows = filteredRoster();
     var m = meetings.filter(function (x) { return x.id === rosterMeetingId; })[0];
-    var lines = [['Name', 'Phone', 'MDCPS student ID', 'Public comment', 'Signed up'].map(csvCell).join(',')];
+    var lines = [['Name', 'Phone', 'School', 'MDCPS student ID', 'School email', 'Public comment', 'Signed up'].map(csvCell).join(',')];
     rows.forEach(function (r) {
-      lines.push([r.full_name, formatPhone(r.phone), r.mdcps_student_id, commentLabel(r.wants_public_comment),
+      lines.push([r.full_name, formatPhone(r.phone), schoolLabel(r), r.mdcps_student_id, r.school_email, commentLabel(r.wants_public_comment),
         formatStamp(r.created_at)].map(csvCell).join(','));
     });
     var blob = new Blob(['﻿' + lines.join('\r\n') + '\r\n'], { type: 'text/csv;charset=utf-8' });
