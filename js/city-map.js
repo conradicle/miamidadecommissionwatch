@@ -217,8 +217,14 @@
 
       setStatus('Looking up that address…');
 
-      fetch('/api/geocode?address=' + encodeURIComponent(geocodeQuery(address, city)))
-        .then(function (res) { return res.json(); })
+      fetch('/api/geocode', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ address: geocodeQuery(address, city) })
+      }).then(function (res) {
+          if (!res.ok) throw new Error('geocode request failed');
+          return res.json();
+        })
         .then(function (data) {
           var matches = data && data.result && data.result.addressMatches;
           if (!matches || !matches.length) {

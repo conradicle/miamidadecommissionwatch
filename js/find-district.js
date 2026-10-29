@@ -87,10 +87,17 @@
   // Errors are returned as a { error: code } result rather than thrown, so
   // callers can map each case to its own wording without string-matching.
   function lookup(address) {
-    var url = '/api/geocode?address=' + encodeURIComponent(address + ', Miami-Dade County, FL');
+    var url = '/api/geocode';
 
     return Promise.all([
-      fetch(url).then(function (res) { return res.json(); }),
+      fetch(url, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ address: address + ', Miami-Dade County, FL' })
+      }).then(function (res) {
+        if (!res.ok) throw new Error('geocode request failed');
+        return res.json();
+      }),
       loadBoundaries()
     ]).then(function (results) {
       var data = results[0];

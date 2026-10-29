@@ -1,11 +1,22 @@
 // Proxies address lookups to the Census Bureau geocoder, which does not send
 // CORS headers and so cannot be called directly from browser JS.
 module.exports = async function handler(req, res) {
-  var address = req.query.address;
+  // Keep GET temporarily for visitors with the previous cached client.
+  // New clients send addresses in the body to keep them out of site URL logs.
+  res.setHeader('Cache-Control', 'no-store');
+  if (req.method !== 'POST' && req.method !== 'GET') {
+    res.setHeader('Allow', 'GET, POST');
+    return res.status(405).json({ error: 'Method not allowed' });
+  }
+  var address = req.method === 'POST'
+    ? (req.body && req.body.address)
+    : (req.query && req.query.address);
   if (!address || typeof address !== 'string') {
     res.status(400).json({ error: 'Missing address parameter' });
     return;
   }
+  address = address.trim();
+  if (!address) return res.status(400).json({ error: 'Missing address parameter' });
   // No real address is anywhere near this long; reject early rather than
   // relaying an oversized query to the Census API on this proxy's dime.
   if (address.length > 200) {
@@ -28,7 +39,10 @@ module.exports = async function handler(req, res) {
     '&benchmark=Public_AR_Current&format=json';
 
   try {
-    var censusRes = await fetch(url);
+    var censusRes = await fetch(url, { signal: AbortSignal.timeout(10000) });
+    if (!censusRes.ok) {
+      return res.status(502).json({ error: 'Census geocoding service is unavailable' });
+    }
     var data = await censusRes.json();
     res.status(200).json(data);
   } catch (err) {
