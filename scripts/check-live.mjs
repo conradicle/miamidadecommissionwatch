@@ -22,9 +22,11 @@
 // and exits non-zero so the run shows as failed.
 //
 // It also checks the document library: every published document has its
-// page, and every PDF link on that page is on our own domain
-// (/documents/files/..., the rewrite in vercel.json) and really serves a
-// PDF. To run that against a preview deployment instead of the live site:
+// page, and every PDF link of our own on that page (relative, or on the
+// www host) is under /documents/files/ (the rewrite in vercel.json) and
+// really serves a PDF. Links to other hosts, like the county's source
+// PDFs, are not checked. To run that against a preview deployment
+// instead of the live site:
 //
 //   CHECK_SITE=https://<preview>.vercel.app node scripts/check-live.mjs
 //
@@ -98,10 +100,25 @@ async function checkMeetings() {
   return { what: 'meetings on /meetings.html', ...setDiff(expected, actual) };
 }
 
-// Published documents: the page exists, and its PDF links point at our own
-// domain and answer with a PDF. A missing page is drift (a rebuild fixes
-// it); a broken or off-domain PDF link is a fault a rebuild will not fix,
-// so it is reported in `faults` and fails the run.
+// The path of an href if it is one of our own links (relative, or absolute
+// on the production host), otherwise null. Relative hrefs resolve against
+// the page on the production host so a preview run classifies them the
+// same way.
+function ownPath(href, page) {
+  let url;
+  try {
+    url = new URL(href, PRODUCTION + page);
+  } catch {
+    return null;
+  }
+  return url.host === new URL(PRODUCTION).host ? url.pathname + url.search : null;
+}
+
+// Published documents: the page exists, has at least one PDF download link
+// of our own, and each of those is under /documents/files/ and answers with
+// a PDF. Links to other hosts (the county's source PDFs) are ignored. A
+// missing page is drift (a rebuild fixes it); a broken PDF link is a fault a
+// rebuild will not fix, so it is reported in `faults` and fails the run.
 async function checkDocuments() {
   const docs = pageDocuments(await fetchDocuments());
   const expected = new Set(docs.map(documentPath));
@@ -117,11 +134,15 @@ async function checkDocuments() {
     }
     if (html.includes(doc.document_number)) actual.add(path);
     if (/supabase\.co\/storage/.test(html)) faults.push(`${path}: page links to a Supabase storage address`);
-    const pdfs = [...html.matchAll(/href="([^"]+\.pdf)"/g)].map((m) => m[1]);
+    // Only our own download links count. Document bodies also cite the
+    // county's source PDFs on miamidade.gov, which are not ours to check.
+    const pdfs = [...html.matchAll(/href="([^"]+\.pdf)"/g)]
+      .map((m) => ownPath(m[1], path))
+      .filter((p) => p !== null);
     if (!pdfs.length) faults.push(`${path}: no PDF link on the page`);
     for (const href of new Set(pdfs)) {
       if (!href.startsWith('/documents/files/')) {
-        faults.push(`${path}: PDF link is not on our domain: ${href}`);
+        faults.push(`${path}: PDF link is not under /documents/files/: ${href}`);
         continue;
       }
       const res = await fetch(SITE + href, { headers: requestHeaders() });
