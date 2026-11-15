@@ -27,8 +27,9 @@
 <link rel="icon" type="image/png" sizes="32x32" href="assets/img/favicon-32x32.png">
 <link rel="icon" type="image/png" sizes="16x16" href="assets/img/favicon-16x16.png">
 <link rel="apple-touch-icon" sizes="180x180" href="assets/img/apple-touch-icon.png">
-<link rel="stylesheet" href="css/style.css?v=20261021">
+<link rel="stylesheet" href="css/style.css?v=20261115">
 <link rel="stylesheet" href="css/document.css?v=20261019c">
+<link rel="stylesheet" href="css/site-shell.css?v=20261115">
 <!-- build:jsonld -->
 <script type="application/ld+json">{"@context":"https://schema.org","@type":"NewsMediaOrganization","@id":"https://www.miamidadecommissionwatch.com/#organization","name":"Miami-Dade Commission Watch","alternateName":["Miami Dade Commission Watch","MDCW","Miami-Dade County Commission Watch"],"url":"https://www.miamidadecommissionwatch.com/","logo":{"@type":"ImageObject","url":"https://www.miamidadecommissionwatch.com/assets/img/og-image.png","width":1200,"height":630},"image":"https://www.miamidadecommissionwatch.com/assets/img/og-image.png","description":"Independent, nonpartisan tracking of the Miami-Dade County Board of County Commissioners: plain-language meeting summaries, a commissioner directory, and ways to get involved.","founder":[{"@type":"Person","name":"Conrad Gelber"},{"@type":"Person","name":"Daniel Llobet"}],"sameAs":["https://instagram.com/miamidadecommissionwatch"],"areaServed":{"@type":"AdministrativeArea","name":"Miami-Dade County, Florida"},"knowsAbout":["Miami-Dade Board of County Commissioners","Miami-Dade County government","county commission meetings","local government transparency"],"publishingPrinciples":"https://www.miamidadecommissionwatch.com/about.html","isAccessibleForFree":true,"disambiguatingDescription":"An independent, student-run civic project. Not affiliated with, operated by, or endorsed by Miami-Dade County government."}</script>
 <script type="application/ld+json">{"@context":"https://schema.org","@type":"WebSite","@id":"https://www.miamidadecommissionwatch.com/#website","url":"https://www.miamidadecommissionwatch.com/","name":"Miami-Dade Commission Watch","inLanguage":"en-US","publisher":{"@id":"https://www.miamidadecommissionwatch.com/#organization"}}</script>
@@ -54,7 +55,7 @@
           <svg viewBox="0 0 24 24" aria-hidden="true"><rect x="2" y="2" width="20" height="20" rx="6" fill="none" stroke="currentColor" stroke-width="2"/><circle cx="12" cy="12" r="5" fill="none" stroke="currentColor" stroke-width="2"/><circle cx="17.5" cy="6.5" r="1.3" fill="currentColor"/></svg>
         </a>
       </div>
-      <button class="nav-toggle" aria-expanded="false" aria-controls="site-nav">Menu</button>
+      <button class="nav-toggle" aria-expanded="false" aria-controls="site-nav" aria-label="Open navigation"><span></span><span></span><span></span></button>
     </div>
   </div>
   <div class="header-newsletter">
@@ -85,6 +86,7 @@
     <a href="municipalities.html">Cover Your City</a>
     <a href="get-involved.html">Get Involved</a>
     <a href="news.html">Student Editorials</a>
+    <a href="local-government-101.html">Local government 101</a>
     <a href="about.html">About</a>
   </nav>
 </header>
@@ -146,10 +148,16 @@
     </div>
   </section>
 
-  <!-- The stat strip that used to sit here repeated the 13-districts and
-       3-languages figures already shown on the seal above it, and told a
-       returning visitor nothing they didn't know. What changed since they last
-       looked is more useful, so that goes here instead. -->
+  <section class="beginner-promo wrap" aria-labelledby="beginner-promo-title">
+    <div class="beginner-box">
+      <div>
+        <h2 id="beginner-promo-title">New to local government? Start here.</h2>
+        <p>Who makes the decisions, what they mean for your neighborhood, and how you can have a say. We'll walk you through it.</p>
+      </div>
+      <a class="guide-link" href="local-government-101.html">Your beginner's guide <span aria-hidden="true">&#8594;</span></a>
+    </div>
+  </section>
+
   <section class="section" id="latest-documents" aria-labelledby="latest-documents-heading">
     <div class="wrap">
       <div class="section-head">
@@ -163,6 +171,7 @@
 <!-- build:home-documents -->
 <p><a href="/documents">Meeting and Agenda Summaries &#8594;</a></p>
 <!-- /build:home-documents -->
+      <div class="summary-all"><a href="/documents">View all Meeting and Agenda Summaries <span aria-hidden="true">&#8594;</span></a></div>
     </div>
   </section>
 
@@ -304,6 +313,7 @@
 <script src="js/next-bcc-meeting.js?v=20261021"></script>
 <script src="js/home.js?v=20261021"></script>
 <script src="js/translate.js?v=20260820"></script>
+<script src="js/site-menu.js?v=20261115"></script>
 <script src="https://translate.google.com/translate_a/element.js?cb=googleTranslateElementInit"></script>
 </body>
 </html>

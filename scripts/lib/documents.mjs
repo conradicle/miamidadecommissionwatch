@@ -134,11 +134,27 @@ export function renderFilterOptions(docs, docType) {
 }
 
 // The newest document of a type, as a card. Used on /documents and the
-// homepage.
-export function renderLatestCard(docs, docType, { headingLevel = 3 } = {}) {
+// homepage. compact: true is the homepage's version, one link per card with
+// the type and date and a one-line description, styled in css/site-shell.css.
+const COMPACT_BLURB = {
+  'meeting-summary': 'What passed, the votes, and what happens next.',
+  'agenda-summary': "What's coming before the commission, explained simply."
+};
+
+export function renderLatestCard(docs, docType, { headingLevel = 3, compact = false } = {}) {
   const type = DOC_TYPES[docType];
   const doc = pageDocuments(docs).find((d) => d.doc_type === docType);
   const h = `h${headingLevel}`;
+  if (compact) {
+    const href = doc ? documentPath(doc) : type.index;
+    const blurb = doc ? (COMPACT_BLURB[docType] || type.blurb) : 'The next summary will appear here when published.';
+    return `<a class="summary-card" href="${esc(href)}">` +
+      `<${h}>Latest ${esc(type.label)}` +
+      (doc ? `<time datetime="${esc(doc.meeting_date)}">${esc(formatDate(doc.meeting_date))}</time>` : '') +
+      `</${h}><p>${esc(blurb)}</p>` +
+      `<span class="summary-arrow" aria-hidden="true">&#8594;</span>` +
+      `<span class="doc-visually-hidden">${doc ? 'Read this summary' : 'Browse summaries'}</span></a>`;
+  }
   if (!doc) {
     return `<div class="doc-latest doc-latest-empty">` +
       `<span class="doc-latest-type">Latest ${esc(type.label)}</span>` +

@@ -248,6 +248,14 @@ section[id] { scroll-margin-top: 140px; }
   .site-header .wrap { padding: 16px; gap: 12px; }
   .header-actions { gap: 8px; }
 }
+/* On phones the header row holds the wordmark, EN/ES/HT, the Instagram link
+   and the hamburger. Where they do not fit on one line (about 520px and
+   below), the buttons drop to a second row instead of squeezing the wordmark
+   onto four lines. */
+@media (max-width: 700px) {
+  .site-header .wrap { flex-wrap: wrap; row-gap: 10px; }
+  .header-actions { margin-left: auto; }
+}
 .lang-toggle {
   display: flex;
   border: 1px solid rgba(255,255,255,0.4);
@@ -310,7 +318,7 @@ iframe.skiptranslate { display: none !important; }
   text-transform: uppercase;
   letter-spacing: 0.06em;
 }
-@media (min-width: 640px) {
+@media (min-width: 701px) {
   .wordmark .tagline { display: inline; }
 }
 
@@ -327,16 +335,14 @@ iframe.skiptranslate { display: none !important; }
   font-size: 15px;
   cursor: pointer;
 }
-@media (min-width: 860px) {
+@media (min-width: 701px) {
   .nav-toggle { display: none; }
 }
 
-/* Header icon is redundant with the footer's Connect column and (on the
-   homepage) the follow section, so drop it first when space is tight. */
-.site-header .social-icons { display: none; }
-@media (min-width: 480px) {
-  .site-header .social-icons { display: flex; }
-}
+/* The language buttons and the Instagram link stay in the header at every
+   width; the full nav shows above 700px and folds into the hamburger at
+   700px and below (js/site-menu.js uses the same breakpoint). */
+.site-header .social-icons { display: flex; }
 
 .site-nav {
   display: none;
@@ -376,7 +382,7 @@ iframe.skiptranslate { display: none !important; }
   color: #fff;
 }
 
-@media (min-width: 860px) {
+@media (min-width: 701px) {
   .site-nav {
     display: flex !important;
     position: static;
@@ -413,6 +419,13 @@ iframe.skiptranslate { display: none !important; }
     transform: scaleX(1);
   }
 }
+/* Between the phone menu and a full-width screen the nav row does not fit on
+   one line, so it wraps onto a second row, one whole link at a time. */
+@media (min-width: 701px) and (max-width: 1099px) {
+  .site-nav { flex-wrap: wrap; column-gap: 0; }
+  .site-nav a, .site-nav .nav-menu > summary { font-size: 14px; padding: 10px 7px; white-space: nowrap; }
+  .site-nav a::after { left: 7px; right: 7px; }
+}
 
 /* "Documents" menu in the primary nav. A <details>, so it opens with a
    keyboard and without JavaScript; js/main.js only closes it on an outside
@@ -448,7 +461,7 @@ iframe.skiptranslate { display: none !important; }
 .nav-menu-list { display: flex; flex-direction: column; padding: 0 0 6px 14px; }
 .site-nav .nav-menu-list a { border-bottom: none; font-weight: 500; }
 
-@media (min-width: 860px) {
+@media (min-width: 701px) {
   /* The phone menu scrolls (overflow-y: auto above); on a desktop row that
      would clip the dropdown, so it is turned off here. */
   .site-nav { overflow: visible; max-height: none; }

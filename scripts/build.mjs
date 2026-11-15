@@ -47,6 +47,7 @@ import {
 } from './lib/render.mjs';
 import { setHead, setJsonLd, upsertRegion, rewriteToRootRelative, splitShell } from './lib/page.mjs';
 import * as schema from './lib/schema.mjs';
+import { SHELL_SKIP, prepareSiteShell, applySiteShell } from './lib/site-shell.mjs';
 import {
   DOC_TYPES, TRACKER_ARCHIVE_THROUGH, TRACKER_ARCHIVE_LABEL, pageDocuments, cleanBodies,
   documentPath, documentUrl, publicPdfUrl, renderDocumentList, renderFilterOptions,
@@ -635,9 +636,9 @@ async function main() {
     let html = read('home.html');
     html = upsertRegion(html, 'next-meeting', renderNextMeeting(schedule, today), '</main>');
     html = upsertRegion(html, 'home-documents',
-      '<div class="doc-sections">' +
-      renderLatestCard(documents, 'meeting-summary') +
-      renderLatestCard(documents, 'agenda-summary') +
+      '<div class="doc-sections summary-grid">' +
+      renderLatestCard(documents, 'meeting-summary', { compact: true }) +
+      renderLatestCard(documents, 'agenda-summary', { compact: true }) +
       '</div>', '</main>');
     html = setJsonLd(html, 'jsonld', [schema.organization(), schema.website()]);
     write('home.html', html);
@@ -676,6 +677,23 @@ async function main() {
   ];
   const result = writeSitemap(entries);
   console.log(`sitemap  ${result.urls} URLs across ${result.files} file(s)`);
+
+  // --- shared header and footer (scripts/lib/site-shell.mjs) --------------
+  // Last, so it reaches every page the steps above wrote or copied. A dry run
+  // has nothing in dist/, so it runs the same step over the source pages in
+  // memory: that still catches a missing header, footer or script.
+  {
+    const shell = prepareSiteShell(read('home.html'));
+    const files = (DRY_RUN
+      ? readdirSync(ROOT).filter((f) => f.endsWith('.html')).concat(PUBLIC_FILES.files.filter((f) => f.endsWith('.html')))
+      : listDist().filter((f) => f.endsWith('.html'))
+    ).filter((f) => !SHELL_SKIP.has(f));
+    for (const file of files) {
+      const html = applySiteShell(readFileSync(join(DRY_RUN ? ROOT : OUT, file), 'utf8'), file, shell);
+      if (!DRY_RUN) writeFileSync(join(OUT, file), html);
+    }
+    console.log(`shell    shared header and footer on ${files.length} pages (${SHELL_SKIP.size} skipped by design)`);
+  }
 
   if (!DRY_RUN) console.log(`checked  dist/ holds ${checkDist(docPages)} files, all public`);
 
