@@ -124,47 +124,4 @@ document.addEventListener('DOMContentLoaded', function () {
       }
     }, { passive: true });
   }
-
-  // Scroll-reveal: fade/slide in cards as they enter the viewport. Only
-  // engages when IntersectionObserver exists; otherwise content just stays
-  // visible (the CSS only hides elements once .animate-on is added below).
-  if ('IntersectionObserver' in window) {
-    document.body.classList.add('animate-on');
-    var revealSelector = '.card, .meeting-card, .roster-card, .founder-card, .partner-card, .team-member, .stat-item, .faq-item';
-    var io = new IntersectionObserver(function (entries) {
-      entries.forEach(function (entry) {
-        if (entry.isIntersecting) {
-          entry.target.classList.add('in');
-          io.unobserve(entry.target);
-        }
-      });
-      // threshold must stay 0. A ratio threshold is a fraction of the
-      // ELEMENT, so an element taller than the viewport can never reach it:
-      // a meeting card with a full agenda runs to ~13,500px, and 12% of that
-      // is ~1,600px of a ~800px screen. It would sit at opacity:0 forever,
-      // visible for one frame before .animate-on lands and then fading out.
-      // The reveal is delayed by the rootMargin below instead, which is a
-      // fraction of the VIEWPORT and so behaves the same at any card height.
-    }, { threshold: 0, rootMargin: '0px 0px -6% 0px' });
-    document.querySelectorAll(revealSelector).forEach(function (el) {
-      io.observe(el);
-    });
-
-    // Feed scripts (editorials, news posts, meetings) fetch data and append
-    // cards after this DOMContentLoaded handler already ran, so they'd never
-    // get observed above and would stay stuck at opacity:0. Watch for those
-    // later insertions too.
-    var mo = new MutationObserver(function (mutations) {
-      mutations.forEach(function (mutation) {
-        mutation.addedNodes.forEach(function (node) {
-          if (node.nodeType !== 1) return;
-          if (node.matches(revealSelector)) io.observe(node);
-          node.querySelectorAll(revealSelector).forEach(function (el) {
-            io.observe(el);
-          });
-        });
-      });
-    });
-    mo.observe(document.body, { childList: true, subtree: true });
-  }
 });

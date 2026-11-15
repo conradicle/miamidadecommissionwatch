@@ -27,8 +27,8 @@
 <link rel="icon" type="image/png" sizes="32x32" href="assets/img/favicon-32x32.png">
 <link rel="icon" type="image/png" sizes="16x16" href="assets/img/favicon-16x16.png">
 <link rel="apple-touch-icon" sizes="180x180" href="assets/img/apple-touch-icon.png">
-<link rel="stylesheet" href="css/style.css?v=20261021">
-<link rel="stylesheet" href="css/document.css?v=20261019c">
+<link rel="stylesheet" href="css/style.css?v=20261115">
+<link rel="stylesheet" href="css/document.css?v=20261115">
 <!-- build:jsonld -->
 <script type="application/ld+json">{"@context":"https://schema.org","@type":"NewsMediaOrganization","@id":"https://www.miamidadecommissionwatch.com/#organization","name":"Miami-Dade Commission Watch","alternateName":["Miami Dade Commission Watch","MDCW","Miami-Dade County Commission Watch"],"url":"https://www.miamidadecommissionwatch.com/","logo":{"@type":"ImageObject","url":"https://www.miamidadecommissionwatch.com/assets/img/og-image.png","width":1200,"height":630},"image":"https://www.miamidadecommissionwatch.com/assets/img/og-image.png","description":"Independent, nonpartisan tracking of the Miami-Dade County Board of County Commissioners: plain-language meeting summaries, a commissioner directory, and ways to get involved.","founder":[{"@type":"Person","name":"Conrad Gelber"},{"@type":"Person","name":"Daniel Llobet"}],"sameAs":["https://instagram.com/miamidadecommissionwatch"],"areaServed":{"@type":"AdministrativeArea","name":"Miami-Dade County, Florida"},"knowsAbout":["Miami-Dade Board of County Commissioners","Miami-Dade County government","county commission meetings","local government transparency"],"publishingPrinciples":"https://www.miamidadecommissionwatch.com/about.html","isAccessibleForFree":true,"disambiguatingDescription":"An independent, student-run civic project. Not affiliated with, operated by, or endorsed by Miami-Dade County government."}</script>
 <script type="application/ld+json">{"@context":"https://schema.org","@type":"WebSite","@id":"https://www.miamidadecommissionwatch.com/#website","url":"https://www.miamidadecommissionwatch.com/","name":"Miami-Dade Commission Watch","inLanguage":"en-US","publisher":{"@id":"https://www.miamidadecommissionwatch.com/#organization"}}</script>
@@ -96,11 +96,18 @@
     <div class="wrap hero-grid">
       <div>
         <span class="eyebrow">Miami-Dade Board of County Commissioners</span>
-        <h1>What your county commission did, and why it's worth five minutes.</h1>
+        <h1>What your county commission did, and why it's worth five minutes</h1>
         <p class="lede">Thirteen commissioners, one per district, vote on the things that touch your block directly: zoning, transit, rent, permits, the budget. Miami-Dade Commission Watch reads the agendas and reports back in plain language. No spin, no endorsements.</p>
         <div class="btn-row">
           <a class="btn btn-primary" href="/documents">Read the latest summaries</a>
           <a class="btn btn-secondary" href="#find-district">Find your commissioner</a>
+        </div>
+      </div>
+
+      <div class="hero-visual">
+        <div class="seal">
+          <img class="seal-ring" src="assets/img/seal-ring.png" alt="" aria-hidden="true">
+          <img class="seal-gator" src="assets/img/seal-gator.png" alt="Miami-Dade Commission Watch seal">
         </div>
         <div class="next-meeting">
           <!-- From the meeting_schedule table (Schedule tab of the dashboard):
@@ -111,18 +118,8 @@
 <!-- build:next-meeting -->
 <!-- /build:next-meeting -->
           </div>
-          <a href="http://www.miamidade.gov/govaction/agendas.asp?Action=Agendas&amp;Oper=DisplayAgenda&amp;Agenda=CC&amp;AgendaName=Board+of+County+Commissioners" class="mono" style="font-size:13px;">Posted agendas &#8599;</a>
+          <a class="next-meeting-link" href="http://www.miamidade.gov/govaction/agendas.asp?Action=Agendas&amp;Oper=DisplayAgenda&amp;Agenda=CC&amp;AgendaName=Board+of+County+Commissioners">Posted agendas on miamidade.gov &#8599;</a>
         </div>
-      </div>
-
-      <div class="hero-visual">
-        <div class="seal">
-          <img class="seal-ring" src="assets/img/seal-ring.png" alt="" aria-hidden="true">
-          <img class="seal-gator" src="assets/img/seal-gator.png" alt="Miami-Dade Commission Watch seal">
-          <div class="seal-float sf-1"><div class="n">13</div><div class="l">Districts</div></div>
-          <div class="seal-float sf-2"><div class="n">3</div><div class="l">Languages</div></div>
-        </div>
-        <p class="text-center" style="margin-top:22px; margin-bottom:0;"><a class="btn btn-secondary" href="#find-district">Find your district &#8599;</a></p>
       </div>
     </div>
   </section>
@@ -154,9 +151,9 @@
     <div class="wrap">
       <div class="section-head">
         <span class="eyebrow">Official documents</span>
-        <h2 id="latest-documents-heading">Latest Meeting and Agenda Summaries</h2>
+        <h2 id="latest-documents-heading">Latest meeting and agenda summaries</h2>
       </div>
-      <p class="mt-0" style="max-width:65ch; color:var(--ink-600);">An Agenda Summary before each meeting, a Meeting Summary after it. Read them here or download the official PDF.</p>
+      <p class="section-copy">An Agenda Summary before each meeting, a Meeting Summary after it. Read them here or download the official PDF.</p>
       <!-- Filled at build time by scripts/build.mjs from the published
            documents. What is written here is the fallback for a build that
            has not run yet. -->
@@ -178,7 +175,7 @@
         <p class="finder-sub">One address gets you your commissioner, the next meeting, and the recent votes tagged to your district.</p>
 
         <form class="district-search-form" id="home-district-form">
-          <label for="home-district-input" class="mt-0" style="display:block; font-weight:600; margin-bottom:6px; width:100%;">Enter your address</label>
+          <label for="home-district-input" class="mt-0" style="display:block; font-weight:500; margin-bottom:8px; width:100%;">Enter your address</label>
           <input type="text" id="home-district-input" name="address" placeholder="e.g. 111 NW 1st St, Miami, FL 33128" autocomplete="street-address">
           <button type="submit" class="btn btn-primary">Find my district</button>
         </form>
@@ -189,11 +186,13 @@
     </div>
   </section>
 
-  <section class="follow-section section-alt">
+  <section class="follow-section">
     <div class="wrap">
-      <span class="eyebrow">Stay in the loop</span>
-      <h2 style="margin-bottom:4px;">Follow along on Instagram</h2>
-      <p class="mt-0" style="color:var(--ink-600);">Quick meeting recaps and reminders, between full write-ups here.</p>
+      <div>
+        <span class="eyebrow">Stay in the loop</span>
+        <h2>Follow along on Instagram</h2>
+        <p>Quick meeting recaps and reminders, between full write-ups here</p>
+      </div>
       <div class="follow-row">
         <a class="social-icon" href="https://instagram.com/miamidadecommissionwatch" target="_blank" rel="noopener" aria-label="Miami-Dade Commission Watch on Instagram">
           <svg viewBox="0 0 24 24" aria-hidden="true"><rect x="2" y="2" width="20" height="20" rx="6" fill="none" stroke="currentColor" stroke-width="2"/><circle cx="12" cy="12" r="5" fill="none" stroke="currentColor" stroke-width="2"/><circle cx="17.5" cy="6.5" r="1.3" fill="currentColor"/></svg>
@@ -203,34 +202,37 @@
     </div>
   </section>
 
-  <section class="section">
+  <section class="section section-alt">
     <div class="wrap">
       <div class="section-head">
         <span class="eyebrow">Explore</span>
         <h2>Three ways to use this site</h2>
       </div>
-      <div class="card-grid">
-        <a class="card" href="/documents">
-          <h3>Meeting and Agenda Summaries</h3>
+      <ul class="index-list">
+        <li><a href="/documents">
+          <h3>Meeting and agenda summaries</h3>
           <p>Official documents for every Board meeting: an in-depth guide to the agenda before it, and what passed or failed after it.</p>
-        </a>
-        <a class="card" href="officials.html">
-          <h3>Elected Officials</h3>
+          <span class="index-go" aria-hidden="true">&#8594;</span>
+        </a></li>
+        <li><a href="officials.html">
+          <h3>Elected officials</h3>
           <p>Who represents your district on the Board, plus the county's constitutional officers like the Sheriff and Property Appraiser.</p>
-        </a>
-        <a class="card" href="get-involved.html">
-          <h3>Get Involved</h3>
+          <span class="index-go" aria-hidden="true">&#8594;</span>
+        </a></li>
+        <li><a href="get-involved.html">
+          <h3>Get involved</h3>
           <p>How to find your district, speak at public comment, and follow along between meetings.</p>
-        </a>
-      </div>
+          <span class="index-go" aria-hidden="true">&#8594;</span>
+        </a></li>
+      </ul>
     </div>
   </section>
 
-  <section class="section section-alt">
+  <section class="section">
     <div class="wrap">
       <span class="eyebrow">Why this exists</span>
-      <h2>Local government is public. It just isn't easy to follow.</h2>
-      <p class="mt-0" style="max-width:60ch; color:var(--ink-600);">BCC agendas run hundreds of pages and are written in procedural language. Almost nobody outside of government and lobbyists reads them cover to cover, but the decisions inside them affect rent, roads, permits, and public services across the county.</p>
+      <h2>Local government is public. It just isn't easy to follow</h2>
+      <p class="section-copy">BCC agendas run hundreds of pages and are written in procedural language. Almost nobody outside of government and lobbyists reads them cover to cover, but the decisions inside them affect rent, roads, permits, and public services across the county.</p>
       <blockquote class="pull-quote">
         <p>We summarize what matters, link back to the original source for every item, and stay out of the business of telling you what to think about it.</p>
         <cite>Miami-Dade Commission Watch, editorial policy</cite>
@@ -297,7 +299,7 @@
 <div id="google_translate_element"></div>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.112.3" integrity="sha384-l8ah+VgaWtk1mvOe9VC+OirC6qHFF4yH7l7mKRidV9MSti3E9F463bMp6ZVN4kuC" crossorigin="anonymous"></script>
 <script src="js/supabase-client.js"></script>
-<script src="js/main.js?v=20261019b"></script>
+<script src="js/main.js?v=20261115"></script>
 <script src="js/newsletter.js?v=20261024"></script>
 <script src="js/mdcw-format.js?v=20260823"></script>
 <script src="js/find-district.js?v=20260823"></script>
