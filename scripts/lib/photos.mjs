@@ -43,7 +43,8 @@ function figure(p, byline, { sizes, eager = false, cls = 'photo' } = {}) {
     `<a class="photo-link" href="${esc(fullSrc(p))}" data-caption="${esc(text)}">` +
     `<img src="${esc(thumbSrc(p))}" srcset="${esc(thumbSrc(p))} ${t.w}w, ${esc(fullSrc(p))} ${p.width}w" ` +
     `sizes="${esc(sizes)}" width="${t.w}" height="${t.h}" alt="${esc(p.alt_text)}"` +
-    `${eager ? '' : ' loading="lazy"'} decoding="async"></a>` +
+    // The hero photo is on the first screen: load it first, not lazily.
+    `${eager ? ' fetchpriority="high"' : ' loading="lazy"'} decoding="async"></a>` +
     (text ? `<figcaption>${esc(text)}</figcaption>` : '') +
     '</figure>';
 }
@@ -113,8 +114,25 @@ function pick(photos, n) {
   return featured.concat(rest).slice(0, n);
 }
 
+// The top of the homepage is the most-seen spot on the site, so only a photo
+// staff marked Featured can go there: the newest one. With none featured the
+// seal stays (the fallback is home.html's own markup in that region).
+export function heroPhoto(photos) {
+  return photos.find((p) => p.is_featured) || null;
+}
+
+export function renderHeroMedia(photos, byline, fallback) {
+  const p = heroPhoto(photos);
+  if (!p) return fallback;
+  return '<div class="hero-photo" data-photo-group>' +
+    figure(p, byline, { sizes: '(min-width: 1080px) 420px, (min-width: 900px) 40vw, 92vw', eager: true, cls: 'photo photo-hero' }) +
+    '</div>';
+}
+
+// "Attend with us" shows the next photo in line, never the hero's.
 export function renderHomePhoto(photos, byline) {
-  const [p] = pick(photos, 1);
+  const hero = heroPhoto(photos);
+  const [p] = pick(photos.filter((x) => x !== hero), 1);
   if (!p) return '';
   return `<div class="attend-photo" data-photo-group>` +
     figure(p, byline, { sizes: '(min-width: 900px) 420px, 92vw', cls: 'photo photo-feature' }) +

@@ -40,7 +40,7 @@ import {
   ROOT, fetchMeetings, fetchEditorials, fetchCities, fetchDocuments, fetchSchedule, fetchPhotos,
   loadPublicByline, loadContributors, loadDocumentView
 } from './lib/data.mjs';
-import { renderGallery, renderStrip, renderHomePhoto, renderAttendPhotos } from './lib/photos.mjs';
+import { renderGallery, renderStrip, renderHeroMedia, renderHomePhoto, renderAttendPhotos } from './lib/photos.mjs';
 import { SITE_ORIGIN, formatDate, formatDateShort, isoDay, clip, escapeHtml } from './lib/fmt.mjs';
 import {
   assignMeetingPaths, meetingTouchedAt, renderMeetingList, renderItems,
@@ -641,6 +641,11 @@ async function main() {
   {
     let html = read('home.html');
     html = upsertRegion(html, 'next-meeting', renderNextMeeting(schedule, today), '</main>');
+    // The seal markup in home.html's hero-media region is the fallback when
+    // no photo is featured, so the source page stays the one place it lives.
+    const heroFallback = (/<!-- build:hero-media -->\n?([\s\S]*?)\n?<!-- \/build:hero-media -->/.exec(html) || [])[1];
+    if (heroFallback === undefined) throw new Error('home.html is missing its build:hero-media region');
+    html = upsertRegion(html, 'hero-media', renderHeroMedia(photos, publicByline, heroFallback), '</main>');
     html = upsertRegion(html, 'home-photo', renderHomePhoto(photos, publicByline), '</main>');
     html = upsertRegion(html, 'home-documents',
       '<div class="doc-sections">' +
