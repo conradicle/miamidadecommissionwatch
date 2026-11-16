@@ -1,0 +1,30 @@
+  .sr-only { position: absolute; width: 1px; height: 1px; padding: 0; margin: -1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; border: 0; }
+  .muni-covered-grid, .muni-open-grid { list-style: none; margin: 0; padding: 0; display: grid; }
+  /* Covered: the site's .card, a little larger. min() keeps a single column
+     inside the 360px viewport's content box. */
+  .muni-covered-grid { grid-template-columns: repeat(auto-fit, minmax(min(100%, 300px), 1fr)); gap: 20px; }
+  .muni-card { height: 100%; padding: 28px; }
+  .muni-card h4 { font-size: 24px; }
+  .muni-card p { font-size: 16px; }
+  .muni-card-url { display: block; margin-top: 16px; font-size: 12px; color: var(--green-700); overflow-wrap: anywhere; }
+  .card .mono { overflow-wrap: anywhere; }
+  .muni-count { margin: 20px 0 0; font-family: var(--font-mono); font-size: 14px; color: var(--ink-600); }
+  .muni-empty { color: var(--ink-600); }
+  /* Not yet covered: flat rows, no raised surface, smaller type. */
+  .muni-open-grid { grid-template-columns: repeat(auto-fill, minmax(min(100%, 200px), 1fr)); gap: 0 20px; }
+  .muni { display: flex; flex-wrap: wrap; justify-content: space-between; align-items: baseline; gap: 4px 10px; padding: 10px 0; border-bottom: 1px solid var(--line); font-size: 15px; }
+  .muni-name { color: var(--ink-900); }
+  .muni-claim { font-size: 13px; white-space: nowrap; }
+  .muni-tag { font-family: var(--font-mono); font-size: 11px; padding: 2px 8px; border-radius: 999px; white-space: nowrap; }
+  .tag-pending { background: rgba(192,138,46,0.16); color: var(--gold-700); }
+  .tag-suspended { background: rgba(179,69,44,0.12); color: var(--red-600); }
+
+/* Page-local additions use the shared type, color and spacing tokens. */
+.participation-links { display:flex; flex-wrap:wrap; gap:12px 24px; margin-top:24px; }
+.participation-links a { font-weight:600; }
+#cover-your-city > .section { padding-top:32px; padding-bottom:32px; }
+#cover-your-city h3[id] { font-size:28px; }
+#cover-your-city .card h4 { margin-top:0; }
+
+#cover-your-city h3[id] { scroll-margin-top:140px; }
+#join-us .card h4 { margin:0; font-size:21px; }

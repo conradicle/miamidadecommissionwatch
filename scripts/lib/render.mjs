@@ -326,7 +326,7 @@ export function renderEditorials(rows) {
 // The page has two lists: covered cities as cards linking to their own site,
 // and every other city in a quieter grid with a link into the claim form
 // further down the page. The three pieces come back separately because they
-// sit in different places in municipalities.html. The count uses every row
+// sit in different places in get-involved.html. The count uses every row
 // anon can read, so it moves on its own as cities are claimed or added.
 const CITY_STATUS = {
   pending: { label: 'requested', className: 'tag-pending' },
@@ -344,7 +344,7 @@ export function renderMunicipalities(cities) {
   const coveredHtml = covered.length
     ? covered.map((c) =>
         '<li><a class="card muni-card" href="' + citySiteUrl(c.slug) + '" target="_blank" rel="noopener">' +
-          '<h3>' + esc(c.name) + '</h3>' +
+          '<h4>' + esc(c.name) + '</h4>' +
           '<p>Read our ' + esc(c.name) + ' coverage</p>' +
           '<span class="muni-card-url mono">' + esc(c.slug) + '.miamidadecommissionwatch.com</span>' +
         '</a></li>'

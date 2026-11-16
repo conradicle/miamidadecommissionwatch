@@ -101,6 +101,21 @@
       "source": "/elections",
       "destination": "/officials.html",
       "permanent": true
+    },
+    {
+      "source": "/municipalities.html",
+      "destination": "/get-involved.html#cover-your-city",
+      "permanent": true
+    },
+    {
+      "source": "/municipalities",
+      "destination": "/get-involved.html#cover-your-city",
+      "permanent": true
+    },
+    {
+      "source": "/municipalities/",
+      "destination": "/get-involved.html#cover-your-city",
+      "permanent": true
     }
   ],
   "headers": [

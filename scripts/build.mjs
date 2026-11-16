@@ -17,7 +17,7 @@
 //   meetings/<date>.html   one indexable page per meeting
 //   meetings.html          tracker list (the archive), prerendered
 //   news.html              approved editorials, prerendered
-//   municipalities.html    city registry, prerendered
+//   get-involved.html      city registry, prerendered
 //   about.html             the team roster, prerendered
 //   documents/<type>/<date>.html   one page per published Meeting Summary
 //                          or Agenda Summary, with its full text
@@ -604,9 +604,9 @@ async function main() {
     write('news.html', html);
   }
 
-  // --- municipalities.html -------------------------------------------------
+  // --- get-involved.html -------------------------------------------------
   {
-    let html = read('municipalities.html');
+    let html = read('get-involved.html');
     const registry = renderMunicipalities(cities);
     html = upsertRegion(html, 'municipalities-covered', registry.covered, '</main>');
     html = upsertRegion(html, 'municipalities-count', registry.count, '</main>');
@@ -615,18 +615,18 @@ async function main() {
       schema.organization(),
       schema.website(),
       schema.collectionPage({
-        url: `${SITE_ORIGIN}/municipalities.html`,
+        url: `${SITE_ORIGIN}/get-involved.html`,
         name: headMeta(html).title,
         description: headMeta(html).description,
         items: cities.map((c) => ({
           name: c.name,
           url: c.status === 'active'
             ? `https://${c.slug}.miamidadecommissionwatch.com/`
-            : `${SITE_ORIGIN}/municipalities.html`
+            : `${SITE_ORIGIN}/get-involved.html#cover-your-city`
         }))
       })
     ]);
-    write('municipalities.html', html);
+    write('get-involved.html', html);
   }
 
   // --- about.html ----------------------------------------------------------
@@ -657,7 +657,7 @@ async function main() {
   }
 
   // --- Organization JSON-LD on every remaining public page -----------------
-  const handled = new Set(['meetings.html', 'news.html', 'municipalities.html', 'about.html', 'home.html']);
+  const handled = new Set(['meetings.html', 'news.html', 'get-involved.html', 'about.html', 'home.html']);
   const pages = publicPages();
   let plainCount = 0;
 

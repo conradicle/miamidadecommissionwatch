@@ -1,4 +1,4 @@
-// The public municipality registry and claim form (/municipalities.html).
+// The public municipality registry and claim form (/get-involved.html#cover-your-city).
 //
 // Reads the registry straight from Postgres with the anon key -- the RLS
 // policies in migration_17 expose unclaimed and pending rows plus published
@@ -53,7 +53,7 @@
       ? covered.map(function (c) {
           return '<li><a class="card muni-card" href="https://' + encodeURIComponent(c.slug) +
             '.miamidadecommissionwatch.com/" target="_blank" rel="noopener">' +
-            '<h3>' + escapeHtml(c.name) + '</h3>' +
+            '<h4>' + escapeHtml(c.name) + '</h4>' +
             '<p>Read our ' + escapeHtml(c.name) + ' coverage</p>' +
             '<span class="muni-card-url mono">' + escapeHtml(c.slug) + '.miamidadecommissionwatch.com</span>' +
             '</a></li>';
