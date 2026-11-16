@@ -239,7 +239,7 @@
           '<label><input type="checkbox" data-field="consent_confirmed"' + (r.consent_confirmed ? ' checked' : '') + '>' +
             '<span>A signed photo release is on file for every minor in this photo, and nobody shown asked to be left out</span></label>' +
           '<label><input type="checkbox" data-field="is_featured"' + (r.is_featured ? ' checked' : '') + '>' +
-            '<span>Featured: the newest featured photo leads the homepage; the next one goes in "Attend with us" and on /attend</span></label>' +
+            '<span>Featured: rotates at the top of the homepage (newest six, about six seconds each) and leads /attend</span></label>' +
           '<label><input type="checkbox" data-field="published"' + (r.published ? ' checked' : '') + '>' +
             '<span>Published</span></label>' +
         '</div>' +
