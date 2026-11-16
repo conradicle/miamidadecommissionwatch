@@ -269,11 +269,6 @@ export function renderMeetingList(meetings) {
 // Editorials -- port of js/editorials-feed.js
 // ---------------------------------------------------------------------
 
-const CHEVRON =
-  '<svg class="editorial-chevron" width="12" height="12" viewBox="0 0 12 12" aria-hidden="true" focusable="false">' +
-  '<path d="M2 4.5 6 8.5 10 4.5" fill="none" stroke="currentColor" stroke-width="1.6" ' +
-  'stroke-linecap="round" stroke-linejoin="round"/></svg>';
-
 function editorialDate(iso) {
   const m = /^(\d{4})-(\d{2})/.exec(String(iso || ''));
   if (!m) return '';
@@ -308,14 +303,13 @@ export function renderEditorials(rows) {
   return rows.map((row) => {
     const id = slugify(row.title);
     const bodyId = id + '-body';
-    return '<div class="meeting-card editorial-card" id="' + esc(id) + '">' +
-      '<div class="meeting-card-date">Editorial &middot; ' + esc(editorialDate(row.submitted_at)) + '</div>' +
-      '<h3>' + esc(row.title) + '</h3>' +
+    return '<article class="editorial-card" id="' + esc(id) + '" data-date="' + esc(row.submitted_at) + '">' +
+      '<div class="editorial-meta">Editorial <span aria-hidden="true">·</span> <time datetime="' + esc(row.submitted_at) + '">' + esc(editorialDate(row.submitted_at)) + '</time></div>' +
+      '<h2><a href="#' + esc(id) + '">' + esc(row.title) + '</a></h2>' +
       '<p class="editorial-byline">By ' + esc(row.byline) + '</p>' +
-      '<p class="editorial-body" id="' + esc(bodyId) + '">' + esc(row.body) + '</p>' +
-      '<button class="editorial-toggle" type="button" aria-expanded="false" aria-controls="' + esc(bodyId) + '">' +
-      '<span class="editorial-toggle-label">Read more</span>' + CHEVRON + '</button>' +
-      '</div>';
+      '<p class="editorial-excerpt">' + esc(String(row.body || '').trim().slice(0, 420)) + '</p>' +
+      '<details class="editorial-reading"><summary>Read editorial <span aria-hidden="true">→</span></summary>' +
+      '<p class="editorial-body" id="' + esc(bodyId) + '">' + esc(row.body) + '</p></details></article>';
   }).join('\n');
 }
 

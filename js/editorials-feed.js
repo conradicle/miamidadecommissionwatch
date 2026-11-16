@@ -1,37 +1,15 @@
-// Approved student editorials on /news.html.
-//
-// The cards are prerendered into the HTML by scripts/build.mjs so the text is
-// indexable without JavaScript. This file's job in that case is only to make
-// them interactive: the expand/collapse behaviour is bound to whatever cards
-// are already on the page. It still knows how to build the cards from scratch,
-// which is what happens if the page is opened without a build having run.
-//
-// It also covers the gap between an approval and the next build. The
-// prerendered cards stay (they are what crawlers read), and anything approved
-// since the build is fetched and added beside them, so a piece appears when
-// staff approve it rather than when the rebuild finishes.
+// Uses the existing public feed and build-time HTML. No private contributor data.
 (function () {
-  function escapeHtml(str) {
-    var div = document.createElement('div');
-    div.textContent = str == null ? '' : String(str);
-    return div.innerHTML.replace(/"/g, '&quot;').replace(/'/g, '&#39;');
+  function esc(value) {
+    var el = document.createElement('div');
+    el.textContent = value == null ? '' : String(value);
+    return el.innerHTML.replace(/"/g, '&quot;').replace(/'/g, '&#39;');
   }
-
-  function formatDate(iso) {
-    try {
-      return new Date(iso).toLocaleDateString('en-US', { month: 'long', year: 'numeric' });
-    } catch (e) {
-      return '';
-    }
+  function editorialDate(iso) {
+    var m = /^(\d{4})-(\d{2})/.exec(String(iso || ''));
+    var months = ['January','February','March','April','May','June','July','August','September','October','November','December'];
+    return m ? months[Number(m[2])-1] + ' ' + m[1] : '';
   }
-
-  // Anchor slug so a student can link straight to their own piece
-  // (news.html#ed-my-editorial-title). The used-slug table keeps two
-  // editorials with the same title from claiming the same id, which makes the
-  // result depend on order: feed it rows newest first, as the build does. This
-  // is makeEditorialSlugger() in scripts/lib/render.mjs rule for rule, so a
-  // card built here gets the id the build would have given it -- which is
-  // also how the fallback below tells a new piece from a prerendered one.
   function makeSlugger() {
     var usedSlugs = {};
     return function slugify(title) {
@@ -53,134 +31,157 @@
     };
   }
 
-  var CHEVRON =
-    '<svg class="editorial-chevron" width="12" height="12" viewBox="0 0 12 12" aria-hidden="true" focusable="false">' +
-    '<path d="M2 4.5 6 8.5 10 4.5" fill="none" stroke="currentColor" stroke-width="1.6" ' +
-    'stroke-linecap="round" stroke-linejoin="round"/></svg>';
-
-  // Attaches the read-more behaviour to a card. Works the same whether the card
-  // was built by renderEditorial() below or written into the HTML by the build,
-  // which is the point: one definition of how a card behaves.
-  function bindCard(card) {
-    var bodyEl = card.querySelector('.editorial-body');
-    var btn = card.querySelector('.editorial-toggle');
-    var label = card.querySelector('.editorial-toggle-label');
-    if (!bodyEl || !btn || !label) return card;
-
-    function setOpen(open) {
-      card.classList.toggle('open', open);
-      btn.setAttribute('aria-expanded', open ? 'true' : 'false');
-      label.textContent = open ? 'Show less' : 'Read more';
-    }
-    card.setOpen = setOpen;
-
-    card.addEventListener('click', function (e) {
-      // Let links and text selection inside the card behave normally.
-      if (e.target.closest('a')) return;
-      var selection = window.getSelection();
-      if (selection && !selection.isCollapsed) return;
-      // Once open, clicking the body itself shouldn't slam it shut mid-read.
-      // Collapsing goes through the toggle or the card's header area.
-      if (card.classList.contains('open') && bodyEl.contains(e.target)) return;
-      setOpen(!card.classList.contains('open'));
-    });
-
-    return card;
-  }
 
   function renderEditorial(row, id) {
     var bodyId = id + '-body';
-
-    var card = document.createElement('div');
-    card.className = 'meeting-card editorial-card';
-    card.id = id;
-    card.innerHTML =
-      '<div class="meeting-card-date">Editorial &middot; ' + escapeHtml(formatDate(row.submitted_at)) + '</div>' +
-      '<h3>' + escapeHtml(row.title) + '</h3>' +
-      '<p class="editorial-byline">By ' + escapeHtml(row.byline) + '</p>' +
-      '<p class="editorial-body" id="' + bodyId + '">' + escapeHtml(row.body) + '</p>' +
-      '<button class="editorial-toggle" type="button" aria-expanded="false" aria-controls="' + bodyId + '">' +
-      '<span class="editorial-toggle-label">Read more</span>' + CHEVRON + '</button>';
-
-    return bindCard(card);
+    var wrapper = document.createElement('div');
+    wrapper.innerHTML = '<article class="editorial-card" id="' + esc(id) + '" data-date="' + esc(row.submitted_at) + '">' +
+      '<div class="editorial-meta">Editorial <span aria-hidden="true">·</span> <time datetime="' + esc(row.submitted_at) + '">' + esc(editorialDate(row.submitted_at)) + '</time></div>' +
+      '<h2><a href="#' + esc(id) + '">' + esc(row.title) + '</a></h2>' +
+      '<p class="editorial-byline">By ' + esc(row.byline) + '</p>' +
+      '<p class="editorial-excerpt">' + esc(String(row.body || '').trim().slice(0, 420)) + '</p>' +
+      '<details class="editorial-reading"><summary>Read editorial <span aria-hidden="true">→</span></summary>' +
+      '<p class="editorial-body" id="' + esc(bodyId) + '">' + esc(row.body) + '</p></details></article>';
+    return wrapper.firstElementChild;
   }
-
   document.addEventListener('DOMContentLoaded', function () {
-    var listEl = document.getElementById('editorials-list');
-    var emptyEl = document.getElementById('editorials-empty');
-    if (!listEl) return;
+    var list = document.getElementById('editorials-list');
+    if (!list) return;
+    var empty = document.getElementById('editorials-empty');
+    var search = document.getElementById('editorial-search');
+    var sort = document.getElementById('editorial-sort');
+    var count = document.getElementById('editorial-count');
+    var status = document.getElementById('editorial-feed-status');
+    var dialog = document.getElementById('editorial-reader');
+    var cards = [];
+    var active = null;
+    var placeholder = null;
+    var returnFocus = null;
+    var archiveHash = '#editorials';
+    var canDialog = dialog && typeof dialog.showModal === 'function';
 
-    function openFromHash() {
-      var hash = window.location.hash;
-      if (!hash || hash.length < 2) return;
-      var target;
-      try {
-        target = listEl.querySelector(hash);
-      } catch (e) {
+    function indexCards() {
+      cards = Array.prototype.slice.call(list.querySelectorAll('.editorial-card'));
+      cards.forEach(function (card, index) {
+        card.archiveOrder = index;
+        card.searchText = (card.querySelector('h2').textContent + ' ' +
+          card.querySelector('.editorial-byline').textContent + ' ' +
+          card.querySelector('.editorial-body').textContent).toLocaleLowerCase();
+      });
+    }
+    function filter() {
+      var query = search.value.trim().toLocaleLowerCase();
+      var visible = 0;
+      cards.slice().sort(function (a, b) {
+        var difference = (Date.parse(b.dataset.date) || 0) - (Date.parse(a.dataset.date) || 0);
+        difference = difference || a.archiveOrder - b.archiveOrder;
+        return sort.value === 'oldest' ? -difference : difference;
+      }).forEach(function (card) {
+        // Include translated text currently in the DOM as well as the English
+        // source indexed before Google Translate touched the page.
+        var visibleText = (card.querySelector('h2').textContent + ' ' +
+          card.querySelector('.editorial-byline').textContent + ' ' +
+          card.querySelector('.editorial-body').textContent).toLocaleLowerCase();
+        card.hidden = card.searchText.indexOf(query) < 0 && visibleText.indexOf(query) < 0;
+        if (!card.hidden) visible++;
+        // Keep the open reader in the dialog while rearranging its archive slot.
+        list.appendChild(card === active ? placeholder : card);
+      });
+      count.textContent = query ? visible + ' of ' + cards.length + ' editorials' : cards.length + ' editorials';
+      document.getElementById('editorial-no-results').hidden = !cards.length || visible > 0;
+      if (empty) empty.style.display = cards.length ? 'none' : 'block';
+    }
+    function restoreCard() {
+      if (!active) return;
+      active.querySelector('details').open = false;
+      active.querySelector('h2 a').removeAttribute('tabindex');
+      if (placeholder) placeholder.replaceWith(active);
+      active = placeholder = null;
+    }
+    function openCard(card, trigger) {
+      if (active === card) return;
+      restoreCard();
+      card.hidden = false;
+      card.querySelector('details').open = true;
+      if (!canDialog) {
+        card.scrollIntoView({block:'start'});
         return;
       }
-      if (!target || !target.setOpen) return;
-      target.setOpen(true);
-      target.scrollIntoView({ block: 'start' });
+      returnFocus = trigger || card.querySelector('h2 a');
+      placeholder = document.createElement('div');
+      placeholder.hidden = true;
+      card.replaceWith(placeholder);
+      active = card;
+      card.querySelector('h2 a').setAttribute('tabindex', '-1');
+      document.getElementById('editorial-reader-content').appendChild(card);
+      dialog.setAttribute('aria-labelledby', card.id + '-title');
+      card.querySelector('h2').id = card.id + '-title';
+      if (!dialog.open) dialog.showModal();
+      dialog.scrollTop = 0;
+      document.getElementById('editorial-reader-close').focus();
     }
-
-    window.addEventListener('hashchange', openFromHash);
-
-    // Prerendered by scripts/build.mjs: bind the cards already here first, so
-    // the page works even if the fetch below never comes back.
-    var prerendered = listEl.getAttribute('data-prerendered') === '1';
-    if (prerendered) {
-      var existing = listEl.querySelectorAll('.editorial-card');
-      Array.prototype.forEach.call(existing, bindCard);
-      if (!existing.length && emptyEl) emptyEl.style.display = 'block';
-      openFromHash();
+    function fromHash() {
+      var card = cards.find(function (item) { return '#' + item.id === location.hash; });
+      if (card) openCard(card);
+      else if (canDialog && dialog.open) dialog.close();
     }
+    list.addEventListener('click', function (event) {
+      var trigger = event.target.closest('h2 a, .editorial-reading summary');
+      if (!trigger || event.ctrlKey || event.metaKey || event.shiftKey || event.altKey) return;
+      var card = trigger.closest('.editorial-card');
+      event.preventDefault();
+      archiveHash = location.hash || '#editorials';
+      history.pushState(null, '', '#' + card.id);
+      openCard(card, trigger);
+    });
+    if (canDialog) {
+      document.getElementById('editorial-reader-close').addEventListener('click', function () { dialog.close(); });
+      dialog.addEventListener('close', function () {
+        var closingHash = active ? '#' + active.id : '';
+        restoreCard();
+        if (location.hash === closingHash) history.replaceState(null, '', archiveHash);
+        filter();
+        if (returnFocus && returnFocus.isConnected && !returnFocus.closest('[hidden]')) returnFocus.focus({preventScroll:true});
+      });
+    }
+    window.addEventListener('hashchange', fromHash);
+    search.addEventListener('input', filter);
+    sort.addEventListener('change', filter);
+    document.getElementById('editorial-reset').addEventListener('click', function () { search.value = ''; filter(); search.focus(); });
+    indexCards();
+    filter();
+    document.getElementById('editorial-tools').hidden = false;
+    fromHash();
 
-    if (typeof supabaseClient === 'undefined') return;
-
-    supabaseClient
-      // Submitters are minors. The view (supabase/migration_28) holds approved
-      // rows only and hands back the byline already cut to "First L." in the
-      // database, so the full name never reaches the browser at all.
-      .from('published_editorials')
+    function feedFailed() {
+      status.textContent = cards.length ? 'Showing the saved archive. Recent editorials could not be checked. Reload to try again.' : 'Editorials could not be loaded. Please reload to try again.';
+      if (!cards.length && empty) empty.style.display = 'none';
+    }
+    if (typeof supabaseClient === 'undefined') { feedFailed(); return; }
+    // The public view returns approved pieces and already shortened bylines only.
+    supabaseClient.from('published_editorials')
       .select('byline, title, body, submitted_at')
       .order('submitted_at', { ascending: false })
       .then(function (res) {
-        if (res.error || !res.data) {
-          // A prerendered page is already complete as of the last build.
-          if (!prerendered && emptyEl) emptyEl.style.display = 'block';
-          return;
-        }
-
-        // Slug the whole list newest first, exactly as the build did, and add
-        // only the rows whose card is not on the page yet. Oldest first, each
-        // new card goes in front of the nearest older card already present,
-        // so the list stays in date order.
-        //
-        // Known limit: if a new piece has the exact title of an older one, the
-        // new one takes the bare slug, the prerendered older card's id no
-        // longer lines up, and the older piece shows twice until the rebuild
-        // (a few minutes). Nothing is ever dropped.
+        if (res.error || !res.data) { feedFailed(); return; }
         var slugify = makeSlugger();
         var ids = res.data.map(function (row) { return slugify(row.title); });
-        var added = 0;
         for (var i = res.data.length - 1; i >= 0; i--) {
-          if (document.getElementById(ids[i])) continue;
-          var older = null;
-          for (var j = i + 1; j < ids.length && !older; j++) {
-            var el = document.getElementById(ids[j]);
-            if (el && el.parentNode === listEl) older = el;
-          }
-          listEl.insertBefore(renderEditorial(res.data[i], ids[i]), older);
-          added++;
+          if (cards.some(function (card) { return card.id === ids[i]; })) continue;
+          var card = renderEditorial(res.data[i], ids[i]);
+          cards.push(card);
+          list.insertBefore(card, list.firstChild);
         }
-
-        if (emptyEl) {
-          emptyEl.style.display = listEl.querySelector('.editorial-card') ? 'none' : 'block';
+        // Index the complete archive, including an article currently being read.
+        if (active) placeholder.replaceWith(active);
+        var reading = active;
+        indexCards();
+        if (reading) {
+          reading.replaceWith(placeholder);
+          document.getElementById('editorial-reader-content').appendChild(reading);
         }
-        // New cards only exist now, so the browser's own hash scroll already
-        // missed them.
-        if (added) openFromHash();
-      });
+        filter();
+        fromHash();
+      }).catch(feedFailed);
   });
 })();
