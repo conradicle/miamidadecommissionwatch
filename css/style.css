@@ -305,10 +305,26 @@ iframe.skiptranslate { display: none !important; }
 .goog-text-highlight { background: none !important; box-shadow: none !important; }
 .wordmark {
   display: flex;
-  align-items: baseline;
-  gap: 8px;
+  align-items: center;
+  gap: 12px;
   text-decoration: none;
   color: #fff;
+  min-width: 0;
+}
+/* The seal, on every page. Its own navy outer ring melts into the navy bar,
+   so it reads as the cream disc with the gold rule, which is the point. */
+.wordmark-logo {
+  width: 40px;
+  height: 40px;
+  flex: 0 0 auto;
+  border-radius: 50%;
+}
+.wordmark-text {
+  display: flex;
+  align-items: baseline;
+  flex-wrap: wrap;
+  gap: 0 8px;
+  min-width: 0;
 }
 .wordmark .mark {
   font-family: var(--font-wordmark);
@@ -316,7 +332,15 @@ iframe.skiptranslate { display: none !important; }
   font-size: 19px;
 }
 .wordmark .mark .accent { color: var(--gold-600); }
-.wordmark .tagline {
+/* On a phone the seal, the name, EN/ES/HT and Menu share about 340px, and
+   "Commission" cannot wrap, so the name and the language buttons give a
+   little each. */
+@media (max-width: 480px) {
+  .wordmark { gap: 8px; }
+  .wordmark-logo { width: 32px; height: 32px; }
+  .wordmark .mark { font-size: 15px; line-height: 1.25; }
+  .lang-btn { min-width: 34px; padding: 10px 8px; }
+}.wordmark .tagline {
   display: none;
   font-family: var(--font-mono);
   font-size: 12px;
@@ -1435,6 +1459,13 @@ iframe.skiptranslate { display: none !important; }
 .photo-strip h2 { margin-bottom: 20px; }
 .photo-strip-more { margin: 16px 0 0; font-size: 15px; font-weight: 500; }
 .attend-photos h2 { margin-bottom: 20px; }
+
+/* Homepage hero: the newest Featured photo in place of the seal, with the
+   next-meeting card under it at the same width. */
+.hero-visual:has(.hero-photo) { align-items: stretch; }
+.hero-visual:has(.hero-photo) .next-meeting { max-width: none; }
+.photo-hero .photo-link { border-radius: 16px; }
+.photo-hero .photo-link img { aspect-ratio: 4 / 3; }
 
 /* Homepage: once a photo is published, "Attend with us" becomes a split. */
 .attend-photo { margin-top: 32px; }
