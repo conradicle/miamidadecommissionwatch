@@ -79,7 +79,7 @@
 }
 
 /* ---------- Landing page ---------- */
-.doc-sections { display: grid; grid-template-columns: 1fr; gap: 22px; }
+.doc-sections { display: grid; grid-template-columns: 1fr; gap: 24px; }
 @media (min-width: 860px) { .doc-sections { grid-template-columns: 1fr 1fr; } }
 .doc-section-card {
   background: var(--paper-raised);
@@ -94,28 +94,28 @@
 .doc-section-card h2 a { color: inherit; text-decoration: none; }
 .doc-section-card > p { color: var(--ink-600); }
 .doc-section-when, .doc-latest-type {
-  font: 700 11px/1.4 var(--doc-sans);
-  letter-spacing: .16em;
+  font: 600 12px/16px var(--doc-sans);
+  letter-spacing: .1em;
   text-transform: uppercase;
   color: var(--doc-dgold);
 }
 .doc-latest {
   margin-top: auto;
-  background: var(--doc-card);
-  border: 1px solid var(--doc-line);
-  border-left: 3px solid var(--doc-gold);
-  padding: 16px 18px;
+  background: var(--paper-raised);
+  border: 1px solid var(--hairline);
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-sm);
+  padding: 24px;
 }
-.doc-latest h3 { font-family: var(--doc-serif); font-size: 19px; line-height: 1.3; margin: 6px 0; }
+.doc-latest h3 { font-family: var(--doc-serif); font-size: 20px; line-height: 1.3; margin: 8px 0; }
 .doc-latest h3 a { color: var(--doc-navy); text-decoration: none; }
-.doc-latest p { font-size: 15px; color: var(--ink-600); margin: 0 0 12px; }
-.doc-latest-actions { display: flex; flex-wrap: wrap; align-items: center; gap: 10px 14px; }
-.doc-latest .btn-primary { background: var(--doc-navy); }
-.doc-latest .btn-primary:hover { background: #12253f; }
-.doc-latest .btn-secondary { color: var(--doc-navy); border-color: var(--doc-navy); }
-.doc-latest .btn-secondary:hover { background: var(--doc-navy); color: #fff; }
-.doc-latest-all { font-weight: 600; color: var(--doc-navy); font-size: 15px; }
+.doc-latest p { font-size: 15px; color: var(--ink-600); margin: 0 0 20px; }
+.doc-latest-actions { display: flex; flex-wrap: wrap; align-items: center; gap: 12px 16px; }
+.doc-latest-all { font-weight: 500; color: var(--doc-navy); font-size: 15px; }
 .doc-latest-empty p { margin-top: 6px; }
+/* On the homepage the two latest cards sit straight in .doc-sections, where
+   margin-top: auto would drop the shorter one below its neighbour. */
+.doc-sections > .doc-latest { margin-top: 0; }
 .doc-about { display: grid; grid-template-columns: 1fr; gap: 22px; }
 @media (min-width: 860px) { .doc-about { grid-template-columns: repeat(3, 1fr); } }
 .doc-about h3 { font-size: 19px; margin: 0 0 6px; }
