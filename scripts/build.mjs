@@ -47,6 +47,7 @@ import {
 } from './lib/render.mjs';
 import { setHead, setJsonLd, upsertRegion, rewriteToRootRelative, splitShell } from './lib/page.mjs';
 import * as schema from './lib/schema.mjs';
+import { sharedChrome, applySharedChrome } from './lib/shell.mjs';
 import {
   DOC_TYPES, TRACKER_ARCHIVE_THROUGH, TRACKER_ARCHIVE_LABEL, pageDocuments, cleanBodies,
   documentPath, documentUrl, publicPdfUrl, renderDocumentList, renderFilterOptions,
@@ -676,6 +677,18 @@ async function main() {
   ];
   const result = writeSitemap(entries);
   console.log(`sitemap  ${result.urls} URLs across ${result.files} file(s)`);
+
+  // --- one header and footer, from home.html, on every public page ----------
+  if (!DRY_RUN) {
+    const chrome = sharedChrome(read('home.html'));
+    let shared = 0;
+    for (const file of listDist().filter((f) => f.endsWith('.html'))) {
+      const before = readFileSync(join(OUT, file), 'utf8');
+      const after = applySharedChrome(before, file, chrome);
+      if (after !== before) { writeFileSync(join(OUT, file), after); shared++; }
+    }
+    console.log(`shared   home.html header and footer on ${shared} pages`);
+  }
 
   if (!DRY_RUN) console.log(`checked  dist/ holds ${checkDist(docPages)} files, all public`);
 
