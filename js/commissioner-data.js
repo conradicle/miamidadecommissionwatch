@@ -18,7 +18,7 @@
 //     own page. The date is shown to readers as a badge.
 //
 // STATUS: seeded from what the repo could already source (district, official
-// profile URL, and the election schedule stated on elections.html). Photos,
+// profile URL, and the election schedule stated on officials.html). Photos,
 // contact details, committee assignments and term expirations are NOT filled
 // in -- they need a person to check each one against the county site.
 (function () {
@@ -31,13 +31,13 @@
   // the 2026 ballot (all six were settled by the August 18 primary, so they
   // are next up in 2030) and odd-numbered ones were last elected in 2024 and
   // are next up in 2028. Districts 1 and 5 are exceptions in 2026 -- see
-  // elections.html, which is the sourced version of this.
+  // officials.html (Next elections section), which is the sourced version of this.
   var NEXT_ELECTION = {
     1: '2028 (the 2026 special election filled the remainder of the term)',
     2: '2030 (re-elected in 2026)',
     3: '2028',
     4: '2030 (re-elected in 2026)',
-    5: 'Runoff on the November 3, 2026 ballot',
+    5: '2028 (won the November 3, 2026 runoff for the rest of the term)',
     6: '2030 (re-elected in 2026)',
     7: '2028',
     8: '2030 (re-elected in 2026)',
@@ -96,7 +96,7 @@
     'Elected unopposed in the 2026 District 1 special election when qualifying closed June 9. Takes office January 3, 2027.';
 
   PROFILES['vicki-l-lopez'].bio =
-    'Appointed to the District 5 seat by the Board in November 2025. Faces Rob Piper in the November 3, 2026 runoff for the rest of the term, through November 2028.';
+    'Appointed to the District 5 seat by the Board in November 2025. Won the November 3, 2026 runoff against Rob Piper, 60.48% to 39.52%, to serve the rest of the term, through November 2028.';
 
   window.MDCW = window.MDCW || {};
   window.MDCW.profiles = PROFILES;
