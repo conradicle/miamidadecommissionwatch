@@ -9,7 +9,7 @@
 <link rel="icon" type="image/png" sizes="32x32" href="assets/img/favicon-32x32.png">
 <link rel="icon" type="image/png" sizes="16x16" href="assets/img/favicon-16x16.png">
 <link rel="apple-touch-icon" sizes="180x180" href="assets/img/apple-touch-icon.png">
-<link rel="stylesheet" href="css/style.css?v=20261115b">
+<link rel="stylesheet" href="css/style.css?v=20261116">
 <style>
   .submission-card { background: var(--paper-raised); border: 1px solid var(--line); border-radius: var(--radius); padding: 24px; margin-bottom: 20px; }
   .submission-meta { font-family: var(--font-mono); font-size: 12px; color: var(--ink-400); margin-bottom: 10px; }
@@ -72,6 +72,19 @@
   .link-stats-controls select { width: auto; min-width: 150px; }
 
   /* Documents tab */
+  .photo-admin-group { margin-bottom: 32px; }
+  .photo-admin-group h3 { margin-bottom: 12px; }
+  .photo-admin-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 16px; }
+  .photo-admin-card { background: var(--paper-raised); border: 1px solid var(--line); border-radius: var(--radius-lg); overflow: hidden; }
+  .photo-admin-card img { width: 100%; aspect-ratio: 3 / 2; object-fit: cover; background: var(--paper-alt); }
+  .photo-admin-card .photo-admin-body { padding: 16px; }
+  .photo-admin-card .field { margin-bottom: 12px; }
+  .photo-admin-card textarea { min-height: 64px; }
+  .photo-admin-checks { display: grid; gap: 8px; margin: 4px 0 12px; font-size: 14px; }
+  .photo-admin-checks label { display: flex; align-items: flex-start; gap: 8px; cursor: pointer; }
+  .photo-admin-checks input { width: auto; margin: 3px 0 0; }
+  .photo-admin-state { font-size: 12px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.1em; color: var(--ink-400); }
+  .photo-admin-state.is-live { color: var(--accent); }
   .field-hint { display: block; font-size: 13px; font-weight: 400; color: var(--ink-400); margin-top: 4px; }
   label .field-hint { display: inline; margin-left: 6px; }
   .doc-form-context { background: var(--gold-100); border-left: 4px solid var(--gold-600); padding: 10px 14px; border-radius: var(--radius-sm); }
@@ -129,6 +142,7 @@
         <button type="button" class="admin-tab active" data-tab="editorials">Editorials</button>
         <button type="button" class="admin-tab" data-tab="documents">Documents</button>
         <button type="button" class="admin-tab" data-tab="schedule">Schedule</button>
+        <button type="button" class="admin-tab" data-tab="photos">Photos</button>
         <button type="button" class="admin-tab" data-tab="bcc">BCC Sign-ups</button>
         <button type="button" class="admin-tab" data-tab="meetings">Tracker archive</button>
         <button type="button" class="admin-tab" data-tab="newsletter">Newsletter</button>
@@ -233,6 +247,31 @@
           <div id="schedule-status" class="district-status" style="margin-top:12px;" role="status" aria-live="polite"></div>
         </form>
         <div id="schedule-list"></div>
+      </div>
+
+      <div class="admin-panel" id="panel-photos" style="display:none;">
+        <div class="notice" style="margin-bottom:20px;">
+          Photos from Board meetings, shown on <a href="/photos" target="_blank" rel="noopener">/photos</a>, under that meeting's Meeting Summary, and (featured ones) on the homepage and <a href="/attend" target="_blank" rel="noopener">/attend</a>. Most people in these photos are minors: <strong>publish a photo only if a signed photo release is on file for every minor in it</strong>, and leave out anyone who asked not to be posted. Captions use first name and last initial at most, never a school or grade. Uploads are resized in your browser and their location data is removed before anything is stored.
+        </div>
+        <form id="photo-upload-form" class="admin-form">
+          <h3 style="margin-top:0;">Upload photos</h3>
+          <div class="field-row">
+            <div class="field"><label for="ph-date">Meeting date</label><input type="date" id="ph-date" required></div>
+            <div class="field"><label for="ph-credit">Photo credit <span class="field-hint">optional, shown publicly</span></label><input type="text" id="ph-credit" maxlength="80" placeholder="For example: Julian P."></div>
+          </div>
+          <div class="field"><label for="ph-files">Photos <span class="field-hint">JPEG, PNG, WebP or HEIC from a phone, up to 20 at a time</span></label><input type="file" id="ph-files" accept="image/*" multiple required></div>
+          <p class="field-hint" style="margin:0 0 16px;">Uploaded photos start unpublished. Add alt text and a caption to each, tick consent, then publish.</p>
+          <button type="submit" class="btn btn-primary" id="ph-upload-btn">Upload</button>
+          <div id="photo-status" class="district-status" style="margin-top:12px;" role="status" aria-live="polite"></div>
+        </form>
+        <div class="notice" style="margin-bottom:24px;">
+          <p style="margin:0 0 10px;"><strong>Saving is not publishing.</strong> Changes here are stored right away; readers see them after the next site rebuild.</p>
+          <div style="display:flex; gap:10px; align-items:center; flex-wrap:wrap;">
+            <button type="button" class="btn btn-primary btn-small" id="photo-publish-site-btn">Publish to site</button>
+            <span id="photo-publish-site-status" class="district-status" style="margin:0;"></span>
+          </div>
+        </div>
+        <div id="photo-list"></div>
       </div>
 
       <div class="admin-panel" id="panel-bcc" style="display:none;">
@@ -684,7 +723,8 @@
 <script src="js/admin-claims.js?v=20260827"></script>
 <script src="js/admin-documents.js?v=20261019c"></script>
 <script src="js/admin-schedule.js?v=20261019b"></script>
+<script src="js/admin-photos.js?v=20261116"></script>
 <script src="js/admin-bcc.js?v=20261028"></script>
-<script src="js/admin.js?v=20261021b"></script>
+<script src="js/admin.js?v=20261116"></script>
 </body>
 </html>

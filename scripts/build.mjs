@@ -37,9 +37,10 @@ import { join, dirname, extname } from 'node:path';
 import { execFileSync } from 'node:child_process';
 
 import {
-  ROOT, fetchMeetings, fetchEditorials, fetchCities, fetchDocuments, fetchSchedule,
+  ROOT, fetchMeetings, fetchEditorials, fetchCities, fetchDocuments, fetchSchedule, fetchPhotos,
   loadPublicByline, loadContributors, loadDocumentView
 } from './lib/data.mjs';
+import { renderGallery, renderStrip, renderHomePhoto, renderAttendPhotos } from './lib/photos.mjs';
 import { SITE_ORIGIN, formatDate, formatDateShort, isoDay, clip, escapeHtml } from './lib/fmt.mjs';
 import {
   assignMeetingPaths, meetingTouchedAt, renderMeetingList, renderItems,
@@ -371,16 +372,20 @@ function documentTitle(doc) {
 // The shell is documents/index.html: its header, footer and stylesheets,
 // with the nav pointing at this document's section instead of the landing
 // page.
-function buildDocumentPage(shellSource, docView, doc, allDocs) {
+function buildDocumentPage(shellSource, docView, doc, allDocs, photoStrip = '') {
   const shell = splitShell(shellSource);
   const type = DOC_TYPES[doc.doc_type];
   let head = shell.head
     .replace('<a href="/documents" aria-current="page">All documents</a>', '<a href="/documents">All documents</a>')
     .replace(`<a href="${type.index}">`, `<a href="${type.index}" aria-current="page">`);
   const tail = shell.tail.replace('<script src="/js/translate.js',
-    '<script src="/js/document-page.js?v=20261019a"></script>\n<script src="/js/translate.js');
+    '<script src="/js/document-page.js?v=20261019a"></script>\n' +
+    (photoStrip ? '<script src="/js/photo-viewer.js?v=20261116"></script>\n' : '') +
+    '<script src="/js/translate.js');
 
-  let html = head + shell.mainOpenTag + '\n' + docView.renderDocumentMain(pageOptions(doc, allDocs)) + '</main>' + tail;
+  // A Meeting Summary carries the photos from its meeting under the text.
+  let html = head + shell.mainOpenTag + '\n' + docView.renderDocumentMain(pageOptions(doc, allDocs)) +
+    photoStrip + '</main>' + tail;
 
   const url = documentUrl(doc);
   html = setHead(html, {
@@ -461,8 +466,8 @@ async function main() {
   const t0 = Date.now();
   console.log(DRY_RUN ? '· dry run: nothing will be written\n' : '');
 
-  const [allMeetings, editorials, cities, documents, schedule] = await Promise.all([
-    fetchMeetings(), fetchEditorials(), fetchCities(), fetchDocuments(), fetchSchedule()
+  const [allMeetings, editorials, cities, documents, schedule, photos] = await Promise.all([
+    fetchMeetings(), fetchEditorials(), fetchCities(), fetchDocuments(), fetchSchedule(), fetchPhotos()
   ]);
   const today = todayInMiami();
   const publicByline = loadPublicByline();
@@ -482,7 +487,7 @@ async function main() {
     console.log(`copied   ${copyPublicFiles()} public files into dist/`);
     stampBotGuardSiteKey();
   }
-  console.log(`fetched  ${meetings.length} meetings, ${editorials.length} editorials, ${cities.length} cities, ${documents.length} documents, ${schedule.length} scheduled meetings`);
+  console.log(`fetched  ${meetings.length} meetings, ${editorials.length} editorials, ${cities.length} cities, ${documents.length} documents, ${schedule.length} scheduled meetings, ${photos.length} photos`);
 
   if (!meetings.length) throw new Error('Supabase returned zero meetings; refusing to publish an empty tracker.');
   if (!cities.length) throw new Error('Supabase returned zero cities; refusing to publish an empty registry.');
@@ -523,7 +528,8 @@ async function main() {
   // --- document pages, from documents/index.html as the shell -------------
   const docShellSource = read('documents/index.html');
   for (const doc of docPages) {
-    write(`${documentPath(doc).slice(1)}.html`, buildDocumentPage(docShellSource, docView, doc, documents));
+    const strip = doc.doc_type === 'meeting-summary' ? renderStrip(photos, doc.meeting_date, publicByline) : '';
+    write(`${documentPath(doc).slice(1)}.html`, buildDocumentPage(docShellSource, docView, doc, documents, strip));
   }
   console.log(`wrote    ${docPages.length} document pages`);
 
@@ -634,6 +640,7 @@ async function main() {
   {
     let html = read('home.html');
     html = upsertRegion(html, 'next-meeting', renderNextMeeting(schedule, today), '</main>');
+    html = upsertRegion(html, 'home-photo', renderHomePhoto(photos, publicByline), '</main>');
     html = upsertRegion(html, 'home-documents',
       '<div class="doc-sections">' +
       renderLatestCard(documents, 'meeting-summary') +
@@ -652,7 +659,13 @@ async function main() {
     if (handled.has(page.file)) continue;
     let html = read(page.file);
     html = setJsonLd(html, 'jsonld', [schema.organization(), schema.website()]);
-    if (page.file === 'attend.html') html = setTurnstileSiteKey(html);
+    if (page.file === 'attend.html') {
+      html = setTurnstileSiteKey(html);
+      html = upsertRegion(html, 'attend-photos', renderAttendPhotos(photos, publicByline), '</main>');
+    }
+    if (page.file === 'photos.html') {
+      html = upsertRegion(html, 'photos', renderGallery(photos, documents, publicByline), '</main>');
+    }
     write(page.file, html);
     plainCount++;
   }

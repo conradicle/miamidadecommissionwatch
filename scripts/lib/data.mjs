@@ -177,6 +177,39 @@ export async function fetchSchedule() {
   }
 }
 
+// Published meeting photos (migration_34). published=is.true is required for
+// the same reason as on meetings: drop it and every draft goes public. RLS
+// already limits anon to published rows; the filter is the second lock.
+//
+// Unlike documents and the schedule, a MISSING table is not fatal: it means
+// migration_34 has not been run yet, and an empty gallery cannot show
+// anything it should not. Any other error (a bad column, an outage) still
+// stops the build.
+//
+// PHOTOS_FIXTURE points a local build at a JSON file of rows shaped like the
+// select below, so the gallery can be checked without touching the database.
+// Vercel never sets it.
+const PHOTO_COLUMNS = 'id,meeting_date,storage_path,width,height,alt_text,caption,credit,sort_order,is_featured,created_at';
+
+export async function fetchPhotos() {
+  if (process.env.PHOTOS_FIXTURE) {
+    return JSON.parse(readFileSync(process.env.PHOTOS_FIXTURE, 'utf8'));
+  }
+  try {
+    return await rest(
+      `meeting_photos?select=${PHOTO_COLUMNS}` +
+      '&published=is.true' +
+      '&order=meeting_date.desc&order=sort_order.asc&order=created_at.asc'
+    );
+  } catch (err) {
+    if (/meeting_photos/.test(err.message) && /(does not exist|42P01|PGRST20[05]|schema cache)/.test(err.message)) {
+      console.warn('photos   meeting_photos table not found; building with no photos (run supabase/migration_34_meeting_photos.sql)');
+      return [];
+    }
+    throw err;
+  }
+}
+
 export async function fetchCities() {
   return rest('cities?select=slug,name,status,sort_order&order=sort_order.asc');
 }
