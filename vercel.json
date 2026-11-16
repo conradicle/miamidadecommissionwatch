@@ -13,6 +13,10 @@
       "destination": "/attend.html"
     },
     {
+      "source": "/photos",
+      "destination": "/photos.html"
+    },
+    {
       "source": "/(.*)",
       "has": [
         {
@@ -81,6 +85,11 @@
     {
       "source": "/attend.html",
       "destination": "/attend",
+      "permanent": true
+    },
+    {
+      "source": "/photos.html",
+      "destination": "/photos",
       "permanent": true
     }
   ],
