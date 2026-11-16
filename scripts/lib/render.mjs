@@ -358,7 +358,7 @@ export function renderMunicipalities(cities) {
     if (c.status === 'unclaimed') {
       return '<li class="muni">' + name +
         '<a class="muni-claim" href="#request" data-claim="' + esc(c.slug) + '">' +
-        'Claim this city<span class="sr-only">: ' + esc(c.name) + '</span></a></li>';
+        'Apply to cover this city<span class="sr-only">: ' + esc(c.name) + '</span></a></li>';
     }
     const meta = CITY_STATUS[c.status] || CITY_STATUS.pending;
     return '<li class="muni">' + name +

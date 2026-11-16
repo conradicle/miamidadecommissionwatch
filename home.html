@@ -27,7 +27,7 @@
 <link rel="icon" type="image/png" sizes="32x32" href="assets/img/favicon-32x32.png">
 <link rel="icon" type="image/png" sizes="16x16" href="assets/img/favicon-16x16.png">
 <link rel="apple-touch-icon" sizes="180x180" href="assets/img/apple-touch-icon.png">
-<link rel="stylesheet" href="css/style.css?v=20261116d">
+<link rel="stylesheet" href="css/style.css?v=20261116f">
 <link rel="stylesheet" href="css/document.css?v=20261115">
 <!-- build:jsonld -->
 <script type="application/ld+json">{"@context":"https://schema.org","@type":"NewsMediaOrganization","@id":"https://www.miamidadecommissionwatch.com/#organization","name":"Miami-Dade Commission Watch","alternateName":["Miami Dade Commission Watch","MDCW","Miami-Dade County Commission Watch"],"url":"https://www.miamidadecommissionwatch.com/","logo":{"@type":"ImageObject","url":"https://www.miamidadecommissionwatch.com/assets/img/og-image.png","width":1200,"height":630},"image":"https://www.miamidadecommissionwatch.com/assets/img/og-image.png","description":"Independent, nonpartisan tracking of the Miami-Dade County Board of County Commissioners: plain-language meeting summaries, a commissioner directory, and ways to get involved.","founder":[{"@type":"Person","name":"Conrad Gelber"},{"@type":"Person","name":"Daniel Llobet"}],"sameAs":["https://instagram.com/miamidadecommissionwatch"],"areaServed":{"@type":"AdministrativeArea","name":"Miami-Dade County, Florida"},"knowsAbout":["Miami-Dade Board of County Commissioners","Miami-Dade County government","county commission meetings","local government transparency"],"publishingPrinciples":"https://www.miamidadecommissionwatch.com/about.html","isAccessibleForFree":true,"disambiguatingDescription":"An independent, student-run civic project. Not affiliated with, operated by, or endorsed by Miami-Dade County government."}</script>
@@ -63,7 +63,7 @@
   <div class="header-newsletter">
     <div class="wrap">
       <form class="newsletter-form" id="newsletter-form" aria-label="Subscribe for meeting emails">
-        <label for="newsletter-email" class="newsletter-label">Get agendas &amp; recaps in your inbox</label>
+        <label for="newsletter-email" class="newsletter-label">Get meeting updates by email</label>
         <div class="newsletter-input-row">
           <input type="email" id="newsletter-email" class="newsletter-input" placeholder="you@email.com" required aria-label="Email address">
           <button type="submit" class="btn btn-primary btn-small">Subscribe</button>
@@ -94,16 +94,21 @@
 <main id="main">
 
 
-  <section class="hero">
+  <section class="hero home-hero">
     <div class="wrap hero-grid">
       <div>
         <span class="eyebrow">Miami-Dade Board of County Commissioners</span>
-        <h1>What your county commission did, and why it's worth five minutes</h1>
-        <p class="lede">Thirteen commissioners, one per district, vote on the things that touch your block directly: zoning, transit, rent, permits, the budget. Miami-Dade Commission Watch reads the agendas and reports back in plain language. No spin, no endorsements.</p>
+        <h1>Local government, in plain language.</h1>
+        <p class="lede">Miami-Dade Commission Watch is an independent, student-run project that makes county government easier to follow. We explain what commissioners are considering, how they vote, and what happens next, with links to the public record.</p>
         <div class="btn-row">
-          <a class="btn btn-primary" href="/documents">Read the latest summaries</a>
-          <a class="btn btn-secondary" href="#find-district">Find your commissioner</a>
+          <a class="btn btn-primary" href="/documents">Read meeting summaries</a>
+          <a class="btn btn-secondary" href="#find-district">Find my district</a>
         </div>
+        <aside class="home-guide" aria-labelledby="home-guide-heading">
+          <h2 id="home-guide-heading">New to local government?</h2>
+          <p>Learn who makes county decisions and how you can take part.</p>
+          <a href="/local-government-101.html">Read the beginner&rsquo;s guide <span aria-hidden="true">&rarr;</span></a>
+        </aside>
       </div>
 
       <div class="hero-visual">
@@ -124,7 +129,7 @@
 <!-- build:next-meeting -->
 <!-- /build:next-meeting -->
           </div>
-          <a class="next-meeting-link" href="http://www.miamidade.gov/govaction/agendas.asp?Action=Agendas&amp;Oper=DisplayAgenda&amp;Agenda=CC&amp;AgendaName=Board+of+County+Commissioners">Posted agendas on miamidade.gov &#8599;</a>
+          <a class="next-meeting-link" href="http://www.miamidade.gov/govaction/agendas.asp?Action=Agendas&amp;Oper=DisplayAgenda&amp;Agenda=CC&amp;AgendaName=Board+of+County+Commissioners">View county agendas &#8599;</a>
         </div>
       </div>
     </div>
@@ -138,8 +143,8 @@
     <div class="wrap attend-cta-grid">
       <div class="attend-cta-text">
       <span class="eyebrow">Attend with us</span>
-      <h2 id="attend-cta-heading">Come to the next County Commission meeting with us</h2>
-      <p class="attend-cta-copy">Miami-Dade students: sit in on a Board of County Commissioners meeting with the Commission Watch team. If you want to, you can speak during public comment.</p>
+      <h2 id="attend-cta-heading">Attend a meeting with us</h2>
+      <p class="attend-cta-copy">Miami-Dade students: join MDCW at a County Commission meeting. You can also speak during public comment.</p>
       <div class="attend-cta-when" id="attend-cta-when" hidden>
         <span class="attend-cta-label">Next meeting</span>
         <span class="attend-cta-date" id="attend-cta-date"></span>
@@ -162,10 +167,10 @@
   <section class="section" id="latest-documents" aria-labelledby="latest-documents-heading">
     <div class="wrap">
       <div class="section-head">
-        <span class="eyebrow">Official documents</span>
+        <span class="eyebrow">Our summaries</span>
         <h2 id="latest-documents-heading">Latest meeting and agenda summaries</h2>
       </div>
-      <p class="section-copy">An Agenda Summary before each meeting, a Meeting Summary after it. Read them here or download the official PDF.</p>
+      <p class="section-copy">See what’s on the agenda before a meeting and what happened afterward. Read online or download a PDF.</p>
       <!-- Filled at build time by scripts/build.mjs from the published
            documents. What is written here is the fallback for a build that
            has not run yet. -->
@@ -179,12 +184,12 @@
     <div class="wrap">
       <div class="section-head">
         <span class="eyebrow">Start here</span>
-        <h2>What does this mean for your address?</h2>
+        <h2>Who represents your neighborhood?</h2>
       </div>
 
       <div class="hero-finder">
         <h2>Find your district</h2>
-        <p class="finder-sub">One address gets you your commissioner, the next meeting, and the recent votes tagged to your district.</p>
+        <p class="finder-sub">Enter your address to find your commissioner and see recent votes for your district.</p>
 
         <form class="district-search-form" id="home-district-form">
           <label for="home-district-input" class="mt-0" style="display:block; font-weight:500; margin-bottom:8px; width:100%;">Enter your address</label>
@@ -203,7 +208,7 @@
       <div>
         <span class="eyebrow">Stay in the loop</span>
         <h2>Follow along on Instagram</h2>
-        <p>Quick meeting recaps and reminders, between full write-ups here</p>
+        <p>Meeting recaps, reminders, and updates from the team.</p>
       </div>
       <div class="follow-row">
         <a class="social-icon" href="https://instagram.com/miamidadecommissionwatch" target="_blank" rel="noopener" aria-label="Miami-Dade Commission Watch on Instagram">
@@ -223,17 +228,17 @@
       <ul class="index-list">
         <li><a href="/documents">
           <h3>Meeting and agenda summaries</h3>
-          <p>Official documents for every Board meeting: an in-depth guide to the agenda before it, and what passed or failed after it.</p>
+          <p>Read what commissioners will consider and how they voted.</p>
           <span class="index-go" aria-hidden="true">&#8594;</span>
         </a></li>
         <li><a href="officials.html">
           <h3>Elected officials</h3>
-          <p>Who represents your district on the Board, plus the county's constitutional officers like the Sheriff and Property Appraiser.</p>
+          <p>Find your commissioner, the Mayor, and county officers, including the Sheriff and Property Appraiser.</p>
           <span class="index-go" aria-hidden="true">&#8594;</span>
         </a></li>
         <li><a href="get-involved.html">
           <h3>Get involved</h3>
-          <p>How to find your district, speak at public comment, and follow along between meetings.</p>
+          <p>Volunteer, write an editorial, cover your city, or attend a meeting.</p>
           <span class="index-go" aria-hidden="true">&#8594;</span>
         </a></li>
       </ul>
@@ -243,13 +248,13 @@
   <section class="section">
     <div class="wrap">
       <span class="eyebrow">Why this exists</span>
-      <h2>Local government is public. It just isn't easy to follow</h2>
-      <p class="section-copy">BCC agendas run hundreds of pages and are written in procedural language. Almost nobody outside of government and lobbyists reads them cover to cover, but the decisions inside them affect rent, roads, permits, and public services across the county.</p>
+      <h2>Why we do this</h2>
+      <p class="section-copy">County Commission decisions affect housing, roads, and public services. Long agendas and unfamiliar terms can make them hard to follow. We help you understand the decisions and take part.</p>
       <blockquote class="pull-quote">
-        <p>We summarize what matters, link back to the original source for every item, and stay out of the business of telling you what to think about it.</p>
+        <p>We explain the decisions and link to the public record so you can form your own view.</p>
         <cite>Miami-Dade Commission Watch, editorial policy</cite>
       </blockquote>
-      <a class="btn btn-secondary" href="about.html">Read our full mission &amp; nonpartisan policy</a>
+      <a class="btn btn-secondary" href="about.html">About MDCW</a>
     </div>
   </section>
 

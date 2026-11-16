@@ -69,7 +69,7 @@
       if (c.status === 'unclaimed') {
         return '<li class="muni">' + name +
           '<a class="muni-claim" href="#request" data-claim="' + escapeHtml(c.slug) + '">' +
-          'Claim this city<span class="sr-only">: ' + escapeHtml(c.name) + '</span></a></li>';
+          'Apply to cover this city<span class="sr-only">: ' + escapeHtml(c.name) + '</span></a></li>';
       }
       var meta = STATUS[c.status] || STATUS.pending;
       return '<li class="muni">' + name +
@@ -84,10 +84,9 @@
 
     el('claim-slug').value = city.slug;
     el('claim-city-name').value = city.name;
-    el('claim-heading').textContent = 'Request ' + city.name;
+    el('claim-heading').textContent = 'Apply to cover ' + city.name;
     el('claim-intro').textContent =
-      "You'd be starting coverage of the " + city.name + " city commission from scratch. " +
-      "Tell us a bit about you and we'll get back to you.";
+      "Tell us why you want to cover " + city.name + " and who would help. We'll email you a decision.";
 
     el('claim-placeholder').style.display = 'none';
     el('claim-form').style.display = '';
@@ -99,7 +98,7 @@
   function closeClaim() {
     el('claim-form').style.display = 'none';
     el('claim-placeholder').style.display = '';
-    el('claim-heading').textContent = 'Request a city';
+    el('claim-heading').textContent = 'Apply to cover a city';
   }
 
   function submitClaim(e) {
@@ -137,7 +136,7 @@
         }
         el('claim-form').reset();
         setStatus('claim-status',
-          "Request sent. We'll email you at that address either way, usually within a few days.", 'success');
+          "Application sent. We'll email you a decision, usually within a few days.", 'success');
         load();
       })
       .catch(function () {

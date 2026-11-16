@@ -3,9 +3,7 @@
   /* Covered: the site's .card, a little larger. min() keeps a single column
      inside the 360px viewport's content box. */
   .muni-covered-grid { grid-template-columns: repeat(auto-fit, minmax(min(100%, 300px), 1fr)); gap: 20px; }
-  .muni-card { height: 100%; padding: 28px; }
-  .muni-card h4 { font-size: 24px; }
-  .muni-card p { font-size: 16px; }
+  .muni-card { height: 100%; padding: 24px; }
   .muni-card-url { display: block; margin-top: 16px; font-size: 12px; color: var(--green-700); overflow-wrap: anywhere; }
   .card .mono { overflow-wrap: anywhere; }
   .muni-count { margin: 20px 0 0; font-family: var(--font-mono); font-size: 14px; color: var(--ink-600); }
@@ -23,8 +21,7 @@
 .participation-links { display:flex; flex-wrap:wrap; gap:12px 24px; margin-top:24px; }
 .participation-links a { font-weight:600; }
 #cover-your-city > .section { padding-top:32px; padding-bottom:32px; }
-#cover-your-city h3[id] { font-size:28px; }
-#cover-your-city .card h4 { margin-top:0; }
 
-#cover-your-city h3[id] { scroll-margin-top:140px; }
-#join-us .card h4 { margin:0; font-size:21px; }
+
+/* Clear the expanded sticky header when opening a participation link. */
+#main section[id], #cover-your-city h3[id] { scroll-margin-top:184px; }
