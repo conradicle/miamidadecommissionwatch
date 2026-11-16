@@ -91,6 +91,16 @@
       "source": "/photos.html",
       "destination": "/photos",
       "permanent": true
+    },
+    {
+      "source": "/elections.html",
+      "destination": "/officials.html",
+      "permanent": true
+    },
+    {
+      "source": "/elections",
+      "destination": "/officials.html",
+      "permanent": true
     }
   ],
   "headers": [
