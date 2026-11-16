@@ -28,6 +28,12 @@ that from happening again.
   `vercel.json`, `package*.json`, `.md`/`.sql`/`.mjs` and similar) or if a rewrite
   destination in `vercel.json` is missing from `dist/`. If it fails, fix the allowlist; never
   loosen the guard to get a deploy through.
+- **One header and footer.** The `site-header` and `site-footer` in `home.html` are the
+  only copies that count. After every page is written, `scripts/lib/shell.mjs` swaps them
+  onto every public page in `dist/` (generated meeting and document pages too) and marks
+  the current nav link. Add a nav or footer link in `home.html` once; the copies in other
+  source pages are overwritten on build. Staff pages, `links.html` and `city/index.html`
+  keep their own chrome (`OWN_CHROME` in that file).
 - **Functions** in `api/` are built by Vercel from the project root and are unaffected by the
   output folder. `api/_*.js` are modules, not endpoints.
 - **Locally:** `npm run build` writes `dist/` (gitignored); `npm run build:check` is a dry

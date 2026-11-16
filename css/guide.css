@@ -1,0 +1,87 @@
+/* Local Government 101 (local-government-101.html). Kept out of style.css
+   so the guide's layout loads only on the guide. Uses the shared tokens. */
+
+.guide-hero { padding-bottom: var(--space-5); }
+.guide-hero h1 { max-width: 20ch; }
+
+.guide { padding-top: var(--space-6); }
+
+.guide-layout {
+  display: grid;
+  grid-template-columns: 200px minmax(0, 1fr);
+  gap: var(--space-7);
+  align-items: start;
+}
+
+.guide-contents {
+  position: sticky;
+  top: 96px;
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+  padding-left: var(--space-4);
+  border-left: 2px solid var(--gold-600);
+}
+.guide-contents h2 {
+  font-family: Inter, system-ui, sans-serif;
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--ink-900);
+  margin: 0 0 var(--space-1);
+}
+.guide-contents a {
+  font-size: 14px;
+  color: var(--navy-800);
+  text-decoration: none;
+}
+.guide-contents a:hover { text-decoration: underline; }
+
+.guide-content { max-width: 68ch; }
+.guide-content > section {
+  padding-bottom: var(--space-7);
+  margin-bottom: var(--space-7);
+  border-bottom: 1px solid var(--line);
+  scroll-margin-top: 96px;
+}
+.guide-content > section:last-child { border-bottom: 0; margin-bottom: 0; }
+.guide-content h2 { margin-bottom: var(--space-4); }
+.guide-content h3 { margin: var(--space-5) 0 var(--space-2); font-size: 20px; }
+.guide-content p,
+.guide-content li,
+.guide-content dd { font-size: 17px; line-height: 1.65; color: var(--ink-600); }
+
+.guide-source { font-size: 14px !important; color: var(--ink-400) !important; }
+
+.guide-takeaway {
+  margin-top: var(--space-5);
+  padding: var(--space-5);
+  background: var(--paper-raised);
+  border: 1px solid var(--line);
+  border-radius: 8px;
+}
+.guide-takeaway p { margin: 0; color: var(--ink-900); }
+.guide-takeaway-links {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-3) var(--space-5);
+  margin-top: var(--space-3) !important;
+  font-weight: 600;
+}
+
+.guide-steps { padding-left: 1.25em; }
+.guide-steps li { margin-bottom: var(--space-3); }
+.guide-steps strong { color: var(--ink-900); }
+
+.guide-terms { margin: 0 0 var(--space-5); }
+.guide-terms dt {
+  font-family: Lora, Georgia, serif;
+  font-weight: 600;
+  color: var(--navy-800);
+  margin-top: var(--space-4);
+}
+.guide-terms dd { margin: var(--space-1) 0 0; }
+
+@media (max-width: 860px) {
+  .guide-layout { grid-template-columns: 1fr; gap: var(--space-6); }
+  .guide-contents { position: static; }
+}
