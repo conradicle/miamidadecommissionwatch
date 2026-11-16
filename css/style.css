@@ -1467,6 +1467,64 @@ iframe.skiptranslate { display: none !important; }
 .photo-hero .photo-link { border-radius: 16px; }
 .photo-hero .photo-link img { aspect-ratio: 4 / 3; }
 
+/* Several featured photos: they stack in one grid cell and crossfade
+   (js/hero-rotator.js). The cell is as tall as the tallest slide, caption
+   included, so nothing below moves when the photo changes. */
+.hero-slides { display: grid; }
+.hero-slide {
+  grid-area: 1 / 1;
+  opacity: 0;
+  visibility: hidden;
+  transition: opacity .7s var(--ease), visibility 0s linear .7s;
+}
+.hero-slide.is-active {
+  opacity: 1;
+  visibility: visible;
+  transition: opacity .7s var(--ease), visibility 0s;
+}
+.hero-controls { display: flex; align-items: center; gap: 8px; margin-top: 12px; }
+.hero-controls[hidden] { display: none; }
+.hero-pause {
+  width: 32px;
+  height: 32px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border: 1px solid rgba(30, 36, 48, 0.18);
+  border-radius: 8px;
+  background: var(--paper-raised);
+  color: var(--ink-600);
+  cursor: pointer;
+  transition: background-color .15s var(--ease), color .15s var(--ease);
+}
+.hero-pause:hover { background: var(--paper-alt); color: var(--ink-900); }
+.hero-pause svg { width: 14px; height: 14px; fill: currentColor; }
+.hero-pause .icon-play, .is-paused .hero-pause .icon-pause { display: none; }
+.is-paused .hero-pause .icon-play { display: block; }
+.hero-dots { display: flex; }
+/* 24px tap target around an 8px dot. */
+.hero-dot {
+  width: 24px;
+  height: 24px;
+  padding: 0;
+  border: 0;
+  background: none;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+.hero-dot::before {
+  content: "";
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: rgba(30, 36, 48, 0.24);
+  transition: background-color .15s var(--ease), transform .15s var(--ease);
+}
+.hero-dot:hover::before { background: rgba(30, 36, 48, 0.45); }
+.hero-dot[aria-current="true"]::before { background: var(--accent); transform: scale(1.25); }
+
 /* Homepage: once a photo is published, "Attend with us" becomes a split. */
 .attend-photo { margin-top: 32px; }
 .photo-feature .photo-link img { aspect-ratio: 4 / 3; }

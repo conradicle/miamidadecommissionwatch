@@ -117,22 +117,52 @@ function pick(photos, n) {
 // The top of the homepage is the most-seen spot on the site, so only a photo
 // staff marked Featured can go there: the newest one. With none featured the
 // seal stays (the fallback is home.html's own markup in that region).
-export function heroPhoto(photos) {
-  return photos.find((p) => p.is_featured) || null;
+export const HERO_MAX = 6;
+const HERO_SIZES = '(min-width: 1080px) 420px, (min-width: 900px) 40vw, 92vw';
+
+export function heroPhotos(photos) {
+  return photos.filter((p) => p.is_featured).slice(0, HERO_MAX);
 }
 
+// One featured photo: a still image, as before. Several: a slideshow that
+// js/hero-rotator.js turns, newest meeting first. Without that script (or
+// before it runs) only the first slide shows and the controls stay hidden,
+// so the hero never depends on JavaScript.
 export function renderHeroMedia(photos, byline, fallback) {
-  const p = heroPhoto(photos);
-  if (!p) return fallback;
-  return '<div class="hero-photo" data-photo-group>' +
-    figure(p, byline, { sizes: '(min-width: 1080px) 420px, (min-width: 900px) 40vw, 92vw', eager: true, cls: 'photo photo-hero' }) +
+  const slides = heroPhotos(photos);
+  if (!slides.length) return fallback;
+  if (slides.length === 1) {
+    return '<div class="hero-photo" data-photo-group>' +
+      figure(slides[0], byline, { sizes: HERO_SIZES, eager: true, cls: 'photo photo-hero' }) +
+      '</div>';
+  }
+  const n = slides.length;
+  return '<div class="hero-photo hero-rotator" data-photo-group data-rotate ' +
+    'role="group" aria-roledescription="carousel" aria-label="Photos from County Commission meetings">' +
+    '<div class="hero-slides">' +
+    slides.map((p, i) =>
+      `<div class="hero-slide${i === 0 ? ' is-active' : ''}" role="group" aria-roledescription="slide" aria-label="${i + 1} of ${n}"` +
+      // inert: a hidden slide's link is neither focusable nor read out.
+      `${i === 0 ? '' : ' inert'}>` +
+      figure(p, byline, { sizes: HERO_SIZES, eager: i === 0, cls: 'photo photo-hero' }) +
+      '</div>').join('') +
+    '</div>' +
+    '<div class="hero-controls" hidden>' +
+    '<button type="button" class="hero-pause" aria-label="Pause the slideshow" data-label-play="Play the slideshow" data-label-pause="Pause the slideshow">' +
+    '<svg viewBox="0 0 16 16" aria-hidden="true" class="icon-pause"><rect x="4" y="3" width="3" height="10" rx="1"/><rect x="9" y="3" width="3" height="10" rx="1"/></svg>' +
+    '<svg viewBox="0 0 16 16" aria-hidden="true" class="icon-play"><path d="M5 3.5v9a.5.5 0 0 0 .77.42l7-4.5a.5.5 0 0 0 0-.84l-7-4.5A.5.5 0 0 0 5 3.5z"/></svg>' +
+    '</button>' +
+    '<div class="hero-dots">' +
+    slides.map((p, i) => `<button type="button" class="hero-dot" aria-label="Show photo ${i + 1} of ${n}"${i === 0 ? ' aria-current="true"' : ''}></button>`).join('') +
+    '</div>' +
+    '</div>' +
     '</div>';
 }
 
-// "Attend with us" shows the next photo in line, never the hero's.
+// "Attend with us" shows a photo that is not already in the hero.
 export function renderHomePhoto(photos, byline) {
-  const hero = heroPhoto(photos);
-  const [p] = pick(photos.filter((x) => x !== hero), 1);
+  const hero = new Set(heroPhotos(photos));
+  const [p] = pick(photos.filter((x) => !hero.has(x)), 1);
   if (!p) return '';
   return `<div class="attend-photo" data-photo-group>` +
     figure(p, byline, { sizes: '(min-width: 900px) 420px, 92vw', cls: 'photo photo-feature' }) +
