@@ -188,7 +188,11 @@
       if (failures.length) {
         setStatus(done + ' uploaded, ' + failures.length + ' failed. ' + failures.join(' '), 'error');
       } else {
-        setStatus(done + (done === 1 ? ' photo' : ' photos') + ' uploaded as drafts. Add alt text and captions below, then publish.', 'success');
+        // Say plainly that nothing is public yet: an empty /photos right
+        // after an upload reads as a failure otherwise.
+        setStatus(done + (done === 1 ? ' photo' : ' photos') + ' uploaded as ' + (done === 1 ? 'a draft' : 'drafts') +
+          '. Drafts are not on /photos. To show one there: write its alt text, tick the release box and Published, ' +
+          'click Save, then Publish to site and reload /photos after about a minute.', 'success');
       }
       load();
     });
