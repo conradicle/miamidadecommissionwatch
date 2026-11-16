@@ -192,7 +192,7 @@
         // after an upload reads as a failure otherwise.
         setStatus(done + (done === 1 ? ' photo' : ' photos') + ' uploaded as ' + (done === 1 ? 'a draft' : 'drafts') +
           '. Drafts are not on /photos. To show one there: write its alt text, tick the release box and Published, ' +
-          'click Save, then Publish to site and reload /photos after about a minute.', 'success');
+          'then click Save. The site rebuilds by itself; reload /photos about a minute later.', 'success');
       }
       load();
     });
@@ -308,18 +308,27 @@
         cardStatus(cardEl, 'Could not save: ' + res.error.message, 'error');
         return;
       }
+      // A change to a photo that is or was public changes the public pages;
+      // a draft edit changes nothing a visitor can see.
+      var touchesSite = r.published || fields.published;
       Object.assign(r, fields);
       var state = cardEl.querySelector('.photo-admin-state');
       state.textContent = (r.published ? 'Published' : 'Draft') + (r.is_featured ? ' · Featured' : '');
       state.className = 'photo-admin-state' + (r.published ? ' is-live' : '');
-      cardStatus(cardEl, 'Saved. Publish to site to update the public pages.', 'success');
+      if (touchesSite) {
+        cardStatus(cardEl, 'Saved. The public site rebuilds automatically in a few seconds.', 'success');
+        scheduleRebuild();
+      } else {
+        cardStatus(cardEl, 'Saved as a draft. Drafts are not on the public site.', 'success');
+      }
     });
   }
 
   function remove(id) {
     var r = rows.filter(function (x) { return x.id === id; })[0];
     if (!r || !window.confirm('Delete this photo from ' + formatDate(r.meeting_date) +
-      '? The files are removed from storage and this cannot be undone. If it is on the public site, it disappears at the next rebuild.')) return;
+      '? The files are removed from storage and this cannot be undone.' +
+      (r.published ? ' It comes off the public site at the rebuild that starts automatically.' : ''))) return;
     supabaseClient.storage.from(BUCKET).remove([r.storage_path, thumbPath(r.storage_path)]).then(function (res) {
       if (res.error) {
         setStatus('Could not delete the files: ' + res.error.message, 'error');
@@ -328,10 +337,64 @@
       return supabaseClient.from('meeting_photos').delete().eq('id', id).then(function (del) {
         setStatus(del.error ? 'Files removed, but the row could not be deleted: ' + del.error.message : 'Deleted.',
           del.error ? 'error' : 'success');
+        if (!del.error && r.published) scheduleRebuild();
         load();
       });
     });
   }
+
+  // ---------------------------------------------------------------------
+  // Automatic rebuild
+  // ---------------------------------------------------------------------
+  //
+  // The public pages are prerendered, so a published photo only appears after
+  // a site build, and a build only sees what was saved before it started.
+  // Asking staff to save first and then press Publish to site, in that order,
+  // went wrong in practice: the build ran before the save and shipped nothing.
+  // So a save or delete that touches a public photo schedules the build
+  // itself, REBUILD_DELAY after the last such change. Publishing six photos in
+  // a row makes one build, not six. The button below stays for other changes.
+  var REBUILD_DELAY = 8000;
+  var rebuildTimer = null;
+  var rebuildRunning = false;
+  var rebuildAgain = false;
+
+  function publishStatus(message, kind) {
+    var node = el('photo-publish-site-status');
+    node.textContent = message || '';
+    node.className = 'district-status' + (kind ? ' ' + kind : '');
+  }
+
+  function scheduleRebuild() {
+    if (typeof window.mdcwStartSiteBuild !== 'function') return;
+    clearTimeout(rebuildTimer);
+    publishStatus('Updating the public site in a few seconds. Keep this tab open until the rebuild starts.');
+    rebuildTimer = setTimeout(runRebuild, REBUILD_DELAY);
+  }
+
+  function runRebuild() {
+    rebuildTimer = null;
+    // A save while a build request is in flight gets its own build after it,
+    // so the newest state always reaches the site.
+    if (rebuildRunning) { rebuildAgain = true; return; }
+    rebuildRunning = true;
+    publishStatus('Starting the rebuild...');
+    window.mdcwStartSiteBuild().then(function (result) {
+      rebuildRunning = false;
+      publishStatus(result.ok
+        ? 'Rebuild started. /photos and the homepage update in about a minute.'
+        : 'The automatic rebuild did not start: ' + result.message + ' Use Publish to site to try again.',
+        result.ok ? 'success' : 'error');
+      if (rebuildAgain) { rebuildAgain = false; scheduleRebuild(); }
+    });
+  }
+
+  // Closing the tab during the countdown would drop the rebuild silently.
+  window.addEventListener('beforeunload', function (e) {
+    if (!rebuildTimer && !rebuildRunning) return;
+    e.preventDefault();
+    e.returnValue = '';
+  });
 
   function initPublish() {
     var btn = el('photo-publish-site-btn');
