@@ -33,9 +33,37 @@
     node.className = 'district-status' + (kind ? ' ' + kind : '');
   }
 
-  function todayISO() {
-    var d = new Date();
-    return d.getFullYear() + '-' + String(d.getMonth() + 1).padStart(2, '0') + '-' + String(d.getDate()).padStart(2, '0');
+  function miamiClock() {
+    var parts = new Intl.DateTimeFormat('en-US', {
+      timeZone: TZ, year: 'numeric', month: '2-digit', day: '2-digit',
+      hour: '2-digit', minute: '2-digit', second: '2-digit', hourCycle: 'h23'
+    }).formatToParts(new Date());
+    var values = {};
+    parts.forEach(function (part) { values[part.type] = part.value; });
+    return values.year + '-' + values.month + '-' + values.day + 'T' +
+      values.hour + ':' + values.minute + ':' + values.second;
+  }
+
+  function todayISO() { return miamiClock().slice(0, 10); }
+
+  function futureDeadline(value) {
+    var time = new Date(value).getTime();
+    return Number.isFinite(time) && time > Date.now();
+  }
+
+  // Match bcc_default_signup_close(): Saturday strictly before the meeting,
+  // at 23:59:59 Miami time. Compare wall clocks so DST and staff travel do
+  // not change whether the database default has already expired.
+  function defaultDeadlinePassed(date) {
+    var day = new Date(date + 'T00:00:00Z');
+    if (!Number.isFinite(day.getTime())) return true;
+    var daysBack = ((day.getUTCDay() || 7) % 7) + 1;
+    day.setUTCDate(day.getUTCDate() - daysBack);
+    return miamiClock() >= day.toISOString().slice(0, 10) + 'T23:59:59';
+  }
+
+  function openForSignups(m) {
+    return m.is_open && m.meeting_date >= todayISO() && futureDeadline(m.signup_closes_at);
   }
 
   function formatDate(iso) {
@@ -78,8 +106,9 @@
   }
 
   function meetingState(m) {
+    if (m.meeting_date < todayISO()) return { label: 'Past meeting', cls: 'draft' };
     if (!m.is_open) return { label: 'Closed', cls: 'rejected' };
-    if (new Date(m.signup_closes_at) <= new Date()) return { label: 'Window passed', cls: 'draft' };
+    if (!futureDeadline(m.signup_closes_at)) return { label: 'Deadline passed', cls: 'draft' };
     return { label: 'Open', cls: 'approved' };
   }
 
@@ -136,8 +165,9 @@
         (m.notes ? '<p style="margin:6px 0 0; font-size:14px;">' + escapeHtml(m.notes) + '</p>' : '') +
         '<div class="submission-actions" style="margin-top:10px;">' +
           '<button type="button" class="btn btn-primary btn-small" data-roster="' + escapeHtml(m.id) + '">Roster (' + n + ')</button>' +
-          '<button type="button" class="btn btn-secondary btn-small" data-toggle="' + escapeHtml(m.id) + '">' +
-            (m.is_open ? 'Close sign-ups' : 'Open sign-ups') + '</button>' +
+          '<button type="button" class="btn btn-secondary btn-small" data-toggle="' + escapeHtml(m.id) + '"' +
+            (m.meeting_date < today ? ' disabled' : '') + '>' +
+            (openForSignups(m) ? 'Close sign-ups' : (m.is_open ? 'Reopen sign-ups' : 'Open sign-ups')) + '</button>' +
           '<button type="button" class="btn btn-secondary btn-small" data-edit="' + escapeHtml(m.id) + '">Edit</button>' +
           '<button type="button" class="btn btn-danger btn-small" data-delete-meeting="' + escapeHtml(m.id) + '">Delete</button>' +
         '</div></div>';
@@ -190,6 +220,24 @@
     // fills the Saturday before (and follows the date if it moves); blanked,
     // it goes back to that default.
     var closeVal = el('bcc-closes').value;
+    if (fields.is_open) {
+      if (fields.meeting_date < todayISO()) {
+        setStatus('bcc-form-status', 'A past meeting cannot be opened for sign-ups. Choose an upcoming meeting date.', 'error');
+        el('bcc-date').focus();
+        return;
+      }
+      var currentMeeting = meetings.filter(function (m) { return m.id === editingId; })[0];
+      var dateMoved = currentMeeting && currentMeeting.meeting_date !== fields.meeting_date;
+      var usesDefault = (!closeVal && (!editingId || closeTouched)) || (dateMoved && !closeTouched);
+      var effectiveClose = (!editingId || closeTouched) ? closeVal : (currentMeeting || {}).signup_closes_at;
+      var expired = usesDefault ? defaultDeadlinePassed(fields.meeting_date) : !futureDeadline(effectiveClose);
+      if (expired) {
+        setStatus('bcc-form-status', 'Choose a future sign-up closing time. The current or default deadline has already passed.', 'error');
+        el('bcc-closes').focus();
+        return;
+      }
+    }
+
     if (!editingId || closeTouched) {
       fields.signup_closes_at = closeVal ? new Date(closeVal).toISOString() : null;
     }
@@ -198,15 +246,23 @@
       ? supabaseClient.from('bcc_meetings').update(fields).eq('id', editingId)
       : supabaseClient.from('bcc_meetings').insert(fields);
     el('bcc-submit-btn').disabled = true;
-    query.then(function (res) {
+    query.select('id, is_open, signup_closes_at').single().then(function (res) {
       el('bcc-submit-btn').disabled = false;
-      if (res.error) {
-        setStatus('bcc-form-status', 'Could not save: ' + res.error.message, 'error');
+      if (res.error || !res.data) {
+        setStatus('bcc-form-status', 'Could not save: ' + (res.error ? res.error.message : 'No meeting was saved. Refresh and try again.'), 'error');
+        return;
+      }
+      if (res.data.is_open && !futureDeadline(res.data.signup_closes_at)) {
+        setStatus('bcc-form-status', 'Meeting saved, but its deadline has passed. Choose a future closing time to open sign-ups.', 'error');
+        load();
         return;
       }
       setStatus('bcc-form-status', editingId ? 'Saved.' : 'Added.', 'success');
       resetForm();
       load();
+    }).catch(function () {
+      el('bcc-submit-btn').disabled = false;
+      setStatus('bcc-form-status', 'Could not reach the server. Please try again.', 'error');
     });
   }
 
@@ -255,15 +311,34 @@
   function toggleOpen(id) {
     var m = meetings.filter(function (x) { return x.id === id; })[0];
     if (!m) return;
-    var opening = !m.is_open;
-    if (opening && new Date(m.signup_closes_at) <= new Date() &&
-        !window.confirm('Sign-ups for this meeting closed ' + formatStamp(m.signup_closes_at) +
-          '. Opening it won’t show it on /attend until you move the close time later. Open anyway?')) return;
-    supabaseClient.from('bcc_meetings').update({ is_open: opening }).eq('id', id).then(function (res) {
-      setStatus('bcc-form-status', res.error ? 'Could not update: ' + res.error.message
-        : (opening ? 'Sign-ups opened.' : 'Sign-ups closed.'), res.error ? 'error' : 'success');
-      load();
-    });
+    if (m.meeting_date < todayISO()) {
+      setStatus('bcc-form-status', 'Past meetings cannot be reopened. Choose an upcoming meeting.', 'error');
+      return;
+    }
+    var opening = !openForSignups(m);
+    if (opening && !futureDeadline(m.signup_closes_at)) {
+      startEdit(id);
+      el('bcc-open').checked = true;
+      el('bcc-form-heading').textContent = 'Reopen sign-ups';
+      el('bcc-submit-btn').textContent = 'Save and reopen';
+      setStatus('bcc-form-status', 'Choose a future closing time, then save to reopen sign-ups.', 'error');
+      el('bcc-closes').focus();
+      return;
+    }
+    supabaseClient.from('bcc_meetings').update({ is_open: opening }).eq('id', id)
+      .select('id, is_open, signup_closes_at').single().then(function (res) {
+        if (res.error || !res.data) {
+          setStatus('bcc-form-status', 'Could not update: ' + (res.error ? res.error.message : 'No meeting was updated. Refresh and try again.'), 'error');
+          return;
+        }
+        setStatus('bcc-form-status', res.data.is_open && !futureDeadline(res.data.signup_closes_at)
+          ? 'The deadline has passed. Choose a future closing time to reopen sign-ups.'
+          : (res.data.is_open ? 'Sign-ups opened.' : 'Sign-ups closed.'),
+          res.data.is_open && !futureDeadline(res.data.signup_closes_at) ? 'error' : 'success');
+        load();
+      }).catch(function () {
+        setStatus('bcc-form-status', 'Could not reach the server. Please try again.', 'error');
+      });
   }
 
   // ---------- roster ----------
