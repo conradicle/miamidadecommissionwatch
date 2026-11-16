@@ -105,8 +105,10 @@
   --hairline: rgba(30, 36, 48, 0.10);
 
   /* Two families: Lora for headings, Inter for everything else. Meta lines
-     that used Courier New now use Inter with tabular figures, so dates and
-     counts line up without the typewriter look. */
+     that used Courier New now use Inter. Tabular figures go only on date and
+     count lines: on body text, Lora's and Inter's tnum feature also widens
+     spaces and hyphens, which spreads headings out and turns "Miami-Dade"
+     into "Miami - Dade". */
   --font-display: var(--doc-serif);
   --font-wordmark: var(--doc-serif);
   --font-body: var(--doc-sans);
@@ -139,7 +141,6 @@ body {
   font-size: 16px;
   line-height: 1.6;
   -webkit-font-smoothing: antialiased;
-  font-variant-numeric: tabular-nums;
 }
 
 .wrap {
@@ -610,6 +611,7 @@ iframe.skiptranslate { display: none !important; }
 .attend-cta-date {
   display: block;
   font: 500 17px/24px var(--doc-sans);
+  font-variant-numeric: tabular-nums;
   color: var(--ink-900);
   margin-top: 4px;
 }
