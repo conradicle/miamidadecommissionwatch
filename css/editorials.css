@@ -1,13 +1,13 @@
 /* Student Editorials only; shared navigation and typography stay in style.css. */
-.editorial-intro { padding: 30px 0 18px; border-bottom: 1px solid var(--line); }
-.editorial-intro-row { display:flex; gap:24px; align-items:center; justify-content:space-between; }
-.editorial-intro .eyebrow { margin-bottom:8px; }
+.editorial-intro { padding-bottom:var(--space-5); }
+.editorial-intro-row { display:flex; gap:var(--space-5); align-items:center; justify-content:space-between; margin-bottom:20px; }
 .editorial-intro h1 { max-width:22ch; margin:0; }
 .editorial-intro .btn { flex-shrink:0; padding:11px 16px; font-size:14px; }
-.editorial-intro-copy { color:var(--ink-600); font-size:15px; max-width:90ch; margin:14px 0 4px; }
+.editorial-intro-copy { margin:0; }
+.editorial-disclosures { margin-top:var(--space-2); }
 .editorial-disclosures summary { cursor:pointer; font-size:14px; color:var(--accent); padding:8px 0; min-height:40px; }
 .editorial-disclosures p { max-width:90ch; margin:6px 0 8px; font-size:14px; color:var(--ink-600); }
-.editorial-archive { padding:20px 0 48px; }
+.editorial-archive { padding:var(--space-6) 0 var(--space-7); }
 .editorial-tools { display:flex; align-items:end; gap:20px; padding-bottom:18px; }
 .editorial-tools[hidden], .editorial-card[hidden] { display:none; }
 .editorial-tools label { display:block; font-size:12px; font-weight:600; margin-bottom:5px; color:var(--ink-600); }
@@ -51,8 +51,11 @@ html:has(#editorial-reader[open]) { overflow:hidden; }
 @media(max-width:1199px) { #editorials-list { grid-template-columns:repeat(2,minmax(0,1fr)); } }
 @media(max-width:639px) {
   #editorials-list { grid-template-columns:minmax(0,1fr); }
-  .editorial-intro { padding-top:24px; }
-  .editorial-intro-row { align-items:start; flex-direction:column; gap:16px; }
+  .editorial-intro > .wrap { display:flex; flex-direction:column; }
+  .editorial-intro-row { display:contents; }
+  .editorial-intro-row > div { margin-bottom:20px; }
+  .editorial-intro .btn { order:1; align-self:flex-start; margin-top:var(--space-4); }
+  .editorial-disclosures { order:2; }
   .editorial-intro h1 { max-width:100%; }
   .editorial-tools { flex-wrap:wrap; gap:12px; }
   .editorial-search { flex-basis:100%; max-width:none; }
