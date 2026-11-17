@@ -319,6 +319,9 @@ iframe.skiptranslate { display: none !important; }
   color: #fff;
   min-width: 0;
 }
+/* Override the generic link hover color on the navy header. The name stays
+   white while the nested Commission accent keeps its own gold color. */
+.wordmark:hover, .wordmark:focus-visible { color: #fff; }
 /* The seal, on every page. Its own navy outer ring melts into the navy bar,
    so it reads as the cream disc with the gold rule, which is the point. */
 .wordmark-logo {
