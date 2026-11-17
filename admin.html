@@ -278,6 +278,14 @@
         <div class="notice" style="margin-bottom:20px;">
           Meetings students can sign up for at <a href="/attend" target="_blank" rel="noopener">/attend</a>. The page shows the earliest meeting that is open and before its close time, and updates as soon as you save. Sign-ups hold students&rsquo; phone numbers and IDs: keep exports off shared drives, and every sign-up is deleted automatically 30 days after its meeting.
         </div>
+        <section class="admin-form" aria-labelledby="bcc-interest-heading">
+          <h3 id="bcc-interest-heading">Meeting interest list</h3>
+          <p>General interest only, separate from meeting rosters and the newsletter. Records remain until removal is requested. Text only consenting students. Export a fresh list before sending meeting notifications.</p>
+          <p>When a student replies STOP or asks to be removed, choose <strong>Stop notifications</strong>. This removes the name, school and comment preference, and retains the phone number so another submission cannot restart texts.</p>
+          <div class="link-stats-controls"><button type="button" class="btn btn-secondary btn-small" id="bcc-interest-refresh">Refresh list</button><button type="button" class="btn btn-secondary btn-small" id="bcc-interest-export" disabled>Export consenting students (CSV)</button></div>
+          <p id="bcc-interest-status" class="district-status" role="status" aria-live="polite"></p>
+          <div id="bcc-interest-body"></div>
+        </section>
         <form id="bcc-meeting-form" class="admin-form">
           <h3 style="margin-top:0;" id="bcc-form-heading">Add a meeting</h3>
           <div class="field"><select id="bcc-from-schedule" aria-label="Fill from the Schedule tab" hidden></select></div>
@@ -724,7 +732,7 @@
 <script src="js/admin-documents.js?v=20261019c"></script>
 <script src="js/admin-schedule.js?v=20261019b"></script>
 <script src="js/admin-photos.js?v=20261116e"></script>
-<script src="js/admin-bcc.js?v=20261116"></script>
+<script src="js/admin-bcc.js?v=20261117"></script>
 <script src="js/admin.js?v=20261116"></script>
 </body>
 </html>
