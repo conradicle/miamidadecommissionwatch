@@ -27,14 +27,14 @@
 <link rel="icon" type="image/png" sizes="32x32" href="assets/img/favicon-32x32.png">
 <link rel="icon" type="image/png" sizes="16x16" href="assets/img/favicon-16x16.png">
 <link rel="apple-touch-icon" sizes="180x180" href="assets/img/apple-touch-icon.png">
-<link rel="stylesheet" href="css/style.css?v=20261116i">
-<link rel="stylesheet" href="css/document.css?v=20261115">
+<link rel="stylesheet" href="css/style.css?v=20261116j">
+<link rel="stylesheet" href="css/document.css?v=20261116b">
 <!-- build:jsonld -->
 <script type="application/ld+json">{"@context":"https://schema.org","@type":"NewsMediaOrganization","@id":"https://www.miamidadecommissionwatch.com/#organization","name":"Miami-Dade Commission Watch","alternateName":["Miami Dade Commission Watch","MDCW","Miami-Dade County Commission Watch"],"url":"https://www.miamidadecommissionwatch.com/","logo":{"@type":"ImageObject","url":"https://www.miamidadecommissionwatch.com/assets/img/og-image.png","width":1200,"height":630},"image":"https://www.miamidadecommissionwatch.com/assets/img/og-image.png","description":"Independent, nonpartisan tracking of the Miami-Dade County Board of County Commissioners: plain-language meeting summaries, a commissioner directory, and ways to get involved.","founder":[{"@type":"Person","name":"Conrad Gelber"},{"@type":"Person","name":"Daniel Llobet"}],"sameAs":["https://instagram.com/miamidadecommissionwatch"],"areaServed":{"@type":"AdministrativeArea","name":"Miami-Dade County, Florida"},"knowsAbout":["Miami-Dade Board of County Commissioners","Miami-Dade County government","county commission meetings","local government transparency"],"publishingPrinciples":"https://www.miamidadecommissionwatch.com/about.html","isAccessibleForFree":true,"disambiguatingDescription":"An independent, student-run civic project. Not affiliated with, operated by, or endorsed by Miami-Dade County government."}</script>
 <script type="application/ld+json">{"@context":"https://schema.org","@type":"WebSite","@id":"https://www.miamidadecommissionwatch.com/#website","url":"https://www.miamidadecommissionwatch.com/","name":"Miami-Dade Commission Watch","inLanguage":"en-US","publisher":{"@id":"https://www.miamidadecommissionwatch.com/#organization"}}</script>
 <!-- /build:jsonld -->
 </head>
-<body>
+<body class="home-page">
 <a class="skip-link" href="#main">Skip to content</a>
 
 <header class="site-header">
@@ -102,7 +102,8 @@
         <p class="lede">Miami-Dade Commission Watch is an independent, student-run project that makes county government easier to follow. We explain what commissioners are considering, how they vote, and what happens next, with links to the public record.</p>
         <div class="btn-row">
           <a class="btn btn-primary" href="/documents">Read meeting summaries</a>
-          <a class="btn btn-secondary" href="#find-district">Find my district</a>
+          <a class="btn btn-secondary" href="/get-involved.html">Get Involved <span aria-hidden="true">&rarr;</span></a>
+          <a class="home-district-link" href="#find-district">Find my district <span aria-hidden="true">&rarr;</span></a>
         </div>
         <aside class="home-guide" aria-labelledby="home-guide-heading">
           <h2 id="home-guide-heading">New to local government?</h2>
@@ -135,37 +136,12 @@
     </div>
   </section>
 
-  <!-- Student sign-ups for /attend. The heading, copy and button are static
-       so the section reads fine before (or without) the meeting lookup;
-       js/home.js fills #attend-cta-when from js/next-bcc-meeting.js, the same
-       query /attend runs. data-state: loading | open | closed | error. -->
-  <section class="section section-alt attend-cta" id="attend-cta" data-state="loading" aria-labelledby="attend-cta-heading">
-    <div class="wrap attend-cta-grid">
-      <div class="attend-cta-text">
-      <span class="eyebrow">Attend with us</span>
-      <h2 id="attend-cta-heading">Attend a meeting with us</h2>
-      <p class="attend-cta-copy">Miami-Dade students: join MDCW at a County Commission meeting. You can also speak during public comment.</p>
-      <div class="attend-cta-when" id="attend-cta-when" hidden>
-        <span class="attend-cta-label">Next meeting</span>
-        <span class="attend-cta-date" id="attend-cta-date"></span>
-        <span class="attend-cta-closes" id="attend-cta-closes"></span>
-      </div>
-      <p class="attend-cta-soon" id="attend-cta-soon" hidden>Sign-ups for the next meeting open soon.</p>
-      <a class="btn btn-primary attend-cta-btn" href="/attend">Sign up to attend</a>
-      </div>
-      <!-- The latest featured meeting photo, written by scripts/build.mjs.
-           Empty until a photo is published; the section stays one column. -->
-<!-- build:home-photo -->
-<!-- /build:home-photo -->
-    </div>
-  </section>
-
   <!-- The stat strip that used to sit here repeated the 13-districts and
        3-languages figures already shown on the seal above it, and told a
        returning visitor nothing they didn't know. What changed since they last
        looked is more useful, so that goes here instead. -->
   <section class="section" id="latest-documents" aria-labelledby="latest-documents-heading">
-    <div class="wrap">
+    <div class="wrap" data-reveal>
       <div class="section-head">
         <span class="eyebrow">Our summaries</span>
         <h2 id="latest-documents-heading">Latest meeting and agenda summaries</h2>
@@ -180,15 +156,70 @@
     </div>
   </section>
 
+  <!-- Student sign-ups for /attend. The heading, copy and button are static
+       so the section reads fine before (or without) the meeting lookup;
+       js/home.js fills #attend-cta-when from js/next-bcc-meeting.js, the same
+       query /attend runs. data-state: loading | open | closed | error. -->
+  <section class="section section-alt attend-cta" id="attend-cta" data-state="loading" aria-labelledby="attend-cta-heading">
+    <div class="wrap attend-cta-grid" data-reveal>
+      <div class="attend-cta-text">
+      <div class="attend-cta-intro">
+      <span class="eyebrow">Attend with us</span>
+      <h2 id="attend-cta-heading">Attend a meeting with us</h2>
+      <p class="attend-cta-copy">Miami-Dade students: join MDCW at a County Commission meeting. You can also speak during public comment.</p>
+      </div>
+      <div class="attend-cta-details">
+      <div class="attend-cta-when" id="attend-cta-when" hidden>
+        <span class="attend-cta-label">Next meeting</span>
+        <span class="attend-cta-date" id="attend-cta-date"></span>
+        <span class="attend-cta-closes" id="attend-cta-closes"></span>
+      </div>
+      <p class="attend-cta-soon" id="attend-cta-soon" hidden>Sign-ups for the next meeting open soon.</p>
+      <a class="btn btn-primary attend-cta-btn" href="/attend">Sign up to attend</a>
+      </div>
+      </div>
+      <!-- The latest featured meeting photo, written by scripts/build.mjs.
+           Empty until a photo is published; the section stays one column. -->
+<!-- build:home-photo -->
+<!-- /build:home-photo -->
+    </div>
+  </section>
+
+  <section class="section section-alt voice-section" id="make-your-voice-heard" aria-labelledby="voice-heading">
+    <div class="wrap" data-reveal>
+      <div class="section-head">
+        <span class="eyebrow">Take part</span>
+        <h2 id="voice-heading">Make Your Voice Heard</h2>
+      </div>
+      <ul class="index-list voice-actions">
+        <li><a href="/attend">
+          <h3>Attend a Commission Meeting</h3>
+          <p>Join MDCW at the county commission and learn how public comment works.</p>
+          <span class="voice-action-link">Plan your visit <span class="index-go" aria-hidden="true">&#8594;</span></span>
+        </a></li>
+        <li><a href="/submit-editorial.html">
+          <h3>Submit a Student Editorial</h3>
+          <p>Share your perspective on county decisions. Read the guidelines and send a draft for review.</p>
+          <span class="voice-action-link">Read the guidelines <span class="index-go" aria-hidden="true">&#8594;</span></span>
+        </a></li>
+        <li><a href="/get-involved.html#cover-your-city">
+          <h3>Cover Your City</h3>
+          <p>Start a student team to help your neighbors follow city decisions.</p>
+          <span class="voice-action-link">Find a city to cover <span class="index-go" aria-hidden="true">&#8594;</span></span>
+        </a></li>
+      </ul>
+    </div>
+  </section>
+
   <section class="section section-alt" id="find-district">
-    <div class="wrap">
+    <div class="wrap" data-reveal>
       <div class="section-head">
         <span class="eyebrow">Start here</span>
         <h2>Who represents your neighborhood?</h2>
       </div>
 
       <div class="hero-finder">
-        <h2>Find your district</h2>
+        <h3>Find your district</h3>
         <p class="finder-sub">Enter your address to find your commissioner and see recent votes for your district.</p>
 
         <form class="district-search-form" id="home-district-form">
@@ -219,34 +250,8 @@
     </div>
   </section>
 
-  <section class="section section-alt">
-    <div class="wrap">
-      <div class="section-head">
-        <span class="eyebrow">Explore</span>
-        <h2>Three ways to use this site</h2>
-      </div>
-      <ul class="index-list">
-        <li><a href="/documents">
-          <h3>Meeting and agenda summaries</h3>
-          <p>Read what commissioners will consider and how they voted.</p>
-          <span class="index-go" aria-hidden="true">&#8594;</span>
-        </a></li>
-        <li><a href="officials.html">
-          <h3>Elected officials</h3>
-          <p>Find your commissioner, the Mayor, and county officers, including the Sheriff and Property Appraiser.</p>
-          <span class="index-go" aria-hidden="true">&#8594;</span>
-        </a></li>
-        <li><a href="get-involved.html">
-          <h3>Get involved</h3>
-          <p>Volunteer, write an editorial, cover your city, or attend a meeting.</p>
-          <span class="index-go" aria-hidden="true">&#8594;</span>
-        </a></li>
-      </ul>
-    </div>
-  </section>
-
   <section class="section">
-    <div class="wrap">
+    <div class="wrap" data-reveal>
       <span class="eyebrow">Why this exists</span>
       <h2>Why we do this</h2>
       <p class="section-copy">County Commission decisions affect housing, roads, and public services. Long agendas and unfamiliar terms can make them hard to follow. We help you understand the decisions and take part.</p>
@@ -264,7 +269,7 @@
   <div class="wrap">
     <div class="footer-grid">
       <div>
-        <h4>Site</h4>
+        <h2>Site</h2>
         <ul>
           <li><a href="/documents/meeting-summaries">Meeting Summaries</a></li>
           <li><a href="/documents/agenda-summaries">Agenda Summaries</a></li>
@@ -278,7 +283,7 @@
         </ul>
       </div>
       <div>
-        <h4>About</h4>
+        <h2>About</h2>
         <ul>
           <li><a href="about.html">Mission &amp; founders</a></li>
           <li><a href="faq.html">FAQ &amp; glossary</a></li>
@@ -288,14 +293,14 @@
         </ul>
       </div>
       <div>
-        <h4>Official sources</h4>
+        <h2>Official sources</h2>
         <ul>
           <li><a href="https://www.miamidade.gov/commission/" target="_blank" rel="noopener">Board of County Commissioners</a></li>
           <li><a href="https://www.miamidade.gov/govaction/home.asp" target="_blank" rel="noopener">Legislation &amp; agendas</a></li>
         </ul>
       </div>
       <div>
-        <h4>Connect</h4>
+        <h2>Connect</h2>
         <div class="social-icons" style="margin-bottom:12px;">
           <a class="social-icon" href="https://instagram.com/miamidadecommissionwatch" target="_blank" rel="noopener" aria-label="Miami-Dade Commission Watch on Instagram">
             <svg viewBox="0 0 24 24" aria-hidden="true"><rect x="2" y="2" width="20" height="20" rx="6" fill="none" stroke="currentColor" stroke-width="2"/><circle cx="12" cy="12" r="5" fill="none" stroke="currentColor" stroke-width="2"/><circle cx="17.5" cy="6.5" r="1.3" fill="currentColor"/></svg>
@@ -309,7 +314,7 @@
     <div class="footer-disclaimer">
       <p style="margin-bottom:8px;">Miami-Dade Commission Watch is an independent, student-run project founded by Conrad Gelber and Daniel Llobet. It is <strong>not affiliated with, operated by, or endorsed by Miami-Dade County government or any municipal government</strong>. All information is sourced from public records; see the official government sites linked above for authoritative agendas and legislation.</p>
       <p style="margin-bottom:8px;">Spanish and Haitian Creole translations on this site are generated automatically by Google Translate and are not reviewed by us. They may contain errors, especially for legal and government terms. When in doubt, refer to the English original.</p>
-      <p style="margin-bottom:0;">&copy; 2026 Miami-Dade Commission Watch. <a href="login.html" style="color:inherit; opacity:0.7; text-decoration:underline;">Staff</a></p>
+      <p style="margin-bottom:0;">&copy; 2026 Miami-Dade Commission Watch. <a href="login.html">Staff</a></p>
     </div>
   </div>
 </footer>
@@ -317,7 +322,7 @@
 <div id="google_translate_element"></div>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.112.3" integrity="sha384-l8ah+VgaWtk1mvOe9VC+OirC6qHFF4yH7l7mKRidV9MSti3E9F463bMp6ZVN4kuC" crossorigin="anonymous"></script>
 <script src="js/supabase-client.js"></script>
-<script src="js/main.js?v=20261115"></script>
+<script src="js/main.js?v=20261116b"></script>
 <script src="js/photo-viewer.js?v=20261116"></script>
 <script src="js/hero-rotator.js?v=20261116"></script>
 <script src="js/newsletter.js?v=20261024"></script>

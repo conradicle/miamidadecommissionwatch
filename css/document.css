@@ -106,11 +106,16 @@
   border-radius: var(--radius-lg);
   box-shadow: var(--shadow-sm);
   padding: 24px;
+  display: flex;
+  flex-direction: column;
+  transition: border-color .18s var(--ease), box-shadow .18s var(--ease);
 }
 .doc-latest h3 { font-family: var(--doc-serif); font-size: 20px; line-height: 1.3; margin: 8px 0; }
 .doc-latest h3 a { color: var(--doc-navy); text-decoration: none; }
+.doc-latest h3 a:hover, .doc-latest h3 a:focus-visible { text-decoration: underline; text-underline-offset: 4px; }
+.doc-latest:hover, .doc-latest:focus-within { border-color: var(--doc-dgold); box-shadow: var(--shadow-sm); }
 .doc-latest p { font-size: 15px; color: var(--ink-600); margin: 0 0 20px; }
-.doc-latest-actions { display: flex; flex-wrap: wrap; align-items: center; gap: 12px 16px; }
+.doc-latest-actions { display: flex; flex-wrap: wrap; align-items: center; gap: 12px 16px; margin-top: auto; }
 .doc-latest-all { font-weight: 500; color: var(--doc-navy); font-size: 15px; }
 .doc-latest-empty p { margin-top: 6px; }
 /* On the homepage the two latest cards sit straight in .doc-sections, where
