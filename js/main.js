@@ -2,9 +2,30 @@ document.addEventListener('DOMContentLoaded', function () {
   var toggle = document.querySelector('.nav-toggle');
   var nav = document.getElementById('site-nav');
   if (toggle && nav) {
+    function closeNav(restoreFocus) {
+      nav.classList.remove('open');
+      toggle.setAttribute('aria-expanded', 'false');
+      if (restoreFocus) toggle.focus();
+    }
     toggle.addEventListener('click', function () {
       var open = nav.classList.toggle('open');
       toggle.setAttribute('aria-expanded', open ? 'true' : 'false');
+      // The newsletter sits between the toggle and nav in document order.
+      // Start inside the opened menu so Tab follows the visible choices.
+      if (open) nav.querySelector('a').focus();
+    });
+    document.addEventListener('click', function (e) {
+      if (nav.classList.contains('open') && !nav.contains(e.target) && !toggle.contains(e.target)) closeNav(false);
+    });
+    nav.addEventListener('click', function (e) {
+      if (e.target.closest('a')) closeNav(false);
+    });
+    // Closing a phone menu must never leave focus in its hidden links.
+    document.addEventListener('focusin', function (e) {
+      if (!nav.contains(e.target) && e.target !== toggle) closeNav(false);
+    });
+    window.matchMedia('(min-width: 860px)').addEventListener('change', function (e) {
+      closeNav(!e.matches && nav.contains(document.activeElement));
     });
   }
 
@@ -31,11 +52,19 @@ document.addEventListener('DOMContentLoaded', function () {
     });
     document.addEventListener('keydown', function (e) {
       if (e.key !== 'Escape') return;
+      var closedDropdown = false;
       navMenus.forEach(function (menu) {
         if (menu.open) {
           menu.open = false;
           menu.querySelector('summary').focus();
+          closedDropdown = true;
         }
+      });
+      if (!closedDropdown && toggle && nav && nav.classList.contains('open')) closeNav(true);
+    });
+    navMenus.forEach(function (menu) {
+      menu.addEventListener('focusout', function (e) {
+        if (!menu.contains(e.relatedTarget)) menu.open = false;
       });
     });
   }
@@ -56,6 +85,8 @@ document.addEventListener('DOMContentLoaded', function () {
   }
 
   function hideNewsletterBar() {
+    // Keep the focused subscription form and an open phone menu stable.
+    if (header.contains(document.activeElement) || (nav && nav.classList.contains('open'))) return;
     // Set the current height explicitly first so the browser has a real
     // starting value to transition from (can't animate from "none").
     newsletterBar.style.maxHeight = newsletterBar.scrollHeight + 'px';
@@ -66,6 +97,9 @@ document.addEventListener('DOMContentLoaded', function () {
 
   if (newsletterBar) {
     showNewsletterBar();
+    // Tabbing back to the header reveals the form before its controls can
+    // stay clipped in the collapsed bar.
+    header.addEventListener('focusin', showNewsletterBar);
     window.addEventListener('resize', function () {
       if (!newsletterBar.classList.contains('header-newsletter-hidden')) {
         newsletterBar.style.maxHeight = newsletterBar.scrollHeight + 'px';
@@ -74,6 +108,14 @@ document.addEventListener('DOMContentLoaded', function () {
   }
 
   if (header) {
+    // The phone menu and anchor offsets follow the actual header height,
+    // including wrapped translations and the collapsing newsletter bar.
+    function measureHeader() {
+      document.documentElement.style.setProperty('--header-height', header.offsetHeight + 'px');
+    }
+    measureHeader();
+    if ('ResizeObserver' in window) new ResizeObserver(measureHeader).observe(header);
+    else window.addEventListener('resize', measureHeader);
     var lastScrollY = window.scrollY;
     // Minimum real movement (in px) required before the bar's state can
     // flip again, so residual scroll noise near the threshold, or the
@@ -123,5 +165,34 @@ document.addEventListener('DOMContentLoaded', function () {
         lastScrollY = currentScrollY;
       }
     }, { passive: true });
+  }
+
+  // A one-time, small entrance for homepage sections below the first screen.
+  // Nothing starts hidden: failed/disabled JS and unsupported APIs leave all
+  // content readable. Only opacity and transform animate; no scroll handler.
+  if ('IntersectionObserver' in window && Element.prototype.animate) {
+    var motion = window.matchMedia('(prefers-reduced-motion: reduce)');
+    var entrances = [];
+    var revealObserver = new IntersectionObserver(function (entries) {
+      entries.forEach(function (entry) {
+        if (!entry.isIntersecting) return;
+        revealObserver.unobserve(entry.target);
+        if (motion.matches || entry.target.contains(document.activeElement)) return;
+        entrances.push(entry.target.animate([
+          { opacity: 0.65, transform: 'translateY(8px)' },
+          { opacity: 1, transform: 'translateY(0)' }
+        ], { duration: 420, easing: 'cubic-bezier(0.22, 1, 0.36, 1)' }));
+      });
+    }, { threshold: 0.05 });
+    document.querySelectorAll('[data-reveal]').forEach(function (el) {
+      if (el.getBoundingClientRect().top >= window.innerHeight) revealObserver.observe(el);
+      el.addEventListener('focusin', function () {
+        revealObserver.unobserve(el);
+        el.getAnimations().forEach(function (animation) { animation.cancel(); });
+      });
+    });
+    motion.addEventListener('change', function () {
+      if (motion.matches) entrances.forEach(function (animation) { animation.cancel(); });
+    });
   }
 });
