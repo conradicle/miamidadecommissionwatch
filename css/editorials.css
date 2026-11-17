@@ -2,7 +2,7 @@
 .editorial-intro { padding: 30px 0 18px; border-bottom: 1px solid var(--line); }
 .editorial-intro-row { display:flex; gap:24px; align-items:center; justify-content:space-between; }
 .editorial-intro .eyebrow { margin-bottom:8px; }
-.editorial-intro h1 { font-size:clamp(27px,3vw,36px); line-height:1.16; max-width:28ch; margin:0; }
+.editorial-intro h1 { max-width:22ch; margin:0; }
 .editorial-intro .btn { flex-shrink:0; padding:11px 16px; font-size:14px; }
 .editorial-intro-copy { color:var(--ink-600); font-size:15px; max-width:90ch; margin:14px 0 4px; }
 .editorial-disclosures summary { cursor:pointer; font-size:14px; color:var(--accent); padding:8px 0; min-height:40px; }
