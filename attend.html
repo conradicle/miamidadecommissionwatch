@@ -29,6 +29,14 @@
 <link rel="stylesheet" href="/css/style.css?v=20261116k">
 <style>
   /* Mobile first: most visitors arrive from Instagram's in-app browser. */
+  #meeting-interest .attend-hint { overflow-wrap: anywhere; }
+  @media (max-width: 360px) {
+    .header-newsletter .newsletter-form, .header-newsletter .newsletter-input-row, .header-newsletter .newsletter-input { min-width: 0; }
+    .header-newsletter .newsletter-input { width: 100%; }
+  }
+  #meeting-interest { scroll-margin-top: 216px; }
+  .attend-card .field .interest-consent { display: flex; align-items: flex-start; gap: 10px; cursor: pointer; }
+  .attend-card .field .interest-consent input { min-height: 20px; padding: 0; flex: 0 0 20px; width: 20px; height: 20px; margin: 3px 0 0; accent-color: var(--doc-navy); }
   .attend-hero { padding-bottom: 8px; }
   .attend-hero h1 { max-width: 18ch; }
   .attend-section { padding-top: 16px; }
@@ -127,9 +135,10 @@
 
   <section class="hero attend-hero">
     <div class="wrap">
-      <span class="eyebrow">Attend a meeting</span>
-      <h1>Attend a meeting with us</h1>
-      <p class="lede">Miami-Dade students: join MDCW at a County Commission meeting. Public comment is optional. Sign up below to come with the team.</p>
+      <span class="eyebrow" id="attend-eyebrow"><span data-interest-year>2027</span> Meeting Opportunities</span>
+      <h1 id="attend-heading">Your Voice Belongs in Local Government.</h1>
+      <p class="lede" id="attend-intro">Join Miami-Dade Commission Watch at an upcoming County Commission meeting. Our <span data-interest-year>2027</span> participation dates have not yet been finalized, but you can register your interest now and we&rsquo;ll text you when opportunities become available. Come to observe or give public comment: it&rsquo;s entirely up to you.</p>
+      <a class="btn btn-primary" id="attend-interest-cta" href="#meeting-interest">Get Notified About Upcoming Meetings</a>
     </div>
   </section>
 
@@ -140,13 +149,7 @@
         <p class="attend-muted" style="margin:0;">Loading the next meeting&hellip;</p>
       </div>
 
-      <div id="attend-closed" class="attend-card" hidden>
-        <span class="eyebrow">Sign-ups are closed</span>
-        <h2 class="attend-h2">Sign-ups will open soon</h2>
-        <p>We open sign-ups before each meeting we attend. Follow us on Instagram for the next date.</p>
-        <a class="btn btn-primary attend-btn" href="https://instagram.com/miamidadecommissionwatch" target="_blank" rel="noopener">Follow @miamidadecommissionwatch</a>
-        <p class="attend-muted" style="margin-top:16px;">In the meantime, read what&rsquo;s coming up in our <a href="/documents/agenda-summaries">Agenda Summaries</a>.</p>
-      </div>
+      <div id="attend-closed" hidden></div>
 
       <div id="attend-error" class="attend-card" hidden>
         <span class="eyebrow">Something went wrong</span>
@@ -155,6 +158,7 @@
       </div>
 
       <div id="attend-open" hidden>
+        <p class="attend-hint" style="margin:0 0 16px;">Can&rsquo;t attend this meeting? <a href="#meeting-interest">Get notified about future opportunities.</a></p>
         <div class="attend-card attend-meeting">
           <span class="eyebrow">Next meeting</span>
           <h2 class="attend-h2" id="attend-title">Board of County Commissioners Meeting</h2>
@@ -262,6 +266,56 @@
         <a class="btn btn-primary attend-btn" href="https://instagram.com/miamidadecommissionwatch" target="_blank" rel="noopener">Follow us for meeting updates</a>
       </div>
 
+      <section id="meeting-interest" class="attend-card" aria-labelledby="interest-heading" data-year="2027" tabindex="-1">
+        <h2 class="attend-h2" id="interest-heading">Get notified about upcoming meetings</h2>
+        <p id="interest-invitation">Register your interest in joining us in <span data-interest-year>2027</span>. This takes about a minute.</p>
+        <p class="attend-hint">This is an expression of interest, with no commitment to attend. No specific date or place at a meeting is guaranteed. Public comment is optional.</p>
+        <form id="interest-form" method="post" action="/api/city-platform" novalidate>
+          <noscript><p class="district-status error">Please enable JavaScript to register your interest securely.</p></noscript>
+          <div class="field">
+            <label for="interest-name">Full Name</label>
+            <input id="interest-name" name="full_name" autocomplete="name" maxlength="120" required aria-describedby="interest-name-error">
+            <p class="attend-field-error" id="interest-name-error" hidden></p>
+          </div>
+          <div class="field">
+            <label for="interest-phone">Mobile Phone Number</label>
+            <input type="tel" id="interest-phone" name="phone" autocomplete="tel" inputmode="tel" maxlength="24" required aria-describedby="interest-phone-hint interest-phone-error">
+            <p class="attend-hint" id="interest-phone-hint">We&rsquo;ll text this number when registration opens for future meetings.</p>
+            <p class="attend-field-error" id="interest-phone-error" hidden></p>
+          </div>
+          <div class="field">
+            <label for="interest-school">What school do you attend? <span class="attend-muted">(optional)</span></label>
+            <input id="interest-school" name="school_name" autocomplete="organization" maxlength="200" aria-describedby="interest-school-error">
+            <p class="attend-field-error" id="interest-school-error" hidden></p>
+          </div>
+          <div class="field">
+            <label for="interest-comment">Would you be interested in giving public comment? <span class="attend-muted">(optional)</span></label>
+            <select id="interest-comment" name="public_comment_interest" aria-describedby="interest-comment-hint interest-comment-error">
+              <option value="">Choose one, or leave blank</option>
+              <option value="yes">Yes</option><option value="maybe">Maybe</option><option value="no">No, I&rsquo;d prefer to observe</option>
+            </select>
+            <p class="attend-hint" id="interest-comment-hint">Public comment is optional, and you can decide later.</p>
+            <p class="attend-field-error" id="interest-comment-error" hidden></p>
+          </div>
+          <div class="field">
+            <label class="interest-consent" for="interest-consent"><input type="checkbox" id="interest-consent" name="notification_consent" required aria-describedby="interest-consent-hint interest-consent-error"><span>I agree to receive text messages from Miami-Dade Commission Watch about future meeting participation opportunities.</span></label>
+            <p class="attend-hint" id="interest-consent-hint">These texts are only about meeting participation. To stop texts, reply STOP to any meeting notification or <a href="https://instagram.com/miamidadecommissionwatch">message MDCW on Instagram</a> to request removal.</p>
+            <p class="attend-field-error" id="interest-consent-error" hidden></p>
+          </div>
+          <div class="hp-field" aria-hidden="true" style="position:absolute;left:-10000px;width:1px;height:1px;overflow:hidden;">
+            <label for="interest-website">Website</label><input id="interest-website" name="website" tabindex="-1" autocomplete="off">
+          </div>
+          <div id="interest-turnstile" class="attend-turnstile"></div>
+          <div id="interest-status" class="district-status" role="status" aria-live="polite"></div>
+          <button type="submit" id="interest-submit" class="btn btn-primary attend-btn">Get Notified About Upcoming Meetings</button>
+        </form>
+        <div id="interest-success" class="attend-success" hidden tabindex="-1" role="status">
+          <h2 class="attend-h2">You&rsquo;re on the list!</h2>
+          <p>Thanks for your interest in attending a County Commission meeting with Miami-Dade Commission Watch! We&rsquo;ll text you when new meeting opportunities become available in <span data-interest-year>2027</span>.</p>
+          <p>There&rsquo;s no commitment to attend, and you can decide whether you&rsquo;d like to participate once the details are announced.</p>
+        </div>
+        <p class="attend-hint"><strong>What happens next?</strong> Register your interest. Get notified when registration opens. Then choose whether to join us and whether to observe or give public comment.</p>
+      </section>
     </div>
   </section>
 
@@ -331,7 +385,7 @@
 <script src="/js/photo-viewer.js?v=20261116"></script>
 <script src="/js/newsletter.js?v=20261024"></script>
 <script src="/js/next-bcc-meeting.js?v=20261021"></script>
-<script src="/js/attend.js?v=20261028"></script>
+<script src="/js/attend.js?v=20261117"></script>
 <script src="https://challenges.cloudflare.com/turnstile/v0/api.js?render=explicit&onload=onTurnstileReady" async defer></script>
 <script src="/js/translate.js?v=20260820"></script>
 <script src="https://translate.google.com/translate_a/element.js?cb=googleTranslateElementInit"></script>

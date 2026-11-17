@@ -455,9 +455,79 @@
     setTimeout(function () { URL.revokeObjectURL(a.href); a.remove(); }, 0);
   }
 
+  // Same authenticated client and active-staff RLS as meeting rosters.
+  var interestRows = [];
+  async function loadInterest() {
+    el('bcc-interest-export').disabled = true;
+    el('bcc-interest-body').textContent = '';
+    interestRows = [];
+    setStatus('bcc-interest-status', 'Loading interest list…');
+    try {
+      // Page through results instead of silently stopping at PostgREST's limit.
+      var all = [], offset = 0, batch;
+      do {
+        var result = await supabaseClient.from('bcc_meeting_interest')
+          .select('id,full_name,phone,school_name,public_comment_interest,notification_consent,consented_at,consent_version,created_at,withdrawn_at,registration_type')
+          .order('created_at', { ascending: false }).order('id', { ascending: true }).range(offset, offset + 499);
+        if (result.error) throw new Error(result.error.message);
+        batch = result.data || [];
+        all = all.concat(batch); offset += batch.length;
+      } while (batch.length === 500);
+      interestRows = all;
+      var active = all.filter(function (r) { return r.notification_consent && !r.withdrawn_at; });
+      setStatus('bcc-interest-status', active.length + ' consenting students · ' + (all.length - active.length) + ' removed');
+      el('bcc-interest-export').disabled = !active.length;
+      var html = '<div class="bcc-table-wrap"><table class="bcc-table"><thead><tr><th>Name</th><th>Mobile phone</th><th>School</th><th>Public comment</th><th>Submitted</th><th>Consent</th></tr></thead><tbody>';
+      all.forEach(function (r) {
+        html += '<tr><td>' + escapeHtml(r.full_name) + '</td><td>' + escapeHtml(formatPhone(r.phone)) + '</td><td>' + escapeHtml(r.school_name) + '</td><td>' + escapeHtml(r.public_comment_interest || 'Not supplied') + '</td><td>' + escapeHtml(formatStamp(r.created_at)) + '</td><td>' +
+          (r.notification_consent && !r.withdrawn_at ? '<button type="button" class="btn btn-secondary btn-small" data-withdraw-interest="' + escapeHtml(r.id) + '">Stop notifications</button>' : 'Removed') + '</td></tr>';
+      });
+      el('bcc-interest-body').innerHTML = all.length ? html + '</tbody></table></div>' : '<p>No interest registrations yet.</p>';
+      return active;
+    } catch (err) {
+      setStatus('bcc-interest-status', 'Could not load interest registrations. Check your connection and that the meeting interest migration has been applied.', 'error');
+      return null;
+    }
+  }
+
+  async function withdrawInterest(button) {
+    var row = interestRows.filter(function (r) { return r.id === button.dataset.withdrawInterest; })[0];
+    if (!row || !window.confirm('Stop meeting notifications for ' + formatPhone(row.phone) + '?')) return;
+    button.disabled = true;
+    try {
+      var result = await supabaseClient.from('bcc_meeting_interest').update({ notification_consent: false,
+        withdrawn_at: new Date().toISOString(), full_name: 'Removed', school_name: null, public_comment_interest: null })
+        .eq('id', row.id).select('id').single();
+      if (result.error || !result.data) throw new Error('Not saved');
+      await loadInterest();
+    } catch (err) {
+      button.disabled = false;
+      setStatus('bcc-interest-status', 'Could not save removal. Refresh and try again before sending texts.', 'error');
+    }
+  }
+
+  async function exportInterest() {
+    // Refresh consent at export time, not just when the dashboard opened.
+    var active = await loadInterest();
+    if (!active || !active.length) return;
+    var lines = [['Registration type', 'Name', 'Mobile phone', 'School', 'Public comment interest', 'Notification consent', 'Consent recorded (UTC)', 'Consent version', 'Submitted (UTC)']];
+    active.forEach(function (r) { lines.push([r.registration_type,r.full_name,r.phone,r.school_name,r.public_comment_interest || '', 'Yes',r.consented_at,r.consent_version,r.created_at]); });
+    var blob = new Blob(['\ufeff' + lines.map(function (r) { return r.map(csvCell).join(','); }).join('\r\n') + '\r\n'], { type: 'text/csv;charset=utf-8' });
+    var a = document.createElement('a'); a.href = URL.createObjectURL(blob); a.download = 'bcc-meeting-interest.csv';
+    document.body.appendChild(a); a.click();
+    setTimeout(function () { URL.revokeObjectURL(a.href); a.remove(); }, 0);
+  }
+
   window.initAdminBcc = function (context) {
     ctx = context;
     if (!el('bcc-meeting-form')) return;
+    el('bcc-interest-refresh').addEventListener('click', loadInterest);
+    el('bcc-interest-export').addEventListener('click', exportInterest);
+    el('bcc-interest-body').addEventListener('click', function (e) {
+      var button = e.target.closest('button[data-withdraw-interest]');
+      if (button) withdrawInterest(button);
+    });
+    loadInterest();
     resetForm();
     el('bcc-meeting-form').addEventListener('submit', onSubmit);
     el('bcc-cancel-btn').addEventListener('click', function () { resetForm(); setStatus('bcc-form-status', ''); });

@@ -14,6 +14,8 @@
 
   var meeting = null;
   var widgetId = null;
+  var interestWidgetId = null;
+  var interestSubmitting = false;
   var turnstileReady = false;
 
   function el(id) { return document.getElementById(id); }
@@ -22,6 +24,20 @@
     ['attend-loading', 'attend-closed', 'attend-error', 'attend-open', 'attend-success'].forEach(function (x) {
       el(x).hidden = x !== id;
     });
+    var open = id === 'attend-open' || id === 'attend-success';
+    el('attend-interest-cta').hidden = open;
+    if (open) {
+      el('attend-eyebrow').textContent = 'Attend a meeting';
+      el('attend-heading').textContent = 'Attend a meeting with us';
+      el('attend-intro').textContent = 'Miami-Dade students: join MDCW at a County Commission meeting. Public comment is optional. Sign up below to come with the team.';
+      el('interest-invitation').textContent = 'Can’t attend this meeting? Get notified about future opportunities.';
+    } else if (id === 'attend-closed') {
+      // Restore the year-specific introduction if a meeting closes mid-form.
+      el('attend-eyebrow').textContent = el('meeting-interest').dataset.year + ' Meeting Opportunities';
+      el('attend-heading').textContent = 'Your Voice Belongs in Local Government.';
+      el('attend-intro').textContent = 'Our ' + el('meeting-interest').dataset.year + ' participation dates have not yet been finalized. Register your interest and we’ll text you when opportunities become available. Public comment is entirely optional.';
+      el('interest-invitation').textContent = 'Register your interest in joining us. This takes about a minute.';
+    }
   }
 
   function siteKey() {
@@ -55,6 +71,7 @@
   window.onTurnstileReady = function () {
     turnstileReady = true;
     renderTurnstile();
+    renderInterestTurnstile();
   };
 
   function setStatus(message, kind) {
@@ -125,13 +142,16 @@
 
   // Format checks only. The exact student ID length is checked on the server
   // (STUDENT_ID_LENGTH in api/_bcc-signup.js), which sends back the message.
+  function normalizePhone(value) {
+    var digits = value.replace(/\D/g, '');
+    return digits.length === 11 && digits.charAt(0) === '1' ? digits.slice(1) : digits;
+  }
+
   function validate(v) {
     var firstBad = null;
     function bad(name, msg) { fieldError(name, msg); if (!firstBad) firstBad = name; }
     if (v.full_name.length < 2) bad('full_name', 'Please enter your full name.');
-    var digits = v.phone.replace(/\D/g, '');
-    if (digits.length === 11 && digits.charAt(0) === '1') digits = digits.slice(1);
-    if (digits.length !== 10) bad('phone', 'Please enter a 10-digit phone number.');
+    if (normalizePhone(v.phone).length !== 10) bad('phone', 'Please enter a 10-digit phone number.');
     if (!v.school_type) bad('school_type', 'Please choose where you go to school.');
     if (v.school_type === 'mdcps' && !/^[0-9]+$/.test(v.mdcps_student_id)) bad('mdcps_student_id', 'Enter your MDCPS student ID, numbers only.');
     if (v.school_type === 'mdc' && !/^[^@\s]+@mymdc\.net$/i.test(v.school_email)) bad('mdc_email', 'Enter your Miami Dade College email, ending in @mymdc.net.');
@@ -155,6 +175,7 @@
 
   function onSubmit(e) {
     e.preventDefault();
+    if (el('attend-submit').disabled || !meeting) return;
     clearErrors();
     var v = values();
     var firstBad = validate(v);
@@ -188,7 +209,7 @@
       })
       .then(function (res) {
         btn.disabled = false;
-        btn.textContent = 'Sign me up';
+        btn.textContent = 'Sign up to attend';
         if (res.ok && res.data.ok) {
           showSuccess(v);
           return;
@@ -209,7 +230,7 @@
       })
       .catch(function () {
         btn.disabled = false;
-        btn.textContent = 'Sign me up';
+        btn.textContent = 'Sign up to attend';
         resetTurnstile();
         setStatus('Couldn’t reach the server. Check your connection and try again.', 'error');
       });
@@ -229,6 +250,78 @@
     el('attend-success').scrollIntoView({ block: 'start' });
   }
 
+  function renderInterestTurnstile() {
+    if (!turnstileReady || interestWidgetId !== null || !window.turnstile) return;
+    var key = siteKey();
+    if (!key) {
+      interestStatus('The security check isn’t configured yet. Please try again later.', 'error');
+      el('interest-submit').disabled = true;
+      return;
+    }
+    interestWidgetId = window.turnstile.render('#interest-turnstile', {
+      sitekey: key, action: 'attend', size: 'flexible', theme: 'light'
+    });
+  }
+
+  var INTEREST_FIELDS = { full_name: 'name', phone: 'phone', school_name: 'school', public_comment_interest: 'comment', notification_consent: 'consent' };
+  function interestStatus(message, kind) {
+    el('interest-status').textContent = message || '';
+    el('interest-status').className = 'district-status' + (kind ? ' ' + kind : '');
+  }
+  function interestError(field, message) {
+    var id = INTEREST_FIELDS[field];
+    if (!id) return;
+    el('interest-' + id + '-error').textContent = message || '';
+    el('interest-' + id + '-error').hidden = !message;
+    el('interest-' + id).setAttribute('aria-invalid', message ? 'true' : 'false');
+  }
+  async function submitInterest(e) {
+    e.preventDefault();
+    if (interestSubmitting) return;
+    Object.keys(INTEREST_FIELDS).forEach(function (f) { interestError(f, ''); });
+    interestStatus('');
+    var v = { full_name: el('interest-name').value.trim().replace(/\s+/g, ' '),
+      phone: el('interest-phone').value.trim(), school_name: el('interest-school').value.trim(),
+      public_comment_interest: el('interest-comment').value, notification_consent: el('interest-consent').checked };
+    var errors = {};
+    if (v.full_name.length < 2 || v.full_name.length > 120) errors.full_name = 'Please enter your full name.';
+    if (!/^[+0-9(). -]+$/.test(v.phone) || normalizePhone(v.phone).length !== 10) errors.phone = 'Please enter a 10-digit mobile phone number.';
+    if (v.school_name.length > 200) errors.school_name = 'Please use a school name of 200 characters or fewer.';
+    if (!v.notification_consent) errors.notification_consent = 'Please agree to meeting participation texts to join the list.';
+    var fields = Object.keys(errors);
+    fields.forEach(function (f) { interestError(f, errors[f]); });
+    if (fields.length) { el('interest-' + INTEREST_FIELDS[fields[0]]).focus(); return; }
+    var token = interestWidgetId !== null && window.turnstile ? window.turnstile.getResponse(interestWidgetId) : '';
+    if (!token) { interestStatus('Please complete the security check above the button.', 'error'); return; }
+    interestSubmitting = true;
+    el('interest-submit').disabled = true;
+    el('interest-submit').textContent = 'Saving your interest…';
+    try {
+      var response = await fetch('/api/city-platform', { method: 'POST', headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(Object.assign({ op: 'submit_bcc_signup', registration_type: 'meeting_interest',
+          website: el('interest-website').value, form_elapsed_ms: Math.round(performance.now()), turnstile_token: token }, v)) });
+      var data = await response.json().catch(function () { return {}; });
+      if (response.ok && data.ok === true) {
+        el('interest-form').hidden = true;
+        el('interest-success').hidden = false;
+        el('interest-success').focus({ preventScroll: true });
+        el('interest-success').scrollIntoView({ block: 'start' });
+      } else {
+        if (data.field && INTEREST_FIELDS[data.field]) {
+          interestError(data.field, data.error);
+          el('interest-' + INTEREST_FIELDS[data.field]).focus();
+        } else interestStatus(data.error || 'Could not save your interest. Please try again.', 'error');
+      }
+    } catch (err) {
+      interestStatus('Couldn’t reach the server. Check your connection and try again.', 'error');
+    } finally {
+      interestSubmitting = false;
+      el('interest-submit').disabled = false;
+      el('interest-submit').textContent = 'Get Notified About Upcoming Meetings';
+      if (!el('interest-form').hidden && window.turnstile && interestWidgetId !== null) window.turnstile.reset(interestWidgetId);
+    }
+  }
+
   function load() {
     window.MDCW.nextBcc.load().then(function (result) {
       if (result.status === 'error') { show('attend-error'); return; }
@@ -245,6 +338,9 @@
   }
 
   document.addEventListener('DOMContentLoaded', function () {
+    document.querySelectorAll('[data-interest-year]').forEach(function (node) { node.textContent = el('meeting-interest').dataset.year; });
+    el('interest-form').addEventListener('submit', submitInterest);
+    renderInterestTurnstile();
     el('attend-form').addEventListener('submit', onSubmit);
     el('attend-school-type').addEventListener('change', onSchoolTypeChange);
     // A browser restoring the form on back/forward keeps the select's value.

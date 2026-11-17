@@ -39,6 +39,12 @@ module.exports = async function handler(req, res) {
   }
 
   var body = req.body || {};
+  // Missing type remains the existing meeting registration contract.
+  var type = body.registration_type || 'meeting_registration';
+  if (type !== 'meeting_registration' && type !== 'meeting_interest') {
+    return fieldError(res, 'registration_type', 'Unknown registration type.');
+  }
+  res.setHeader('Cache-Control', 'no-store');
 
   // Honeypot, time on page, then Turnstile, before any field is read. A
   // failure here never says which; the reason is in the function log.
@@ -48,9 +54,10 @@ module.exports = async function handler(req, res) {
     return;
   }
 
+  if (type === 'meeting_interest') return saveInterest(req, res, body);
+
   var fullName = str(body.full_name).replace(/\s+/g, ' ');
-  var phone = str(body.phone).replace(/\D/g, '');
-  if (phone.length === 11 && phone.charAt(0) === '1') phone = phone.slice(1);
+  var phone = normalizePhone(body.phone);
   var schoolType = str(body.school_type);
   var studentId = str(body.mdcps_student_id).replace(/\s/g, '');
   var schoolName = str(body.school_name).replace(/\s+/g, ' ');
@@ -172,6 +179,11 @@ function fieldError(res, field, message) {
   res.status(400).json({ error: message, field: field });
 }
 
+function normalizePhone(value) {
+  var digits = str(value).replace(/\D/g, '');
+  return digits.length === 11 && digits.charAt(0) === '1' ? digits.slice(1) : digits;
+}
+
 function str(value) {
   return typeof value === 'string' ? value.trim() : '';
 }
@@ -196,4 +208,46 @@ async function checkRateLimit(SUPABASE_URL, SERVICE_ROLE_KEY, key, limit, window
   });
   if (!r.ok) return true; // fail open -- a rate-limit outage shouldn't block a real student
   return await r.json();
+}
+
+// Same endpoint, bot checks, rate-limit RPC and service-role storage as the
+// meeting form. No newsletter writes or email calls. Ignore duplicates so an
+// unverified resubmission cannot change somebody else's details or undo removal.
+async function saveInterest(req, res, body) {
+  var name = str(body.full_name).replace(/[\u0000-\u001f\u007f]/g, ' ').replace(/\s+/g, ' ');
+  var phone = normalizePhone(body.phone);
+  var school = str(body.school_name).replace(/[\u0000-\u001f\u007f]/g, ' ').replace(/\s+/g, ' ');
+  var comment = str(body.public_comment_interest);
+  if (name.length < 2 || name.length > 120) return fieldError(res, 'full_name', 'Please enter your full name.');
+  if (phone.length !== 10 || !/^[+0-9(). -]+$/.test(str(body.phone))) return fieldError(res, 'phone', 'Please enter a 10-digit mobile phone number.');
+  if (school.length > 200) return fieldError(res, 'school_name', 'Please use a school name of 200 characters or fewer.');
+  if (comment && ['yes', 'maybe', 'no'].indexOf(comment) === -1) return fieldError(res, 'public_comment_interest', 'Please choose one of the listed options.');
+  if (body.notification_consent !== true) return fieldError(res, 'notification_consent', 'Please agree to meeting participation texts to join the list.');
+  var url = process.env.SUPABASE_URL;
+  var key = process.env.SUPABASE_SERVICE_ROLE_KEY;
+  var headers = { Authorization: 'Bearer ' + key, apikey: key, 'Content-Type': 'application/json' };
+  try {
+    // Fail closed for this list: no new registrations if the limiter is down.
+    var rate = await fetch(url + '/rest/v1/rpc/check_rate_limit', {
+      method: 'POST', headers: headers,
+      body: JSON.stringify({ p_key: 'bcc-interest:' + clientIp(req), p_limit: 20, p_window_seconds: 3600 })
+    });
+    if (!rate.ok) throw new Error('rate-limit unavailable');
+    if (await rate.json() !== true) {
+      res.status(429).json({ error: 'Too many attempts from this connection. Please try again in an hour.' });
+      return;
+    }
+    var saved = await fetch(url + '/rest/v1/bcc_meeting_interest?on_conflict=phone', {
+      method: 'POST',
+      headers: Object.assign({ Prefer: 'resolution=ignore-duplicates,return=minimal' }, headers),
+      body: JSON.stringify({ full_name: name, phone: phone, school_name: school || null,
+        public_comment_interest: comment || null, notification_consent: true,
+        consent_version: 'meeting-participation-sms-v1', registration_type: 'meeting_interest' })
+    });
+    if (!saved.ok) throw new Error('storage unavailable');
+    // Same answer for a new, existing, or suppressed number.
+    res.status(200).json({ ok: true });
+  } catch (err) {
+    res.status(503).json({ error: 'Could not save your interest. Please try again.' });
+  }
 }
