@@ -17,6 +17,10 @@
       "destination": "/photos.html"
     },
     {
+      "source": "/ambassadors",
+      "destination": "/ambassadors.html"
+    },
+    {
       "source": "/(.*)",
       "has": [
         {

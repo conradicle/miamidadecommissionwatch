@@ -1,0 +1,366 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Become an MDCW School Ambassador</title>
+<meta name="description" content="Miami-Dade students: apply to be your school's MDCW School Ambassador. Bring classmates to County Commission meetings and earn community service hours.">
+<meta property="og:type" content="website">
+<meta property="og:site_name" content="Miami-Dade Commission Watch">
+<meta property="og:url" content="https://www.miamidadecommissionwatch.com/ambassadors">
+<link rel="canonical" href="https://www.miamidadecommissionwatch.com/ambassadors">
+<meta property="og:title" content="Become an MDCW School Ambassador">
+<meta property="og:description" content="Miami-Dade students: apply to be your school's MDCW School Ambassador. Bring classmates to County Commission meetings and earn community service hours.">
+<meta property="og:image" content="https://www.miamidadecommissionwatch.com/assets/img/og-image.png">
+<meta property="og:image:width" content="1200">
+<meta property="og:image:height" content="630">
+<meta property="og:image:alt" content="Miami-Dade Commission Watch">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:title" content="Become an MDCW School Ambassador">
+<meta name="twitter:description" content="Miami-Dade students: apply to be your school's MDCW School Ambassador. Bring classmates to County Commission meetings and earn community service hours.">
+<meta name="twitter:image" content="https://www.miamidadecommissionwatch.com/assets/img/og-image.png">
+<link rel="icon" type="image/png" sizes="32x32" href="/assets/img/favicon-32x32.png">
+<link rel="icon" type="image/png" sizes="16x16" href="/assets/img/favicon-16x16.png">
+<link rel="apple-touch-icon" sizes="180x180" href="/assets/img/apple-touch-icon.png">
+<link rel="stylesheet" href="/css/style.css?v=20261116k">
+<style>
+  /* Same look as the /attend form. Mobile first: most visitors arrive from
+     Instagram's in-app browser. Inline so style.css needs no version bump. */
+  .amb-hero { padding-bottom: 8px; }
+  .amb-hero h1 { max-width: 20ch; }
+  .amb-section { padding-top: 16px; }
+  .amb-wrap { max-width: 680px; }
+  .amb-card { background: var(--doc-card); border: 1px solid var(--doc-line); border-radius: var(--radius); padding: 20px; margin-bottom: 20px; }
+  .amb-h2 { font-family: var(--doc-serif); color: var(--doc-navy); font-size: 24px; line-height: 1.25; margin: 0 0 14px; }
+  .amb-h3 { font-family: var(--doc-serif); color: var(--doc-navy); font-size: 19px; margin: 22px 0 10px; }
+  .amb-jobs { margin: 0 0 4px; padding-left: 22px; display: grid; gap: 8px; }
+  .amb-jobs li { color: var(--doc-ink); }
+  .amb-callout { margin: 16px 0 0; padding: 12px 14px; background: var(--doc-cream); border-left: 4px solid var(--doc-gold); border-radius: 0 var(--radius) var(--radius) 0; font-size: 15px; color: var(--doc-ink); }
+  .amb-legend-group { border: none; padding: 0; margin: 8px 0 4px; }
+  .amb-group-title { font: 700 11px/1.4 var(--doc-sans); text-transform: uppercase; letter-spacing: .12em; color: var(--doc-dgold); margin: 22px 0 10px; }
+  /* 16px keeps iOS from zooming the page when a field is focused. */
+  .amb-card .field input, .amb-card .field select, .amb-card .field textarea { font-size: 16px; padding: 12px 14px; background: #fff; }
+  .amb-card .field input, .amb-card .field select { min-height: 48px; }
+  .amb-card .field textarea { min-height: 110px; resize: vertical; }
+  .amb-optional { font-weight: 400; color: var(--doc-muted); }
+  .amb-row { display: grid; gap: 0 16px; }
+  .amb-choice { border: none; padding: 0; margin: 0 0 16px; min-width: 0; }
+  .amb-choice legend { font-weight: 600; font-size: 15px; margin-bottom: 8px; padding: 0; }
+  .amb-choice-row { display: grid; grid-template-columns: repeat(2, 1fr); gap: 8px; }
+  .amb-choice-row.three { grid-template-columns: repeat(3, 1fr); }
+  .amb-choice-row label { display: flex; align-items: center; justify-content: center; gap: 8px; min-height: 48px; border: 1px solid var(--line); border-radius: var(--radius); background: #fff; font-weight: 600; cursor: pointer; margin: 0; text-align: center; padding: 0 6px; }
+  .amb-choice-row label:has(input:checked) { border-color: var(--doc-navy); background: var(--doc-cream); box-shadow: inset 0 0 0 1px var(--doc-navy); }
+  .amb-choice-row input { width: 18px; height: 18px; min-height: 0; margin: 0; padding: 0; flex: 0 0 18px; accent-color: var(--doc-navy); }
+  .amb-check { display: flex; align-items: flex-start; gap: 10px; font-weight: 400; cursor: pointer; }
+  .amb-check input { min-height: 20px; padding: 0; flex: 0 0 20px; width: 20px; height: 20px; margin: 3px 0 0; accent-color: var(--doc-navy); }
+  .amb-hint { font-size: 14px; color: var(--doc-muted); margin: 6px 0 0; }
+  .amb-count { font-variant-numeric: tabular-nums; }
+  .amb-field-error { color: var(--red-600); font-size: 14px; font-weight: 600; margin: 6px 0 0; }
+  .amb-field-error::before { content: "! "; }
+  .field input[aria-invalid="true"], .field select[aria-invalid="true"], .field textarea[aria-invalid="true"] { border-color: var(--red-600); border-width: 2px; }
+  .amb-turnstile { margin-bottom: 12px; }
+  .amb-btn { display: block; width: 100%; text-align: center; padding: 14px 22px; font-size: 16px; }
+  .amb-btn[disabled] { opacity: .6; cursor: wait; transform: none; }
+  .amb-success { border-left: 5px solid var(--doc-navy); scroll-margin-top: 216px; }
+  .amb-success:focus { outline: none; }
+  @media (min-width: 640px) {
+    .amb-card { padding: 28px; }
+    .amb-row { grid-template-columns: 1fr 1fr; }
+    .amb-btn { display: inline-block; width: auto; }
+  }
+</style>
+<!-- build:jsonld -->
+<!-- /build:jsonld -->
+</head>
+<body>
+<a class="skip-link" href="#main">Skip to content</a>
+
+<header class="site-header">
+  <div class="wrap">
+    <a class="wordmark" href="/">
+      <span class="mark">Miami-Dade <span class="accent">Commission</span> Watch</span>
+      <span class="tagline">BCC · Plain Language</span>
+    </a>
+    <div class="header-actions">
+      <div class="lang-toggle" role="group" aria-label="Language">
+        <button type="button" class="lang-btn" data-lang="en">EN</button>
+        <button type="button" class="lang-btn" data-lang="es">ES</button>
+        <button type="button" class="lang-btn" data-lang="ht">HT</button>
+      </div>
+      <div class="social-icons">
+        <a class="social-icon" href="https://instagram.com/miamidadecommissionwatch" target="_blank" rel="noopener" aria-label="Miami-Dade Commission Watch on Instagram">
+          <svg viewBox="0 0 24 24" aria-hidden="true"><rect x="2" y="2" width="20" height="20" rx="6" fill="none" stroke="currentColor" stroke-width="2"/><circle cx="12" cy="12" r="5" fill="none" stroke="currentColor" stroke-width="2"/><circle cx="17.5" cy="6.5" r="1.3" fill="currentColor"/></svg>
+        </a>
+      </div>
+      <button class="nav-toggle" aria-expanded="false" aria-controls="site-nav">Menu</button>
+    </div>
+  </div>
+  <div class="header-newsletter">
+    <div class="wrap">
+      <form class="newsletter-form" id="newsletter-form" aria-label="Subscribe for meeting emails">
+        <label for="newsletter-email" class="newsletter-label">Get meeting updates by email</label>
+        <div class="newsletter-input-row">
+          <input type="email" id="newsletter-email" class="newsletter-input" placeholder="you@email.com" required aria-label="Email address">
+          <button type="submit" class="btn btn-primary btn-small">Subscribe</button>
+        </div>
+      </form>
+      <p class="newsletter-status" id="newsletter-status" role="status" aria-live="polite"></p>
+    </div>
+  </div>
+
+  <nav class="site-nav" id="site-nav" aria-label="Primary">
+    <a href="/">Home</a>
+    <details class="nav-menu">
+      <summary>Documents</summary>
+      <div class="nav-menu-list">
+        <a href="/documents/meeting-summaries">Meeting Summaries</a>
+        <a href="/documents/agenda-summaries">Agenda Summaries</a>
+        <a href="/documents">All documents</a>
+      </div>
+    </details>
+    <a href="officials.html">Who Represents You</a>
+    <a href="get-involved.html">Get Involved</a>
+    <a href="news.html">Student Editorials</a>
+    <a href="about.html">About</a>
+  </nav>
+</header>
+
+<main id="main">
+
+  <section class="hero amb-hero">
+    <div class="wrap">
+      <span class="eyebrow">School Ambassadors</span>
+      <h1>Bring your school to County Commission meetings</h1>
+      <p class="lede">MDCW School Ambassadors help students at their school attend Miami-Dade County Commission meetings. If you want to get your classmates involved in local government, apply below.</p>
+    </div>
+  </section>
+
+  <section class="section amb-section">
+    <div class="wrap amb-wrap">
+
+      <div class="amb-card">
+        <h2 class="amb-h2">What ambassadors do</h2>
+        <p>Each ambassador represents one school. You will:</p>
+        <ol class="amb-jobs">
+          <li><strong>Recruit classmates</strong> to come to Board of County Commissioners meetings.</li>
+          <li><strong>Find out how your school excuses absences</strong> for these meetings, and help your group follow those steps.</li>
+          <li><strong>Organize rides</strong> so your school's group can get to the meeting.</li>
+          <li><strong>Lead your school's group</strong> on meeting day.</li>
+        </ol>
+
+        <h3 class="amb-h3">What you get</h3>
+        <p style="margin-bottom:0;">Ambassadors earn community service hours and the title <strong>MDCW School Ambassador</strong>. You report to MDCW's Executive Director, who supports you along the way.</p>
+
+        <p class="amb-callout">Applying does not make you an ambassador right away. MDCW's co-founders read every application and reach out by email. We pick one ambassador per school.</p>
+      </div>
+
+      <form id="amb-form" class="amb-card" novalidate>
+        <h2 class="amb-h2">Apply</h2>
+        <p class="amb-hint" style="margin:0 0 4px;">Every field is required unless it says optional. Only MDCW staff can see your answers.</p>
+
+        <p class="amb-group-title">About you</p>
+
+        <div class="field">
+          <label for="amb-name">Full name</label>
+          <input type="text" id="amb-name" name="full_name" autocomplete="name" maxlength="120" required>
+          <p class="amb-field-error" id="amb-name-error" hidden></p>
+        </div>
+
+        <div class="amb-row">
+          <div class="field">
+            <label for="amb-email">Email</label>
+            <input type="email" id="amb-email" name="email" autocomplete="email" maxlength="254" required>
+            <p class="amb-field-error" id="amb-email-error" hidden></p>
+          </div>
+          <div class="field">
+            <label for="amb-phone">Phone</label>
+            <input type="tel" id="amb-phone" name="phone" autocomplete="tel" inputmode="tel" placeholder="(305) 555-0123" maxlength="20" required>
+            <p class="amb-field-error" id="amb-phone-error" hidden></p>
+          </div>
+        </div>
+
+        <div class="field">
+          <label for="amb-school">School</label>
+          <input type="text" id="amb-school" name="school_name" autocomplete="organization" maxlength="200" placeholder="e.g. Miami Beach Senior High School" required>
+          <p class="amb-field-error" id="amb-school-error" hidden></p>
+        </div>
+
+        <div class="amb-row">
+          <div class="field">
+            <label for="amb-grade">Grade</label>
+            <select id="amb-grade" name="grade" required>
+              <option value="" selected disabled>Choose one</option>
+              <option value="9">9</option>
+              <option value="10">10</option>
+              <option value="11">11</option>
+              <option value="12">12</option>
+              <option value="college">College</option>
+            </select>
+            <p class="amb-field-error" id="amb-grade-error" hidden></p>
+          </div>
+          <div class="field">
+            <label for="amb-grad-year">Graduation year</label>
+            <input type="text" id="amb-grad-year" name="graduation_year" inputmode="numeric" pattern="[0-9]*" maxlength="4" placeholder="2028" required>
+            <p class="amb-field-error" id="amb-grad-year-error" hidden></p>
+          </div>
+        </div>
+
+        <p class="amb-group-title">You and MDCW</p>
+
+        <fieldset class="field amb-choice" id="amb-attended">
+          <legend>Have you attended a BCC meeting with MDCW?</legend>
+          <div class="amb-choice-row">
+            <label><input type="radio" name="attended_bcc_with_mdcw" value="yes" required> Yes</label>
+            <label><input type="radio" name="attended_bcc_with_mdcw" value="no"> No</label>
+          </div>
+          <p class="amb-field-error" id="amb-attended-error" hidden></p>
+        </fieldset>
+
+        <div class="field">
+          <label for="amb-involvement">How have you been involved with MDCW so far? <span class="amb-optional">(optional)</span></label>
+          <textarea id="amb-involvement" name="involvement" maxlength="2000" rows="3"></textarea>
+          <p class="amb-field-error" id="amb-involvement-error" hidden></p>
+        </div>
+
+        <div class="field">
+          <label for="amb-motivation">Why do you want to be your school's ambassador?</label>
+          <textarea id="amb-motivation" name="motivation" maxlength="1000" rows="5" required aria-describedby="amb-motivation-count"></textarea>
+          <p class="amb-hint" id="amb-motivation-count"><span class="amb-count">0</span> of 1000 characters. Write at least 50.</p>
+          <p class="amb-field-error" id="amb-motivation-error" hidden></p>
+        </div>
+
+        <div class="field">
+          <label for="amb-leadership">Any experience organizing or leading people (clubs, teams, events)? <span class="amb-optional">(optional)</span></label>
+          <textarea id="amb-leadership" name="leadership_experience" maxlength="2000" rows="3"></textarea>
+          <p class="amb-field-error" id="amb-leadership-error" hidden></p>
+        </div>
+
+        <p class="amb-group-title">Your school</p>
+
+        <div class="field">
+          <label for="amb-turnout">About how many students at your school do you think would come to a meeting?</label>
+          <input type="number" id="amb-turnout" name="expected_turnout" inputmode="numeric" min="0" max="5000" step="1" placeholder="10" required style="max-width:200px;">
+          <p class="amb-field-error" id="amb-turnout-error" hidden></p>
+        </div>
+
+        <fieldset class="field amb-choice" id="amb-absence">
+          <legend>Do you know who handles excused absences at your school?</legend>
+          <div class="amb-choice-row three">
+            <label><input type="radio" name="knows_absence_contact" value="yes" required> Yes</label>
+            <label><input type="radio" name="knows_absence_contact" value="no"> No</label>
+            <label><input type="radio" name="knows_absence_contact" value="not_sure"> Not sure</label>
+          </div>
+          <p class="amb-field-error" id="amb-absence-error" hidden></p>
+        </fieldset>
+
+        <p class="amb-group-title">Parent or guardian <span class="amb-optional" style="text-transform:none; letter-spacing:0;">(optional)</span></p>
+
+        <div class="amb-row">
+          <div class="field">
+            <label for="amb-guardian-name">Parent or guardian name <span class="amb-optional">(optional)</span></label>
+            <input type="text" id="amb-guardian-name" name="guardian_name" autocomplete="off" maxlength="120">
+            <p class="amb-field-error" id="amb-guardian-name-error" hidden></p>
+          </div>
+          <div class="field">
+            <label for="amb-guardian-phone">Parent or guardian phone <span class="amb-optional">(optional)</span></label>
+            <input type="tel" id="amb-guardian-phone" name="guardian_phone" autocomplete="off" inputmode="tel" maxlength="20">
+            <p class="amb-field-error" id="amb-guardian-phone-error" hidden></p>
+          </div>
+        </div>
+
+        <div class="field" style="margin-top:8px;">
+          <label class="amb-check">
+            <input type="checkbox" id="amb-ack" name="acknowledged_duties" required>
+            <span>I understand ambassadors recruit at their school, sort out absences the way their school handles them, help organize rides, and lead their school's group on meeting day.</span>
+          </label>
+          <p class="amb-field-error" id="amb-ack-error" hidden></p>
+        </div>
+
+        <!-- Honeypot: off screen and out of the tab order, so only bots fill it. -->
+        <div class="hp-field" aria-hidden="true" style="position:absolute; left:-10000px; top:auto; width:1px; height:1px; overflow:hidden;">
+          <label for="amb-website">Website</label>
+          <input type="text" id="amb-website" name="website" tabindex="-1" autocomplete="off">
+        </div>
+
+        <div id="amb-turnstile" class="amb-turnstile"></div>
+
+        <div id="amb-status" class="district-status" role="status" aria-live="polite"></div>
+
+        <button type="submit" class="btn btn-primary amb-btn" id="amb-submit">Send application</button>
+      </form>
+
+      <div id="amb-success" class="amb-card amb-success" hidden tabindex="-1">
+        <span class="eyebrow">Application received</span>
+        <h2 class="amb-h2">Thanks for applying.</h2>
+        <p style="margin-bottom:0;">MDCW's co-founders review every application and will reach out by email.</p>
+      </div>
+
+      <p class="amb-hint">Questions? DM us on <a href="https://instagram.com/miamidadecommissionwatch" target="_blank" rel="noopener">Instagram</a> or use the <a href="/contact.html">contact page</a>.</p>
+
+    </div>
+  </section>
+
+</main>
+
+<footer class="site-footer">
+  <div class="wrap">
+    <div class="footer-grid">
+      <div>
+        <h4>Site</h4>
+        <ul>
+          <li><a href="/documents/meeting-summaries">Meeting Summaries</a></li>
+          <li><a href="/documents/agenda-summaries">Agenda Summaries</a></li>
+          <li><a href="officials.html">Who Represents You</a></li>
+          <li><a href="get-involved.html#cover-your-city">Cover your city</a></li>
+          <li><a href="get-involved.html">Get Involved</a></li>
+          <li><a href="news.html">Student Editorials</a></li>
+          <li><a href="/photos">Meeting photos</a></li>
+          <li><a href="meetings.html">Meeting Tracker Archive</a></li>
+        </ul>
+      </div>
+      <div>
+        <h4>About</h4>
+        <ul>
+          <li><a href="about.html">Mission &amp; founders</a></li>
+          <li><a href="faq.html">FAQ &amp; glossary</a></li>
+          <li><a href="contact.html">Contact / report an error</a></li>
+          <li><a href="privacy.html">Privacy &amp; Terms</a></li>
+          <li><a href="accessibility.html">Accessibility</a></li>
+        </ul>
+      </div>
+      <div>
+        <h4>Official sources</h4>
+        <ul>
+          <li><a href="https://www.miamidade.gov/commission/" target="_blank" rel="noopener">Board of County Commissioners</a></li>
+          <li><a href="https://www.miamidade.gov/govaction/home.asp" target="_blank" rel="noopener">Legislation &amp; agendas</a></li>
+        </ul>
+      </div>
+      <div>
+        <h4>Connect</h4>
+        <div class="social-icons" style="margin-bottom:12px;">
+          <a class="social-icon" href="https://instagram.com/miamidadecommissionwatch" target="_blank" rel="noopener" aria-label="Miami-Dade Commission Watch on Instagram">
+            <svg viewBox="0 0 24 24" aria-hidden="true"><rect x="2" y="2" width="20" height="20" rx="6" fill="none" stroke="currentColor" stroke-width="2"/><circle cx="12" cy="12" r="5" fill="none" stroke="currentColor" stroke-width="2"/><circle cx="17.5" cy="6.5" r="1.3" fill="currentColor"/></svg>
+          </a>
+        </div>
+        <ul>
+          <li><a href="https://instagram.com/miamidadecommissionwatch" target="_blank" rel="noopener">@miamidadecommissionwatch</a></li>
+        </ul>
+      </div>
+    </div>
+    <div class="footer-disclaimer">
+      <p style="margin-bottom:8px;">Miami-Dade Commission Watch is an independent, student-run project founded by Conrad Gelber and Daniel Llobet. It is <strong>not affiliated with, operated by, or endorsed by Miami-Dade County government</strong>. All information is sourced from public records; see the official Board of County Commissioners site linked above for authoritative agendas and legislation.</p>
+      <p style="margin-bottom:8px;">Spanish and Haitian Creole translations on this site are generated automatically by Google Translate and are not reviewed by us. They may contain errors, especially for legal and government terms. When in doubt, refer to the English original.</p>
+      <p style="margin-bottom:0;">&copy; 2026 Miami-Dade Commission Watch. <a href="login.html" style="color:inherit; opacity:0.7; text-decoration:underline;">Staff</a></p>
+    </div>
+  </div>
+</footer>
+
+<div id="google_translate_element"></div>
+<script src="/js/main.js?v=20261116b"></script>
+<script src="/js/newsletter.js?v=20261024"></script>
+<script src="/js/bot-guard.js?v=20261024"></script>
+<script src="/js/ambassadors.js?v=20261118"></script>
+<script src="/js/translate.js?v=20260820"></script>
+<script src="https://translate.google.com/translate_a/element.js?cb=googleTranslateElementInit"></script>
+</body>
+</html>

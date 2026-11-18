@@ -102,6 +102,26 @@
   .bcc-table th { text-align: left; font-family: var(--font-mono); font-size: 11px; text-transform: uppercase; letter-spacing: .05em; color: var(--ink-600); padding: 8px 10px; border-bottom: 2px solid var(--line); white-space: nowrap; }
   .bcc-table td { padding: 8px 10px; border-bottom: 1px solid var(--line); vertical-align: middle; }
   .bcc-table td:first-child { color: var(--ink-400); }
+
+  /* Ambassadors tab */
+  .amb-app { padding: 0; }
+  .amb-app > summary { list-style: none; cursor: pointer; padding: 16px 20px; display: grid; grid-template-columns: 1fr auto; gap: 4px 12px; align-items: center; }
+  .amb-app > summary::-webkit-details-marker { display: none; }
+  .amb-app > summary:focus-visible { outline: 2px solid var(--doc-navy); outline-offset: -2px; }
+  .amb-app-name { font-weight: 700; font-size: 16px; color: var(--ink-900); }
+  .amb-app-sub { grid-column: 1; font-size: 14px; color: var(--ink-600); }
+  .amb-app > summary .submission-status { grid-row: 1 / span 2; grid-column: 2; margin: 0; }
+  .amb-app[open] > summary { border-bottom: 1px solid var(--line); }
+  .amb-app-body { padding: 16px 20px 20px; }
+  .amb-app-answers { margin: 0 0 16px; display: grid; gap: 12px; }
+  .amb-app-answers dt { font-family: var(--font-mono); font-size: 11px; text-transform: uppercase; letter-spacing: .05em; color: var(--ink-600); }
+  .amb-app-answers dd { margin: 2px 0 0; white-space: pre-wrap; overflow-wrap: anywhere; color: var(--ink-900); }
+  .amb-app-actions { display: flex; flex-wrap: wrap; gap: 10px; align-items: center; }
+  .amb-app-actions select { width: auto; min-width: 160px; }
+  .submission-status.new { background: var(--gold-100); color: var(--gold-700); }
+  .submission-status.reviewing { background: var(--green-100); color: var(--ink-900); }
+  .submission-status.appointed { background: var(--doc-navy); color: #fff; }
+  .submission-status.declined { background: var(--paper-alt); color: var(--ink-600); border: 1px solid var(--line); }
 </style>
 </head>
 <body>
@@ -144,6 +164,7 @@
         <button type="button" class="admin-tab" data-tab="schedule">Schedule</button>
         <button type="button" class="admin-tab" data-tab="photos">Photos</button>
         <button type="button" class="admin-tab" data-tab="bcc">BCC Sign-ups</button>
+        <button type="button" class="admin-tab" data-tab="ambassadors">Ambassadors <span class="count" id="amb-new-count"></span></button>
         <button type="button" class="admin-tab" data-tab="meetings">Tracker archive</button>
         <button type="button" class="admin-tab" data-tab="newsletter">Newsletter</button>
         <button type="button" class="admin-tab" data-tab="links">Links page</button>
@@ -329,6 +350,26 @@
           <p class="submission-meta" id="bcc-roster-count" style="margin-bottom:12px;"></p>
           <div id="bcc-roster-body"></div>
         </div>
+      </div>
+
+      <div class="admin-panel" id="panel-ambassadors" style="display:none;">
+        <div class="notice" style="margin-bottom:20px;">
+          Ambassador applications from <a href="/ambassadors" target="_blank" rel="noopener">/ambassadors</a>, newest first. Applying never appoints anyone: set the status here as the co-founders review each one. Applications hold students&rsquo; emails and phone numbers. Keep them off shared drives.
+        </div>
+        <h3 id="amb-admin-heading" style="margin-top:0;">Ambassador applications</h3>
+        <div class="link-stats-controls">
+          <label for="amb-admin-filter">Show</label>
+          <select id="amb-admin-filter">
+            <option value="all">All statuses</option>
+            <option value="new">New</option>
+            <option value="reviewing">Reviewing</option>
+            <option value="appointed">Appointed</option>
+            <option value="declined">Declined</option>
+          </select>
+          <button type="button" class="btn btn-secondary btn-small" id="amb-admin-refresh">Refresh</button>
+        </div>
+        <p id="amb-admin-status" class="district-status" role="status" aria-live="polite"></p>
+        <div id="amb-admin-list"></div>
       </div>
 
       <div class="admin-panel" id="panel-meetings" style="display:none;">
@@ -733,6 +774,7 @@
 <script src="js/admin-schedule.js?v=20261019b"></script>
 <script src="js/admin-photos.js?v=20261116e"></script>
 <script src="js/admin-bcc.js?v=20261117"></script>
-<script src="js/admin.js?v=20261116"></script>
+<script src="js/admin-ambassadors.js?v=20261118"></script>
+<script src="js/admin.js?v=20261118"></script>
 </body>
 </html>

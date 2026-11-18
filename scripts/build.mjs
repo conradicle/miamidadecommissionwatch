@@ -188,7 +188,7 @@ const SERVABLE = new Set(['.html', '.xml', '.css', '.js', '.png', '.jpg', '.jpeg
 // Every rewrite destination in vercel.json resolves inside dist/, so each one
 // has to exist there or its clean URL 404s.
 const REWRITE_TARGETS = [
-  'home.html', 'links.html', 'attend.html', 'photos.html', 'city/index.html',
+  'home.html', 'links.html', 'attend.html', 'photos.html', 'ambassadors.html', 'city/index.html',
   'documents/index.html', 'documents/meeting-summaries.html', 'documents/agenda-summaries.html'
 ];
 
@@ -220,7 +220,7 @@ function checkDist(docPages) {
 // indexable unless it says otherwise in its own robots meta. Adding a new page
 // therefore puts it in the sitemap automatically, and adding noindex to one
 // takes it out, with no second place to remember.
-const CLEAN_PATHS = { 'home.html': '/', 'attend.html': '/attend', 'photos.html': '/photos' };
+const CLEAN_PATHS = { 'home.html': '/', 'attend.html': '/attend', 'photos.html': '/photos', 'ambassadors.html': '/ambassadors' };
 
 function publicPages() {
   const out = [];
@@ -229,7 +229,7 @@ function publicPages() {
     const html = readFileSync(join(ROOT, file), 'utf8');
     const robots = /<meta name="robots" content="([^"]*)"/i.exec(html);
     if (robots && /noindex/i.test(robots[1])) continue;
-    // home.html, attend.html and photos.html are served at clean paths by the rewrites in
+    // home.html, attend.html, photos.html and ambassadors.html are served at clean paths by the rewrites in
     // vercel.json; those paths are their canonicals.
     const urlPath = CLEAN_PATHS[file] || `/${file}`;
     out.push({ file, urlPath, url: SITE_ORIGIN + urlPath });

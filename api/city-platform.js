@@ -22,6 +22,7 @@ var staffOps = require('./_staff-ops.js');
 var officialPhoto = require('./_official-photo.js');
 var documents = require('./_documents.js');
 var bccSignup = require('./_bcc-signup.js');
+var ambassadorApplication = require('./_ambassador-application.js');
 
 var OPS = {
   submit_claim: submitClaim,
@@ -47,7 +48,11 @@ var OPS = {
 
   // Public: a sign-up for the next BCC meeting from /attend. Turnstile-gated
   // inside the handler. Here for the same ceiling reason.
-  submit_bcc_signup: bccSignup
+  submit_bcc_signup: bccSignup,
+
+  // Public: a School Ambassador application from /ambassadors. Bot-checked
+  // inside the handler. Here for the same ceiling reason.
+  submit_ambassador_application: ambassadorApplication
 };
 
 module.exports = async function handler(req, res) {
