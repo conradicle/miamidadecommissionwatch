@@ -49,6 +49,7 @@ import {
 import { setHead, setJsonLd, upsertRegion, rewriteToRootRelative, splitShell } from './lib/page.mjs';
 import * as schema from './lib/schema.mjs';
 import { sharedChrome, applySharedChrome } from './lib/shell.mjs';
+import { applySocialMeta, REQUIRED_TAGS as REQUIRED_SOCIAL_TAGS } from './lib/social.mjs';
 import {
   DOC_TYPES, TRACKER_ARCHIVE_THROUGH, TRACKER_ARCHIVE_LABEL, pageDocuments, cleanBodies,
   documentPath, documentUrl, publicPdfUrl, renderDocumentList, renderFilterOptions,
@@ -706,6 +707,23 @@ async function main() {
       if (after !== before) { writeFileSync(join(OUT, file), after); shared++; }
     }
     console.log(`shared   home.html header and footer on ${shared} pages`);
+
+    // --- one link-preview image and tag set on every shareable page ---------
+    let social = 0;
+    const missing = [];
+    for (const file of listDist().filter((f) => f.endsWith('.html'))) {
+      const before = readFileSync(join(OUT, file), 'utf8');
+      const after = applySocialMeta(before);
+      if (after !== before) { writeFileSync(join(OUT, file), after); social++; }
+      if (!/<meta property="og:description"/.test(after)) continue;
+      for (const tag of REQUIRED_SOCIAL_TAGS) {
+        const attr = tag.startsWith('twitter:') ? 'name' : 'property';
+        if (!after.includes(`<meta ${attr}="${tag}" content=`)) missing.push(`${file}: ${tag}`);
+      }
+      if (after.includes('og-image.png')) missing.push(`${file}: still references og-image.png`);
+    }
+    if (missing.length) throw new Error('social tags incomplete:\n  ' + missing.join('\n  '));
+    console.log(`social   share card and preview tags on ${social} pages`);
   }
 
   if (!DRY_RUN) console.log(`checked  dist/ holds ${checkDist(docPages)} files, all public`);

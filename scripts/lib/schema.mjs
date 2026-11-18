@@ -11,7 +11,9 @@ import { SITE_ORIGIN } from './fmt.mjs';
 export const ORG_ID = `${SITE_ORIGIN}/#organization`;
 export const SITE_ID = `${SITE_ORIGIN}/#website`;
 
-const LOGO = `${SITE_ORIGIN}/assets/img/og-image.png`;
+// The seal is the logo; the share card is the representative image.
+const LOGO = `${SITE_ORIGIN}/assets/img/seal-logo.png`;
+const IMAGE = `${SITE_ORIGIN}/assets/img/share-card.png`;
 
 // The reason this file exists at all: "Miami-Dade Commission Watch" is three
 // generic words that the county's own domain outranks for every one of them.
@@ -30,8 +32,8 @@ export function organization() {
       'Miami-Dade County Commission Watch'
     ],
     url: `${SITE_ORIGIN}/`,
-    logo: { '@type': 'ImageObject', url: LOGO, width: 1200, height: 630 },
-    image: LOGO,
+    logo: { '@type': 'ImageObject', url: LOGO, width: 1014, height: 1017 },
+    image: IMAGE,
     description: 'Independent, nonpartisan tracking of the Miami-Dade County ' +
       'Board of County Commissioners: plain-language meeting summaries, a ' +
       'commissioner directory, and ways to get involved.',

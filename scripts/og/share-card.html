@@ -1,0 +1,126 @@
+<!DOCTYPE html>
+<!--
+  Source for the default link-preview image (og:image / twitter:image).
+  Rendered to assets/img/share-card.png by scripts/og/render-share-card.mjs.
+  It loads the site's own css/style.css, so colors and fonts come from the
+  same variables the live pages use. Edit this file, re-render, then bump
+  SHARE_CARD_VERSION in scripts/lib/social.mjs. See scripts/og/README.md.
+-->
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Share card</title>
+<link rel="stylesheet" href="/css/style.css">
+<style>
+  html, body {
+    margin: 0;
+    width: 1200px;
+    height: 630px;
+    overflow: hidden;
+    background: var(--paper);
+  }
+  .sc-card {
+    position: relative;
+    width: 1200px;
+    height: 630px;
+    box-sizing: border-box;
+  }
+  /* Same navy bar and gold rule as .site-header. The color runs edge to
+     edge, but everything with meaning sits inside the 1000x500 safe zone
+     (100px left/right, 65px top/bottom) that WhatsApp and iMessage keep. */
+  .sc-bar {
+    position: absolute;
+    inset: 0 0 auto 0;
+    height: 186px;
+    background: var(--accent-strong);
+    border-bottom: 5px solid var(--gold-600);
+  }
+  .sc-safe {
+    position: absolute;
+    left: 100px;
+    top: 65px;
+    width: 1000px;
+    height: 500px;
+    display: flex;
+    flex-direction: column;
+  }
+  .sc-wordmark {
+    display: flex;
+    align-items: center;
+    gap: 24px;
+    height: 104px;
+    color: #fff;
+  }
+  .sc-wordmark img {
+    width: 104px;
+    height: 104px;
+    border-radius: 50%;
+    flex: 0 0 auto;
+  }
+  .sc-wordmark .sc-mark {
+    font-family: var(--font-wordmark);
+    font-weight: 600;
+    font-size: 50px;
+    line-height: 1;
+    letter-spacing: -0.2px;
+  }
+  .sc-wordmark .sc-accent { color: var(--gold-600); }
+  .sc-eyebrow {
+    margin: 58px 0 0;
+    font-family: var(--font-body);
+    font-weight: 600;
+    font-size: 20px;
+    letter-spacing: 2px;
+    text-transform: uppercase;
+    color: var(--eyebrow-color);
+  }
+  .sc-title {
+    margin: 12px 0 0;
+    font-family: var(--font-display);
+    font-weight: 400;
+    font-size: 64px;
+    line-height: 1.08;
+    letter-spacing: -0.5px;
+    color: var(--heading-color);
+  }
+  .sc-sub {
+    margin: 18px 0 0;
+    font-family: var(--font-body);
+    font-size: 30px;
+    line-height: 1.25;
+    color: var(--ink-600);
+  }
+  .sc-url {
+    margin-top: auto;
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    font-family: var(--font-body);
+    font-weight: 600;
+    font-size: 28px;
+    color: var(--heading-color);
+  }
+  .sc-url::before {
+    content: "";
+    width: 48px;
+    height: 4px;
+    background: var(--gold-600);
+  }
+</style>
+</head>
+<body>
+  <div class="sc-card">
+    <div class="sc-bar"></div>
+    <div class="sc-safe">
+      <div class="sc-wordmark">
+        <img src="/assets/img/seal-logo.png" alt="">
+        <span class="sc-mark">Miami-Dade <span class="sc-accent">Commission</span> Watch</span>
+      </div>
+      <p class="sc-eyebrow">Miami-Dade Board of County Commissioners</p>
+      <h1 class="sc-title">What your county commission did, in plain language.</h1>
+      <p class="sc-sub">Nonpartisan. Student-run. Every BCC meeting, explained.</p>
+      <div class="sc-url">miamidadecommissionwatch.com</div>
+    </div>
+  </div>
+</body>
+</html>
