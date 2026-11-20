@@ -24,6 +24,9 @@
 
   function buildChecks(container, values, nameAttr, labelFn) {
     if (!container) return;
+    // get-involved.html ships the boxes in its markup so they show even
+    // before (or without) this script; keep those.
+    if (container.querySelector('input[name="' + nameAttr + '"]')) return;
     container.innerHTML = values.map(function (v) {
       return '<label class="pref-check">' +
         '<input type="checkbox" name="' + nameAttr + '" value="' + esc(String(v)) + '">' +

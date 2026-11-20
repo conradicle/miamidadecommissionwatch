@@ -590,6 +590,15 @@ async function main() {
   {
     let html = read('news.html');
     html = upsertRegion(html, 'editorials', renderEditorials(editorials), '</main>');
+    // The "no editorials yet" notice is only for an empty archive. With
+    // editorials on the page it goes, so it can't reach readers who see the
+    // markup without the CSS or JS that hides it. js/editorials-feed.js copes
+    // with it missing.
+    if (editorials.length) {
+      const emptyNotice = /\n *<div id="editorials-empty"[\s\S]*?<\/div>\n/;
+      if (!emptyNotice.test(html)) throw new Error('news.html: #editorials-empty block not found');
+      html = html.replace(emptyNotice, '\n');
+    }
     html = setJsonLd(html, 'jsonld', [
       schema.organization(),
       schema.website(),

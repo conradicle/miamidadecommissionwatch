@@ -197,10 +197,21 @@ export function upcomingMeetings(schedule, today) {
 // The homepage hero line. js/home.js refreshes it from the same table in the
 // browser, so it moves on to the next date the day after a meeting even if
 // nothing has been rebuilt.
+// With nothing left on the schedule, the line says when to expect the next
+// one. js/home.js has the same wording in noMeetingText().
+export function noMeetingText(today) {
+  const year = Number(String(today).slice(0, 4));
+  const month = Number(String(today).slice(5, 7));
+  // The county posts the next year's calendar late in the year, so an empty
+  // schedule in November or December means the year's meetings are done.
+  if (month >= 11) return `No more meetings in ${year}. Next meeting: January ${year + 1}, date TBA.`;
+  return 'Next meeting: date TBA.';
+}
+
 export function renderNextMeeting(schedule, today) {
   const next = upcomingMeetings(schedule, today).find((r) => !r.cancelled);
   if (!next) {
-    return '<div class="label">Next BCC meeting</div><div class="date">Date not posted yet</div>';
+    return `<div class="label">Next BCC meeting</div><div class="date">${esc(noMeetingText(today))}</div>`;
   }
   const type = next.meeting_type && next.meeting_type !== 'Regular Meeting' ? ` (${esc(next.meeting_type)})` : '';
   return `<div class="label">Next BCC meeting${type}</div><div class="date">${meetingWhen(next)}</div>`;

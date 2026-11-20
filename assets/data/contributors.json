@@ -60,6 +60,19 @@
       ]
     },
     {
+      "id": "speaker-development",
+      "name": "Speaker Development",
+      "blurb": null,
+      "members": [
+        {
+          "name": "Aliza A.",
+          "role": "Head of Speaker Development",
+          "photo": null,
+          "bio": null
+        }
+      ]
+    },
+    {
       "id": "other",
       "name": "Other",
       "blurb": null,

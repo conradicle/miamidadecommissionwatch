@@ -66,11 +66,19 @@
   // The build already wrote this line from the same table. Redrawing it
   // here only matters once a meeting date has passed and no rebuild has run
   // since, so a failed query (undefined) leaves the prerendered line alone.
+  // Same wording as noMeetingText in scripts/lib/documents.mjs.
+  function noMeetingText(today) {
+    var year = Number(String(today).slice(0, 4));
+    var month = Number(String(today).slice(5, 7));
+    if (month >= 11) return 'No more meetings in ' + year + '. Next meeting: January ' + (year + 1) + ', date TBA.';
+    return 'Next meeting: date TBA.';
+  }
+
   function renderNextMeeting(next) {
     var el = document.getElementById('next-meeting-live');
     if (!el || next === undefined) return;
     if (!next) {
-      el.innerHTML = '<div class="label">Next BCC meeting</div><div class="date">Date not posted yet</div>';
+      el.innerHTML = '<div class="label">Next BCC meeting</div><div class="date">' + esc(noMeetingText(fmt.todayISO())) + '</div>';
       return;
     }
     var type = next.meeting_type && next.meeting_type !== 'Regular Meeting' ? ' (' + esc(next.meeting_type) + ')' : '';

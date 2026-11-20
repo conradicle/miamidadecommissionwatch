@@ -25,7 +25,7 @@
 <link rel="icon" type="image/png" sizes="32x32" href="assets/img/favicon-32x32.png">
 <link rel="icon" type="image/png" sizes="16x16" href="assets/img/favicon-16x16.png">
 <link rel="apple-touch-icon" sizes="180x180" href="assets/img/apple-touch-icon.png">
-<link rel="stylesheet" href="css/style.css?v=20261120">
+<link rel="stylesheet" href="css/style.css?v=20261120b">
 <link rel="stylesheet" href="css/get-involved.css?v=20261116c">
 <!-- build:jsonld -->
 <script type="application/ld+json">{"@context":"https://schema.org","@type":"NewsMediaOrganization","@id":"https://www.miamidadecommissionwatch.com/#organization","name":"Miami-Dade Commission Watch","alternateName":["Miami Dade Commission Watch","MDCW","Miami-Dade County Commission Watch"],"url":"https://www.miamidadecommissionwatch.com/","logo":{"@type":"ImageObject","url":"https://www.miamidadecommissionwatch.com/assets/img/seal-logo.png","width":1014,"height":1017},"image":"https://www.miamidadecommissionwatch.com/assets/img/share-card.png","description":"Independent, nonpartisan tracking of the Miami-Dade County Board of County Commissioners: plain-language meeting summaries, a commissioner directory, and ways to get involved.","founder":[{"@type":"Person","name":"Conrad Gelber"},{"@type":"Person","name":"Daniel Llobet"}],"sameAs":["https://instagram.com/miamidadecommissionwatch"],"areaServed":{"@type":"AdministrativeArea","name":"Miami-Dade County, Florida"},"knowsAbout":["Miami-Dade Board of County Commissioners","Miami-Dade County government","county commission meetings","local government transparency"],"publishingPrinciples":"https://www.miamidadecommissionwatch.com/about.html","isAccessibleForFree":true,"disambiguatingDescription":"An independent, student-run civic project. Not affiliated with, operated by, or endorsed by Miami-Dade County government."}</script>
@@ -113,7 +113,7 @@
 
       <section id="student-involvement" aria-labelledby="student-heading" style="margin-top:32px;">
       <h3 id="student-heading">For students</h3>
-      <p class="mt-0" style="max-width:60ch; color:var(--ink-600);">Help your community follow local decisions. We’re planning MDCW welcome gifts for student contributors, possibly including enamel pins and stress-relief squishies. Items are still being finalized.</p>
+      <p class="mt-0" style="max-width:60ch; color:var(--ink-600);">Help your community follow local decisions.</p>
 
       <div class="card-grid" style="margin-top:20px;">
 
@@ -354,12 +354,13 @@
       <form id="alerts-form" style="margin-top:24px; max-width:760px;">
         <fieldset class="pref-fieldset">
           <legend>Districts</legend>
-          <div class="pref-grid" id="alerts-districts"></div>
+          <!-- Written out here so the boxes are never empty; js/alerts.js keeps them. -->
+          <div class="pref-grid" id="alerts-districts"><label class="pref-check"><input type="checkbox" name="districts" value="1"><span>District 1</span></label><label class="pref-check"><input type="checkbox" name="districts" value="2"><span>District 2</span></label><label class="pref-check"><input type="checkbox" name="districts" value="3"><span>District 3</span></label><label class="pref-check"><input type="checkbox" name="districts" value="4"><span>District 4</span></label><label class="pref-check"><input type="checkbox" name="districts" value="5"><span>District 5</span></label><label class="pref-check"><input type="checkbox" name="districts" value="6"><span>District 6</span></label><label class="pref-check"><input type="checkbox" name="districts" value="7"><span>District 7</span></label><label class="pref-check"><input type="checkbox" name="districts" value="8"><span>District 8</span></label><label class="pref-check"><input type="checkbox" name="districts" value="9"><span>District 9</span></label><label class="pref-check"><input type="checkbox" name="districts" value="10"><span>District 10</span></label><label class="pref-check"><input type="checkbox" name="districts" value="11"><span>District 11</span></label><label class="pref-check"><input type="checkbox" name="districts" value="12"><span>District 12</span></label><label class="pref-check"><input type="checkbox" name="districts" value="13"><span>District 13</span></label></div>
         </fieldset>
 
         <fieldset class="pref-fieldset">
           <legend>Topics</legend>
-          <div class="pref-grid" id="alerts-topics"></div>
+          <div class="pref-grid" id="alerts-topics"><label class="pref-check"><input type="checkbox" name="topics" value="Housing"><span>Housing</span></label><label class="pref-check"><input type="checkbox" name="topics" value="Transit"><span>Transit</span></label><label class="pref-check"><input type="checkbox" name="topics" value="Zoning"><span>Zoning</span></label><label class="pref-check"><input type="checkbox" name="topics" value="Public Safety"><span>Public Safety</span></label><label class="pref-check"><input type="checkbox" name="topics" value="Taxes &amp; Budget"><span>Taxes &amp; Budget</span></label><label class="pref-check"><input type="checkbox" name="topics" value="Environment"><span>Environment</span></label><label class="pref-check"><input type="checkbox" name="topics" value="Parks"><span>Parks</span></label><label class="pref-check"><input type="checkbox" name="topics" value="Other"><span>Other</span></label></div>
         </fieldset>
 
         <div class="district-search-form" style="margin-bottom:8px;">
@@ -487,7 +488,7 @@
 <script src="js/supabase-client.js"></script>
 <script src="js/bot-guard.js?v=20261024"></script>
 <script src="js/municipalities.js?v=20261116b"></script>
-<script src="js/alerts.js?v=20261024"></script>
+<script src="js/alerts.js?v=20261120"></script>
 <script src="js/translate.js?v=20260820"></script>
 <script src="https://translate.google.com/translate_a/element.js?cb=googleTranslateElementInit"></script>
 </body>
