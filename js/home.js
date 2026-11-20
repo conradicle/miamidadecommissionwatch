@@ -74,11 +74,20 @@
     return 'Next meeting: date TBA.';
   }
 
+  // Same markup as noMeetingButton in scripts/lib/documents.mjs.
+  function noMeetingButton(today) {
+    var year = Number(String(today).slice(0, 4));
+    var month = Number(String(today).slice(5, 7));
+    var label = month >= 11 ? 'Get notified about ' + (year + 1) + ' meetings' : 'Get notified about upcoming meetings';
+    return '<a class="btn btn-primary next-meeting-btn" href="/attend#meeting-interest">' + esc(label) + '</a>';
+  }
+
   function renderNextMeeting(next) {
     var el = document.getElementById('next-meeting-live');
     if (!el || next === undefined) return;
     if (!next) {
-      el.innerHTML = '<div class="label">Next BCC meeting</div><div class="date">' + esc(noMeetingText(fmt.todayISO())) + '</div>';
+      var today = fmt.todayISO();
+      el.innerHTML = '<div class="label">Next BCC meeting</div><div class="date">' + esc(noMeetingText(today)) + '</div>' + noMeetingButton(today);
       return;
     }
     var type = next.meeting_type && next.meeting_type !== 'Regular Meeting' ? ' (' + esc(next.meeting_type) + ')' : '';

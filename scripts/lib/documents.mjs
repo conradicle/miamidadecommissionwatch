@@ -208,10 +208,20 @@ export function noMeetingText(today) {
   return 'Next meeting: date TBA.';
 }
 
+// With no date posted, the card still points students to the interest form
+// on /attend (#meeting-interest), which texts them when sign-ups open.
+// js/home.js has the same markup in noMeetingButton().
+export function noMeetingButton(today) {
+  const year = Number(String(today).slice(0, 4));
+  const month = Number(String(today).slice(5, 7));
+  const label = month >= 11 ? `Get notified about ${year + 1} meetings` : 'Get notified about upcoming meetings';
+  return `<a class="btn btn-primary next-meeting-btn" href="/attend#meeting-interest">${esc(label)}</a>`;
+}
+
 export function renderNextMeeting(schedule, today) {
   const next = upcomingMeetings(schedule, today).find((r) => !r.cancelled);
   if (!next) {
-    return `<div class="label">Next BCC meeting</div><div class="date">${esc(noMeetingText(today))}</div>`;
+    return `<div class="label">Next BCC meeting</div><div class="date">${esc(noMeetingText(today))}</div>${noMeetingButton(today)}`;
   }
   const type = next.meeting_type && next.meeting_type !== 'Regular Meeting' ? ` (${esc(next.meeting_type)})` : '';
   return `<div class="label">Next BCC meeting${type}</div><div class="date">${meetingWhen(next)}</div>`;

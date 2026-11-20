@@ -2741,3 +2741,7 @@ main .wrap > :is(p, ul:not([class]), ol:not([class]), dl:not([class]), blockquot
 @media (max-width: 400px) {
   .header-newsletter .wrap { padding: 8px 16px; }
 }
+
+/* Homepage next-meeting card with no date posted: a button to the 2027
+   interest form on /attend sits under the "date TBA" line. */
+.next-meeting-btn { display: block; text-align: center; margin-top: 14px; }
