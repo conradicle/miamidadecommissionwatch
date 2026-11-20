@@ -1,13 +1,13 @@
 /* Fonts are self-hosted and declared only here, so each page loads Lora and
    Inter at most once, and only the weights it actually renders. */
-@font-face { font-family: "Lora"; src: url(/assets/fonts/Lora-Regular.woff2) format("woff2"); font-weight: 400; font-display: swap; }
-@font-face { font-family: "Lora"; src: url(/assets/fonts/Lora-SemiBold.woff2) format("woff2"); font-weight: 600; font-display: swap; }
-@font-face { font-family: "Lora"; src: url(/assets/fonts/Lora-Bold.woff2) format("woff2"); font-weight: 700; font-display: swap; }
-@font-face { font-family: "Lora"; src: url(/assets/fonts/Lora-Italic.woff2) format("woff2"); font-style: italic; font-display: swap; }
-@font-face { font-family: "Inter"; src: url(/assets/fonts/Inter-Regular.woff2) format("woff2"); font-weight: 400; font-display: swap; }
-@font-face { font-family: "Inter"; src: url(/assets/fonts/Inter-Medium.woff2) format("woff2"); font-weight: 500; font-display: swap; }
-@font-face { font-family: "Inter"; src: url(/assets/fonts/Inter-SemiBold.woff2) format("woff2"); font-weight: 600; font-display: swap; }
-@font-face { font-family: "Inter"; src: url(/assets/fonts/Inter-Bold.woff2) format("woff2"); font-weight: 700; font-display: swap; }
+@font-face { font-family: "Lora"; src: url(/assets/fonts/Lora-Regular.woff2) format("woff2"); font-weight: 400; font-display: optional; }
+@font-face { font-family: "Lora"; src: url(/assets/fonts/Lora-SemiBold.woff2) format("woff2"); font-weight: 600; font-display: optional; }
+@font-face { font-family: "Lora"; src: url(/assets/fonts/Lora-Bold.woff2) format("woff2"); font-weight: 700; font-display: optional; }
+@font-face { font-family: "Lora"; src: url(/assets/fonts/Lora-Italic.woff2) format("woff2"); font-style: italic; font-display: optional; }
+@font-face { font-family: "Inter"; src: url(/assets/fonts/Inter-Regular.woff2) format("woff2"); font-weight: 400; font-display: optional; }
+@font-face { font-family: "Inter"; src: url(/assets/fonts/Inter-Medium.woff2) format("woff2"); font-weight: 500; font-display: optional; }
+@font-face { font-family: "Inter"; src: url(/assets/fonts/Inter-SemiBold.woff2) format("woff2"); font-weight: 600; font-display: optional; }
+@font-face { font-family: "Inter"; src: url(/assets/fonts/Inter-Bold.woff2) format("woff2"); font-weight: 700; font-display: optional; }
 
 /* Miami-Dade Commission Watch: shared stylesheet
    Palette is inspired by (but not copied from) Miami-Dade County's official
@@ -1536,7 +1536,10 @@ iframe.skiptranslate { display: none !important; }
   transition: opacity .7s var(--ease), visibility 0s;
 }
 .hero-controls { display: flex; align-items: center; gap: 8px; margin-top: 12px; }
-.hero-controls[hidden] { display: none; }
+/* Until js/hero-rotator.js turns the slideshow on, the controls keep their
+   row but stay invisible (and so unfocusable). display: none here made the
+   next-meeting box drop 43px a moment after load. */
+.hero-controls[hidden] { display: flex; visibility: hidden; }
 .hero-pause {
   width: 32px;
   height: 32px;
@@ -2701,6 +2704,9 @@ main .wrap > :is(p, ul:not([class]), ol:not([class]), dl:not([class]), blockquot
 ::view-transition-group(site-header),
 ::view-transition-old(site-header),
 ::view-transition-new(site-header) { animation: none; }
+/* The root group never resizes: only the old/new snapshots animate, and only
+   opacity and an 8px translate. */
+::view-transition-group(root) { animation: none; }
 ::view-transition-old(root) { animation: 200ms ease-out both mdcw-vt-out; }
 ::view-transition-new(root) { animation: 240ms var(--ease) both mdcw-vt-in; }
 @keyframes mdcw-vt-out { to { opacity: 0; } }

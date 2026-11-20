@@ -83,6 +83,33 @@ export function sharedChrome(homepage) {
   return { header: rootRelative(header[0]), footer: rootRelative(footer[0]) };
 }
 
+// The font files the first screen of a page uses. Without a preload the
+// browser only finds them after parsing style.css, so they arrived after first
+// paint and, with font-display: swap, text re-wrapped ~250ms in (visible as a
+// jump on officials.html). style.css now uses font-display: optional, and
+// these preloads get the fonts in before that short block period ends. The
+// hrefs must match the @font-face urls in style.css exactly.
+export const PRELOAD_FONTS = [
+  '/assets/fonts/Lora-Regular.woff2',
+  '/assets/fonts/Lora-SemiBold.woff2',
+  '/assets/fonts/Inter-Regular.woff2',
+  '/assets/fonts/Inter-Medium.woff2',
+  '/assets/fonts/Inter-SemiBold.woff2',
+  '/assets/fonts/Inter-Bold.woff2'
+];
+const STYLESHEET = /<link\b[^>]*rel="stylesheet"[^>]*href="[^"]*style\.css[^"]*"[^>]*>/;
+
+// Puts the font preloads in the <head>, right after style.css (so the CSS is
+// requested first and never waits behind the fonts), on every page that loads
+// style.css (own-chrome pages too: they use the same fonts).
+export function addFontPreloads(html) {
+  if (html.includes('rel="preload" as="font"') || !STYLESHEET.test(html)) return html;
+  const tags = PRELOAD_FONTS
+    .map((href) => `<link rel="preload" as="font" type="font/woff2" href="${href}" crossorigin>`)
+    .join('\n');
+  return html.replace(STYLESHEET, (link) => `${link}\n${tags}`);
+}
+
 // Returns the page with the shared header and footer, or unchanged if the
 // page has its own chrome or no site header/footer to replace.
 export function applySharedChrome(html, file, chrome) {

@@ -48,7 +48,7 @@ import {
 } from './lib/render.mjs';
 import { setHead, setJsonLd, upsertRegion, rewriteToRootRelative, splitShell } from './lib/page.mjs';
 import * as schema from './lib/schema.mjs';
-import { sharedChrome, applySharedChrome } from './lib/shell.mjs';
+import { sharedChrome, applySharedChrome, addFontPreloads } from './lib/shell.mjs';
 import { applySocialMeta, REQUIRED_TAGS as REQUIRED_SOCIAL_TAGS } from './lib/social.mjs';
 import {
   DOC_TYPES, TRACKER_ARCHIVE_THROUGH, TRACKER_ARCHIVE_LABEL, pageDocuments, cleanBodies,
@@ -710,12 +710,17 @@ async function main() {
   if (!DRY_RUN) {
     const chrome = sharedChrome(read('home.html'));
     let shared = 0;
+    let preloaded = 0;
     for (const file of listDist().filter((f) => f.endsWith('.html'))) {
       const before = readFileSync(join(OUT, file), 'utf8');
-      const after = applySharedChrome(before, file, chrome);
-      if (after !== before) { writeFileSync(join(OUT, file), after); shared++; }
+      const chromed = applySharedChrome(before, file, chrome);
+      if (chromed !== before) shared++;
+      const after = addFontPreloads(chromed);
+      if (after !== chromed) preloaded++;
+      if (after !== before) writeFileSync(join(OUT, file), after);
     }
     console.log(`shared   home.html header and footer on ${shared} pages`);
+    console.log(`fonts    preloads in the head of ${preloaded} pages`);
 
     // --- one link-preview image and tag set on every shareable page ---------
     let social = 0;
