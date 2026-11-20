@@ -79,32 +79,44 @@ document.addEventListener('DOMContentLoaded', function () {
   var newsletterBar = document.querySelector('.header-newsletter');
   var HIDE_THRESHOLD = 40;
 
+  // While the bar is shown it carries no max-height at all, so CSS alone sizes
+  // it from the first paint. (Setting max-height to scrollHeight on load used
+  // to clip it: scrollHeight is a rounded integer and leaves out the border,
+  // so the bar lost ~1px after load and the page content moved up.) A measured
+  // max-height exists only while it collapses or expands.
+  function fullHeight() {
+    var cs = window.getComputedStyle(newsletterBar);
+    // +1 covers scrollHeight's rounding; the inline value is cleared once open.
+    return newsletterBar.scrollHeight + parseFloat(cs.borderTopWidth) + parseFloat(cs.borderBottomWidth) + 1;
+  }
+
   function showNewsletterBar() {
+    if (!newsletterBar.classList.contains('header-newsletter-hidden')) return;
     newsletterBar.classList.remove('header-newsletter-hidden');
-    newsletterBar.style.maxHeight = newsletterBar.scrollHeight + 'px';
+    newsletterBar.style.maxHeight = fullHeight() + 'px';
   }
 
   function hideNewsletterBar() {
     // Keep the focused subscription form and an open phone menu stable.
     if (header.contains(document.activeElement) || (nav && nav.classList.contains('open'))) return;
-    // Set the current height explicitly first so the browser has a real
-    // starting value to transition from (can't animate from "none").
-    newsletterBar.style.maxHeight = newsletterBar.scrollHeight + 'px';
+    // Start from the bar's exact current height so the collapse has a real
+    // value to transition from (can't animate from "none").
+    newsletterBar.style.maxHeight = newsletterBar.getBoundingClientRect().height + 'px';
     newsletterBar.offsetHeight; // force reflow so the change above registers
     newsletterBar.classList.add('header-newsletter-hidden');
     newsletterBar.style.maxHeight = '0px';
   }
 
   if (newsletterBar) {
-    showNewsletterBar();
+    // Once fully open again, hand sizing back to CSS.
+    newsletterBar.addEventListener('transitionend', function (e) {
+      if (e.propertyName === 'max-height' && !newsletterBar.classList.contains('header-newsletter-hidden')) {
+        newsletterBar.style.maxHeight = '';
+      }
+    });
     // Tabbing back to the header reveals the form before its controls can
     // stay clipped in the collapsed bar.
     header.addEventListener('focusin', showNewsletterBar);
-    window.addEventListener('resize', function () {
-      if (!newsletterBar.classList.contains('header-newsletter-hidden')) {
-        newsletterBar.style.maxHeight = newsletterBar.scrollHeight + 'px';
-      }
-    });
   }
 
   if (header) {
@@ -167,10 +179,12 @@ document.addEventListener('DOMContentLoaded', function () {
     }, { passive: true });
   }
 
-  // A one-time, small entrance for sections, cards and tables below the
-  // first screen, on every page. Nothing starts hidden: failed/disabled JS
-  // and unsupported APIs leave all content readable. Only opacity and
-  // transform animate; no scroll handler.
+  // A one-time, opacity-only fade for sections, cards and tables that scroll
+  // into view later, on every page. Anything already on screen when the page
+  // opens is never observed, so it appears instantly and nothing above the
+  // fold moves. Nothing starts hidden: failed/disabled JS
+  // and unsupported APIs leave all content readable. Only opacity animates;
+  // no scroll handler.
   //
   // Targets: anything marked [data-reveal] (the homepage), the cards, tables
   // and list blocks inner pages are built from, and any section whose content
@@ -204,8 +218,8 @@ document.addEventListener('DOMContentLoaded', function () {
         revealObserver.unobserve(entry.target);
         if (motion.matches || entry.target.contains(document.activeElement)) return;
         entrances.push(entry.target.animate([
-          { opacity: 0.65, transform: 'translateY(8px)' },
-          { opacity: 1, transform: 'translateY(0)' }
+          { opacity: 0.65 },
+          { opacity: 1 }
         ], { duration: 360, easing: 'cubic-bezier(0.22, 1, 0.36, 1)' }));
       });
     }, { threshold: 0.05 });

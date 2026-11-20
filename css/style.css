@@ -128,10 +128,14 @@
 
 /* Reserve the scrollbar's space on every page so short pages (no scrollbar)
    and long ones line up to the same pixel. */
-html { scroll-behavior: smooth; scrollbar-gutter: stable; }
+html { scrollbar-gutter: stable; }
+/* Smooth scrolling only for in-page anchor links: clicking one focuses it,
+   so :focus-within is true. A page that has just loaded has nothing focused,
+   so arriving at a page (or a #hash, or back/forward) never animates. */
+html:focus-within { scroll-behavior: smooth; }
 
 @media (prefers-reduced-motion: reduce) {
-  html { scroll-behavior: auto; }
+  html, html:focus-within { scroll-behavior: auto; }
   *, *::before, *::after {
     animation-duration: 0.01ms !important;
     animation-iteration-count: 1 !important;
@@ -2697,20 +2701,20 @@ main .wrap > :is(p, ul:not([class]), ol:not([class]), dl:not([class]), blockquot
 
 /* ---------- page transitions ---------- */
 /* Cross-document view transitions (Chromium; other browsers just navigate).
-   The header has its own name and no animation, so it stays perfectly still
-   while the rest of the page crossfades and the new page rises 8px. */
+   A pure opacity crossfade: nothing moves up or down. The header has its own
+   name and no animation, so it stays perfectly still. */
 @view-transition { navigation: auto; }
 .site-header { view-transition-name: site-header; }
 ::view-transition-group(site-header),
 ::view-transition-old(site-header),
 ::view-transition-new(site-header) { animation: none; }
-/* The root group never resizes: only the old/new snapshots animate, and only
-   opacity and an 8px translate. */
+/* The root group never moves or resizes: only the old/new snapshots animate,
+   and only their opacity. */
 ::view-transition-group(root) { animation: none; }
-::view-transition-old(root) { animation: 200ms ease-out both mdcw-vt-out; }
-::view-transition-new(root) { animation: 240ms var(--ease) both mdcw-vt-in; }
-@keyframes mdcw-vt-out { to { opacity: 0; } }
-@keyframes mdcw-vt-in { from { opacity: 0; transform: translateY(8px); } }
+::view-transition-old(root) { animation: 180ms ease both mdcw-vt-out; }
+::view-transition-new(root) { animation: 180ms ease both mdcw-vt-in; }
+@keyframes mdcw-vt-out { from { opacity: 1; } to { opacity: 0; } }
+@keyframes mdcw-vt-in { from { opacity: 0; } to { opacity: 1; } }
 
 /* The active page's gold underline draws in on arrival. */
 @media (min-width: 860px) and (prefers-reduced-motion: no-preference) {
