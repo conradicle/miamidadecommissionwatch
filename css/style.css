@@ -115,7 +115,9 @@
   --radius: 10px;
   --radius-sm: 4px;
   --radius-lg: 14px;
-  --max-width: 1080px;
+  /* One container width for every page (the homepage's), so the header,
+     nav and page content never shift sideways between pages. */
+  --max-width: 1200px;
 
   --ease: cubic-bezier(0.22, 1, 0.36, 1);
   --shadow: 0 8px 24px rgba(20, 24, 32, 0.06);
@@ -124,7 +126,9 @@
 
 * { box-sizing: border-box; }
 
-html { scroll-behavior: smooth; }
+/* Reserve the scrollbar's space on every page so short pages (no scrollbar)
+   and long ones line up to the same pixel. */
+html { scroll-behavior: smooth; scrollbar-gutter: stable; }
 
 @media (prefers-reduced-motion: reduce) {
   html { scroll-behavior: auto; }
@@ -268,6 +272,9 @@ section[id] { scroll-margin-top: calc(var(--header-height, 140px) + 16px); }
 @media (max-width: 400px) {
   .site-header .wrap { padding: 16px; gap: 12px; }
   .header-actions { gap: 8px; }
+  /* Every container takes the same 16px gutter, so the logo, the email bar
+     and the page content share one left edge on a phone. */
+  .wrap { padding-left: 16px; padding-right: 16px; }
 }
 .lang-toggle {
   display: flex;
@@ -417,7 +424,7 @@ iframe.skiptranslate { display: none !important; }
   font-size: 15px;
   line-height: 1.3;
   font-weight: 600;
-  transition: background-color .18s var(--ease), color .18s var(--ease);
+  transition: background-color .15s var(--ease), color .15s var(--ease);
 }
 .site-nav a:last-child { border-bottom: none; }
 .site-nav a:hover, .site-nav a:focus-visible, .site-nav a[aria-current="page"] {
@@ -457,7 +464,7 @@ iframe.skiptranslate { display: none !important; }
     background: var(--gold-600);
     transform: scaleX(0);
     transform-origin: left center;
-    transition: transform .18s var(--ease);
+    transition: transform .15s var(--ease);
   }
   .site-nav a:hover::after, .site-nav a:focus-visible::after, .site-nav a[aria-current="page"]::after {
     transform: scaleX(1);
@@ -608,7 +615,9 @@ iframe.skiptranslate { display: none !important; }
   border-bottom: 1px solid var(--hairline);
 }
 /* The one large headline on the page: lighter weight at a bigger size. */
-.hero h1 {
+/* .page-title: the same headline on pages whose first section is not a
+   .hero (the archived meeting pages). */
+.hero h1, .page-title {
   max-width: 18ch;
   font-size: clamp(36px, 4.8vw, 52px);
   font-weight: 400;
@@ -619,9 +628,8 @@ iframe.skiptranslate { display: none !important; }
 .hero .lede { margin-bottom: 0; }
 
 .home-hero .hero-grid { align-items: start; }
-/* Give the homepage's paired stories and civic actions room on wide screens;
-   article and document reading widths retain their existing measure. */
-.home-page { --max-width: 1200px; }
+/* The homepage used to widen --max-width to 1200px on its own, which moved
+   the header ~60px between pages. 1200px is now the site-wide width. */
 .home-district-link {
   display: inline-flex;
   align-items: center;
@@ -2677,3 +2685,49 @@ a.city-card .city-card-cta { color: var(--accent); }
 .prize-banner h2, .prize-banner h3 { font-size: 20px; margin: 0 0 6px; }
 .prize-banner p { margin: 0; }
 .prize-banner .btn { flex: 0 0 auto; }
+
+/* ---------- shared reading width ---------- */
+/* Long text sits in the 1200px container but stops at about 70ch, still
+   left-aligned to the container so its left edge matches the header.
+   Only unclassed prose: classed lists (.rep-list, grids) keep full width. */
+main .wrap > :is(p, ul:not([class]), ol:not([class]), dl:not([class]), blockquote) { max-width: 70ch; }
+
+/* ---------- page transitions ---------- */
+/* Cross-document view transitions (Chromium; other browsers just navigate).
+   The header has its own name and no animation, so it stays perfectly still
+   while the rest of the page crossfades and the new page rises 8px. */
+@view-transition { navigation: auto; }
+.site-header { view-transition-name: site-header; }
+::view-transition-group(site-header),
+::view-transition-old(site-header),
+::view-transition-new(site-header) { animation: none; }
+::view-transition-old(root) { animation: 200ms ease-out both mdcw-vt-out; }
+::view-transition-new(root) { animation: 240ms var(--ease) both mdcw-vt-in; }
+@keyframes mdcw-vt-out { to { opacity: 0; } }
+@keyframes mdcw-vt-in { from { opacity: 0; transform: translateY(8px); } }
+
+/* The active page's gold underline draws in on arrival. */
+@media (min-width: 860px) and (prefers-reduced-motion: no-preference) {
+  .site-nav a[aria-current="page"]::after { animation: mdcw-underline-in .35s var(--ease) .1s both; }
+}
+@keyframes mdcw-underline-in { from { transform: scaleX(0); } to { transform: scaleX(1); } }
+
+/* Clickable cards lift slightly on hover, everywhere. */
+@media (hover: hover) and (prefers-reduced-motion: no-preference) {
+  a.card, .meeting-card, .doc-section-card, .editorial-card, .muni-card {
+    transition: border-color .15s var(--ease), background-color .15s var(--ease), transform .15s var(--ease), box-shadow .15s var(--ease);
+  }
+  a.card:hover, .meeting-card:hover, .doc-section-card:hover, .editorial-card:hover, .muni-card:hover { transform: translateY(-2px); }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  @view-transition { navigation: none; }
+  ::view-transition-group(*), ::view-transition-old(*), ::view-transition-new(*) { animation: none !important; }
+  .site-nav a[aria-current="page"]::after { animation: none; }
+}
+
+/* Phone gutter for the email bar; it sits after the bar's own rule so it wins.
+   Matches the 16px gutter every .wrap takes under 400px. */
+@media (max-width: 400px) {
+  .header-newsletter .wrap { padding: 8px 16px; }
+}

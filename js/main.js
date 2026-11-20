@@ -167,9 +167,34 @@ document.addEventListener('DOMContentLoaded', function () {
     }, { passive: true });
   }
 
-  // A one-time, small entrance for homepage sections below the first screen.
-  // Nothing starts hidden: failed/disabled JS and unsupported APIs leave all
-  // content readable. Only opacity and transform animate; no scroll handler.
+  // A one-time, small entrance for sections, cards and tables below the
+  // first screen, on every page. Nothing starts hidden: failed/disabled JS
+  // and unsupported APIs leave all content readable. Only opacity and
+  // transform animate; no scroll handler.
+  //
+  // Targets: anything marked [data-reveal] (the homepage), the cards, tables
+  // and list blocks inner pages are built from, and any section whose content
+  // has none of those. Nothing nested animates twice: a target inside another
+  // target is dropped.
+  var REVEAL_BLOCKS = [
+    '[data-reveal]', 'main .card', 'main table', 'main .meeting-card', 'main .editorial-card',
+    'main .doc-row', 'main .doc-section-card', 'main .race', 'main .measure', 'main .rep-list > li',
+    'main .partner-card', 'main .founder-card', 'main .team-group', 'main .reading-item',
+    'main .section-head', 'main .fold', 'main .pref-fieldset', 'main .faq-item'
+  ].join(',');
+  function revealTargets() {
+    var blocks = Array.prototype.slice.call(document.querySelectorAll(REVEAL_BLOCKS));
+    Array.prototype.forEach.call(document.querySelectorAll('main section > .wrap'), function (wrap) {
+      if (!wrap.querySelector(REVEAL_BLOCKS)) blocks.push(wrap);
+    });
+    var set = new Set(blocks);
+    return blocks.filter(function (el) {
+      for (var p = el.parentElement; p; p = p.parentElement) {
+        if (set.has(p)) return false;
+      }
+      return !el.closest('dialog, [hidden]');
+    });
+  }
   if ('IntersectionObserver' in window && Element.prototype.animate) {
     var motion = window.matchMedia('(prefers-reduced-motion: reduce)');
     var entrances = [];
@@ -181,10 +206,10 @@ document.addEventListener('DOMContentLoaded', function () {
         entrances.push(entry.target.animate([
           { opacity: 0.65, transform: 'translateY(8px)' },
           { opacity: 1, transform: 'translateY(0)' }
-        ], { duration: 420, easing: 'cubic-bezier(0.22, 1, 0.36, 1)' }));
+        ], { duration: 360, easing: 'cubic-bezier(0.22, 1, 0.36, 1)' }));
       });
     }, { threshold: 0.05 });
-    document.querySelectorAll('[data-reveal]').forEach(function (el) {
+    revealTargets().forEach(function (el) {
       if (el.getBoundingClientRect().top >= window.innerHeight) revealObserver.observe(el);
       el.addEventListener('focusin', function () {
         revealObserver.unobserve(el);

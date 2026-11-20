@@ -315,7 +315,7 @@ function meetingBody(meeting, { older, newer }) {
       <p class="archive-note"><strong>${esc(TRACKER_ARCHIVE_LABEL)}.</strong> The Meeting Tracker no longer adds new meetings. New meetings are covered in official <a href="/documents/meeting-summaries">Meeting Summaries</a> and <a href="/documents/agenda-summaries">Agenda Summaries</a>.</p>
 
       <span class="eyebrow">${esc(meeting.meeting_type)} &middot; ${esc(formatDate(meeting.meeting_date))}</span>
-      <h1 style="max-width:24ch;">${esc(meeting.title)}</h1>
+      <h1 class="page-title" style="max-width:24ch;">${esc(meeting.title)}</h1>
       <p class="lede">${esc(meeting.summary)}</p>
 
       <div id="tracker-body">
