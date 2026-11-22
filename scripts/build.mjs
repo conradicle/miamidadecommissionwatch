@@ -124,6 +124,11 @@ function stampBotGuardSiteKey() {
 // or config file stays private until someone decides otherwise. The pages
 // the build writes itself (meetings/*, documents/<type>/*, sitemap.xml) are
 // not copied: they are generated fresh every time.
+// The Games section lives in its own folder, so its pages are listed here
+// (the root-page rule never reaches them) and get the sitemap and JSON-LD
+// treatment below.
+const GAME_PAGES = ['games/index.html', 'games/follow-the-dollar/index.html'];
+
 const PUBLIC_FILES = {
   // Top-level pages only. drafts/ and document-templates/ are subfolders and
   // never match.
@@ -134,7 +139,9 @@ const PUBLIC_FILES = {
     'documents/index.html',
     'documents/meeting-summaries.html',
     'documents/agenda-summaries.html',
-    'documents/preview.html'
+    'documents/preview.html',
+    ...GAME_PAGES,
+    'games/follow-the-dollar/data.json'
   ],
   // Whole folders, limited to the file types the pages load.
   dirs: {
@@ -184,13 +191,14 @@ const FORBIDDEN = [
   /^(vercel|package|package-lock)\.json$/,
   /\.(md|sql|mjs|cjs|ts|yml|yaml|py|map|pdf|otf|ttf)$/i
 ];
-const SERVABLE = new Set(['.html', '.xml', '.css', '.js', '.png', '.jpg', '.jpeg', '.webp', '.svg', '.ico', '.woff2', '.geojson', '.txt']);
+const SERVABLE = new Set(['.html', '.xml', '.json', '.css', '.js', '.png', '.jpg', '.jpeg', '.webp', '.svg', '.ico', '.woff2', '.geojson', '.txt']);
 
 // Every rewrite destination in vercel.json resolves inside dist/, so each one
 // has to exist there or its clean URL 404s.
 const REWRITE_TARGETS = [
   'home.html', 'links.html', 'attend.html', 'photos.html', 'ambassadors.html', 'city/index.html',
-  'documents/index.html', 'documents/meeting-summaries.html', 'documents/agenda-summaries.html'
+  'documents/index.html', 'documents/meeting-summaries.html', 'documents/agenda-summaries.html',
+  ...GAME_PAGES
 ];
 
 function listDist(abs = OUT, prefix = '') {
@@ -685,6 +693,10 @@ async function main() {
     write(page.file, html);
     plainCount++;
   }
+  for (const file of GAME_PAGES) {
+    write(file, setJsonLd(read(file), 'jsonld', [schema.organization(), schema.website()]));
+    plainCount++;
+  }
   console.log(`stamped  Organization + WebSite JSON-LD on ${plainCount + handled.size} public pages`);
 
   // --- sitemap -------------------------------------------------------------
@@ -701,7 +713,8 @@ async function main() {
         lastmod: [newest, fileDate].filter(Boolean).sort().pop()
       };
     }),
-    ...docPages.map((d) => ({ url: documentUrl(d), lastmod: isoDay(d.current.published_at || d.updated_at) }))
+    ...docPages.map((d) => ({ url: documentUrl(d), lastmod: isoDay(d.current.published_at || d.updated_at) })),
+    ...GAME_PAGES.map((f) => ({ url: SITE_ORIGIN + '/' + f.replace(/\/index\.html$/, ''), lastmod: lastModified(f) }))
   ];
   const result = writeSitemap(entries);
   console.log(`sitemap  ${result.urls} URLs across ${result.files} file(s)`);

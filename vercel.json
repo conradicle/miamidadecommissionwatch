@@ -35,6 +35,14 @@
       "destination": "https://kpchirnlgjwdqducqdtx.supabase.co/storage/v1/object/public/documents/:path*"
     },
     {
+      "source": "/games",
+      "destination": "/games/index.html"
+    },
+    {
+      "source": "/games/follow-the-dollar",
+      "destination": "/games/follow-the-dollar/index.html"
+    },
+    {
       "source": "/documents",
       "destination": "/documents/index.html"
     },

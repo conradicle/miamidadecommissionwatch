@@ -42,6 +42,7 @@ function navTarget(file) {
   if (/^documents\/(meeting-summary\/|meeting-summaries\.html)/.test(file)) return '/documents/meeting-summaries';
   if (/^documents\/(agenda-summary\/|agenda-summaries\.html)/.test(file)) return '/documents/agenda-summaries';
   if (file.startsWith('documents/')) return '/documents';
+  if (file.startsWith('games/')) return '/games';
   if (/^(commissioner|office-)/.test(file)) return '/officials.html';
   if (file === 'attend.html' || file === 'ambassadors.html') return '/get-involved.html';
   return '/' + file;
