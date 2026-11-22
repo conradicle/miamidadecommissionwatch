@@ -1,0 +1,979 @@
+{
+  "title": "Follow the Dollar",
+  "fiscalYear": "FY 2026-27",
+  "amountUnit": "millions of dollars",
+  "note": "SAMPLE DATA. Structure follows the Miami-Dade County adopted budget, but every figure, edge and citation is unverified until marked verified: true.",
+  "sources": [
+    {
+      "id": "countywide-property-tax",
+      "name": "Countywide property tax",
+      "blurb": "Paid by property owners across the whole county.",
+      "restriction": "Countywide property tax revenue goes into the Countywide General Fund.",
+      "citation": "SAMPLE, to verify: Miami-Dade County FY 2026-27 Adopted Budget and Multi-Year Capital Plan, Vol. 1, Revenue Summary (page to confirm)",
+      "verified": false
+    },
+    {
+      "id": "fire-district-tax",
+      "name": "Fire Rescue District property tax",
+      "short": "Fire district tax",
+      "blurb": "A separate property tax in the area Fire Rescue serves.",
+      "restriction": "The fire district tax can only pay for Fire Rescue.",
+      "citation": "SAMPLE, to verify: Miami-Dade County FY 2026-27 Adopted Budget and Multi-Year Capital Plan, Vol. 2, Fire Rescue (page to confirm)",
+      "verified": false
+    },
+    {
+      "id": "library-district-tax",
+      "name": "Library District property tax",
+      "short": "Library district tax",
+      "blurb": "A separate property tax in the area the county libraries serve.",
+      "restriction": "The library district tax can only pay for the county library system.",
+      "citation": "SAMPLE, to verify: Miami-Dade County FY 2026-27 Adopted Budget and Multi-Year Capital Plan, Vol. 2, Library (page to confirm)",
+      "verified": false
+    },
+    {
+      "id": "half-cent-sales-tax",
+      "name": "Half-cent sales tax (county share)",
+      "short": "Half-cent sales tax",
+      "blurb": "A share of the state sales tax sent back to the county.",
+      "restriction": "The county's share of the half-cent sales tax goes to its two general funds.",
+      "citation": "SAMPLE, to verify: Miami-Dade County FY 2026-27 Adopted Budget and Multi-Year Capital Plan, Vol. 1, Revenue Summary; Fla. Stat. 218.60-218.67 (page to confirm)",
+      "verified": false
+    },
+    {
+      "id": "transit-surtax",
+      "name": "Transit surtax (half-penny)",
+      "short": "Transit surtax",
+      "blurb": "A half-cent sales surtax voters approved in 2002 for transportation.",
+      "restriction": "The transit surtax can only pay for transportation under the People's Transportation Plan.",
+      "citation": "SAMPLE, to verify: Miami-Dade County FY 2026-27 Adopted Budget and Multi-Year Capital Plan, Vol. 2, Transportation and Public Works; Fla. Stat. 212.055(1) (page to confirm)",
+      "verified": false
+    },
+    {
+      "id": "water-sewer-charges",
+      "name": "Water and sewer bills",
+      "short": "Water & sewer bills",
+      "blurb": "What customers pay for water and sewer service.",
+      "restriction": "Water bill revenue can only pay for the water and sewer system.",
+      "citation": "SAMPLE, to verify: Miami-Dade County FY 2026-27 Adopted Budget and Multi-Year Capital Plan, Vol. 3, Water and Sewer (page to confirm)",
+      "verified": false
+    },
+    {
+      "id": "waste-fees",
+      "name": "Garbage and trash fees",
+      "short": "Garbage fees",
+      "blurb": "Household collection fees and disposal fees.",
+      "restriction": "Garbage fees can only pay for trash collection and disposal.",
+      "citation": "SAMPLE, to verify: Miami-Dade County FY 2026-27 Adopted Budget and Multi-Year Capital Plan, Vol. 3, Solid Waste Management (page to confirm)",
+      "verified": false
+    },
+    {
+      "id": "airport-fees",
+      "name": "Airport fees and rents",
+      "short": "Airport fees",
+      "blurb": "Landing fees, terminal rents and concessions at MIA and the county's general aviation airports.",
+      "restriction": "Federal rules require airport revenue to stay at the airport.",
+      "citation": "SAMPLE, to verify: Miami-Dade County FY 2026-27 Adopted Budget and Multi-Year Capital Plan, Vol. 3, Aviation; 49 U.S.C. 47107(b) (page to confirm)",
+      "verified": false
+    },
+    {
+      "id": "seaport-fees",
+      "name": "Seaport fees",
+      "blurb": "Cruise passenger fees, cargo fees and rents at PortMiami.",
+      "restriction": "Seaport fees can only pay for PortMiami.",
+      "citation": "SAMPLE, to verify: Miami-Dade County FY 2026-27 Adopted Budget and Multi-Year Capital Plan, Vol. 3, Seaport (page to confirm)",
+      "verified": false
+    },
+    {
+      "id": "tourist-taxes",
+      "name": "Tourist and restaurant taxes",
+      "short": "Tourist taxes",
+      "blurb": "Hotel room taxes plus the food and beverage tax on some restaurant sales.",
+      "restriction": "Tourist and restaurant taxes can only go to uses state law lists, like culture, tourism and homeless services.",
+      "citation": "SAMPLE, to verify: Miami-Dade County FY 2026-27 Adopted Budget and Multi-Year Capital Plan, Vol. 1; Fla. Stat. 125.0104 and 212.0306 (page to confirm)",
+      "verified": false
+    }
+  ],
+  "funds": [
+    {
+      "id": "countywide-gf",
+      "name": "Countywide General Fund",
+      "blurb": "Pays for services the county provides to everyone, in cities and unincorporated areas alike.",
+      "restriction": "Departments with their own dedicated tax or fee, like water, the airport or the library, are not paid from the Countywide General Fund.",
+      "citation": "SAMPLE, to verify: Miami-Dade County FY 2026-27 Adopted Budget and Multi-Year Capital Plan, Vol. 1, Fund Structure (page to confirm)",
+      "verified": false
+    },
+    {
+      "id": "umsa-gf",
+      "name": "UMSA General Fund",
+      "short": "UMSA General Fund",
+      "blurb": "Pays for local services in the Unincorporated Municipal Service Area, the parts of the county outside any city.",
+      "restriction": "The UMSA General Fund only pays for local services in unincorporated areas, like police patrol, local parks and code enforcement.",
+      "citation": "SAMPLE, to verify: Miami-Dade County FY 2026-27 Adopted Budget and Multi-Year Capital Plan, Vol. 1, Fund Structure (page to confirm)",
+      "verified": false
+    },
+    {
+      "id": "fire-fund",
+      "name": "Fire Rescue District Fund",
+      "short": "Fire District Fund",
+      "blurb": "Holds the fire district tax.",
+      "restriction": "Fire district money can only go to Fire Rescue.",
+      "citation": "SAMPLE, to verify: Miami-Dade County FY 2026-27 Adopted Budget and Multi-Year Capital Plan, Vol. 1, Fund Structure (page to confirm)",
+      "verified": false
+    },
+    {
+      "id": "library-fund",
+      "name": "Library District Fund",
+      "short": "Library Fund",
+      "blurb": "Holds the library district tax.",
+      "restriction": "Library district money can only go to the library system.",
+      "citation": "SAMPLE, to verify: Miami-Dade County FY 2026-27 Adopted Budget and Multi-Year Capital Plan, Vol. 1, Fund Structure (page to confirm)",
+      "verified": false
+    },
+    {
+      "id": "ptp-fund",
+      "name": "People's Transportation Plan Fund",
+      "short": "Transit Surtax Fund",
+      "blurb": "Holds the transit surtax.",
+      "restriction": "Surtax money can only go to transit and transportation projects.",
+      "citation": "SAMPLE, to verify: Miami-Dade County FY 2026-27 Adopted Budget and Multi-Year Capital Plan, Vol. 1, Fund Structure (page to confirm)",
+      "verified": false
+    },
+    {
+      "id": "wasd-fund",
+      "name": "Water and Sewer Enterprise Fund",
+      "short": "Water & Sewer Fund",
+      "blurb": "Holds water and sewer revenue.",
+      "restriction": "The Water and Sewer fund can only pay for the water and sewer system.",
+      "citation": "SAMPLE, to verify: Miami-Dade County FY 2026-27 Adopted Budget and Multi-Year Capital Plan, Vol. 1, Fund Structure (page to confirm)",
+      "verified": false
+    },
+    {
+      "id": "solid-waste-fund",
+      "name": "Solid Waste Enterprise Fund",
+      "short": "Solid Waste Fund",
+      "blurb": "Holds garbage and disposal fees.",
+      "restriction": "The Solid Waste fund can only pay for trash collection and disposal.",
+      "citation": "SAMPLE, to verify: Miami-Dade County FY 2026-27 Adopted Budget and Multi-Year Capital Plan, Vol. 1, Fund Structure (page to confirm)",
+      "verified": false
+    },
+    {
+      "id": "aviation-fund",
+      "name": "Aviation Enterprise Fund",
+      "short": "Aviation Fund",
+      "blurb": "Holds airport revenue.",
+      "restriction": "Airport money has to stay at the airport under federal law.",
+      "citation": "SAMPLE, to verify: Miami-Dade County FY 2026-27 Adopted Budget and Multi-Year Capital Plan, Vol. 1, Fund Structure (page to confirm)",
+      "verified": false
+    },
+    {
+      "id": "seaport-fund",
+      "name": "Seaport Enterprise Fund",
+      "short": "Seaport Fund",
+      "blurb": "Holds PortMiami revenue.",
+      "restriction": "Seaport money can only be spent on PortMiami.",
+      "citation": "SAMPLE, to verify: Miami-Dade County FY 2026-27 Adopted Budget and Multi-Year Capital Plan, Vol. 1, Fund Structure (page to confirm)",
+      "verified": false
+    },
+    {
+      "id": "tourism-fund",
+      "name": "Tourist and Food and Beverage Tax Funds",
+      "short": "Tourist Tax Funds",
+      "blurb": "Holds hotel and restaurant tax revenue.",
+      "restriction": "Tourist and restaurant tax money can only go to culture, tourism, homeless services and the other uses state law allows.",
+      "citation": "SAMPLE, to verify: Miami-Dade County FY 2026-27 Adopted Budget and Multi-Year Capital Plan, Vol. 1, Fund Structure (page to confirm)",
+      "verified": false
+    }
+  ],
+  "departments": [
+    {
+      "id": "fire-rescue",
+      "name": "Fire Rescue",
+      "blurb": "Fire, emergency medical, air rescue and ocean rescue.",
+      "citation": "SAMPLE, to verify: Miami-Dade County FY 2026-27 Adopted Budget and Multi-Year Capital Plan, Vol. 2 or 3, Fire Rescue department section (page to confirm)",
+      "verified": false
+    },
+    {
+      "id": "sheriff",
+      "name": "Sheriff's Office",
+      "short": "Sheriff",
+      "blurb": "Policing, including patrol in unincorporated areas.",
+      "citation": "SAMPLE, to verify: Miami-Dade County FY 2026-27 Adopted Budget and Multi-Year Capital Plan, Vol. 2 or 3, Sheriff's Office department section (page to confirm)",
+      "verified": false
+    },
+    {
+      "id": "corrections",
+      "name": "Corrections and Rehabilitation",
+      "short": "Corrections",
+      "blurb": "The county jails.",
+      "citation": "SAMPLE, to verify: Miami-Dade County FY 2026-27 Adopted Budget and Multi-Year Capital Plan, Vol. 2 or 3, Corrections and Rehabilitation department section (page to confirm)",
+      "verified": false
+    },
+    {
+      "id": "library",
+      "name": "Library",
+      "blurb": "The county library branches.",
+      "citation": "SAMPLE, to verify: Miami-Dade County FY 2026-27 Adopted Budget and Multi-Year Capital Plan, Vol. 2 or 3, Library department section (page to confirm)",
+      "verified": false
+    },
+    {
+      "id": "parks",
+      "name": "Parks, Recreation and Open Spaces",
+      "short": "Parks",
+      "blurb": "County parks, pools, camps and marinas.",
+      "citation": "SAMPLE, to verify: Miami-Dade County FY 2026-27 Adopted Budget and Multi-Year Capital Plan, Vol. 2 or 3, Parks, Recreation and Open Spaces department section (page to confirm)",
+      "verified": false
+    },
+    {
+      "id": "transportation",
+      "name": "Transportation and Public Works",
+      "short": "Transit, roads (DTPW)",
+      "blurb": "Buses, Metrorail, Metromover, roads and traffic signals.",
+      "citation": "SAMPLE, to verify: Miami-Dade County FY 2026-27 Adopted Budget and Multi-Year Capital Plan, Vol. 2 or 3, Transportation and Public Works department section (page to confirm)",
+      "verified": false
+    },
+    {
+      "id": "water-sewer",
+      "name": "Water and Sewer",
+      "blurb": "Drinking water and wastewater.",
+      "citation": "SAMPLE, to verify: Miami-Dade County FY 2026-27 Adopted Budget and Multi-Year Capital Plan, Vol. 2 or 3, Water and Sewer department section (page to confirm)",
+      "verified": false
+    },
+    {
+      "id": "solid-waste",
+      "name": "Solid Waste Management",
+      "blurb": "Garbage collection, recycling and disposal.",
+      "citation": "SAMPLE, to verify: Miami-Dade County FY 2026-27 Adopted Budget and Multi-Year Capital Plan, Vol. 2 or 3, Solid Waste Management department section (page to confirm)",
+      "verified": false
+    },
+    {
+      "id": "aviation",
+      "name": "Aviation",
+      "blurb": "Miami International Airport and general aviation airports.",
+      "citation": "SAMPLE, to verify: Miami-Dade County FY 2026-27 Adopted Budget and Multi-Year Capital Plan, Vol. 2 or 3, Aviation department section (page to confirm)",
+      "verified": false
+    },
+    {
+      "id": "seaport",
+      "name": "Seaport",
+      "blurb": "PortMiami.",
+      "citation": "SAMPLE, to verify: Miami-Dade County FY 2026-27 Adopted Budget and Multi-Year Capital Plan, Vol. 2 or 3, Seaport department section (page to confirm)",
+      "verified": false
+    },
+    {
+      "id": "cultural-affairs",
+      "name": "Cultural Affairs",
+      "short": "Cultural Affairs",
+      "blurb": "Arts grants, cultural centers and Art in Public Places.",
+      "citation": "SAMPLE, to verify: Miami-Dade County FY 2026-27 Adopted Budget and Multi-Year Capital Plan, Vol. 2 or 3, Cultural Affairs department section (page to confirm)",
+      "verified": false
+    },
+    {
+      "id": "community-services",
+      "name": "Community Action and Human Services",
+      "short": "Community Action",
+      "blurb": "Head Start, elderly services and domestic violence services.",
+      "citation": "SAMPLE, to verify: Miami-Dade County FY 2026-27 Adopted Budget and Multi-Year Capital Plan, Vol. 2 or 3, Community Action and Human Services department section (page to confirm)",
+      "verified": false
+    },
+    {
+      "id": "housing",
+      "name": "Housing and Community Development",
+      "short": "Housing",
+      "blurb": "Public housing and rental assistance.",
+      "citation": "SAMPLE, to verify: Miami-Dade County FY 2026-27 Adopted Budget and Multi-Year Capital Plan, Vol. 2 or 3, Housing and Community Development department section (page to confirm)",
+      "verified": false
+    },
+    {
+      "id": "juvenile-services",
+      "name": "Juvenile Services",
+      "blurb": "Youth booking, assessment and diversion.",
+      "citation": "SAMPLE, to verify: Miami-Dade County FY 2026-27 Adopted Budget and Multi-Year Capital Plan, Vol. 2 or 3, Juvenile Services department section (page to confirm)",
+      "verified": false
+    },
+    {
+      "id": "animal-services",
+      "name": "Animal Services",
+      "blurb": "The county animal shelter and pet services.",
+      "citation": "SAMPLE, to verify: Miami-Dade County FY 2026-27 Adopted Budget and Multi-Year Capital Plan, Vol. 2 or 3, Animal Services department section (page to confirm)",
+      "verified": false
+    },
+    {
+      "id": "regulatory",
+      "name": "Regulatory and Economic Resources",
+      "short": "Permits, code (RER)",
+      "blurb": "Permits, code enforcement and planning.",
+      "citation": "SAMPLE, to verify: Miami-Dade County FY 2026-27 Adopted Budget and Multi-Year Capital Plan, Vol. 2 or 3, Regulatory and Economic Resources department section (page to confirm)",
+      "verified": false
+    },
+    {
+      "id": "emergency-management",
+      "name": "Emergency Management",
+      "short": "Emergency Mgmt.",
+      "blurb": "Storm preparation and the Emergency Operations Center.",
+      "citation": "SAMPLE, to verify: Miami-Dade County FY 2026-27 Adopted Budget and Multi-Year Capital Plan, Vol. 2 or 3, Emergency Management department section (page to confirm)",
+      "verified": false
+    },
+    {
+      "id": "elections",
+      "name": "Elections",
+      "blurb": "Voting, ballots and poll workers.",
+      "citation": "SAMPLE, to verify: Miami-Dade County FY 2026-27 Adopted Budget and Multi-Year Capital Plan, Vol. 2 or 3, Elections department section (page to confirm)",
+      "verified": false
+    },
+    {
+      "id": "homeless-trust",
+      "name": "Homeless Trust",
+      "blurb": "Shelter and services for people experiencing homelessness.",
+      "citation": "SAMPLE, to verify: Miami-Dade County FY 2026-27 Adopted Budget and Multi-Year Capital Plan, Vol. 2 or 3, Homeless Trust department section (page to confirm)",
+      "verified": false
+    },
+    {
+      "id": "jackson-health",
+      "name": "Jackson Health System",
+      "short": "Jackson Health",
+      "blurb": "The Public Health Trust, which runs Jackson Memorial and its clinics.",
+      "citation": "SAMPLE, to verify: Miami-Dade County FY 2026-27 Adopted Budget and Multi-Year Capital Plan, Vol. 2 or 3, Jackson Health System department section (page to confirm)",
+      "verified": false
+    }
+  ],
+  "edges": [
+    {
+      "type": "source-fund",
+      "from": "countywide-property-tax",
+      "to": "countywide-gf",
+      "amount": 2150,
+      "citation": "SAMPLE, to verify: Miami-Dade County FY 2026-27 Adopted Budget and Multi-Year Capital Plan, Vol. 1, Revenue by Fund (page to confirm)",
+      "verified": false
+    },
+    {
+      "type": "source-fund",
+      "from": "fire-district-tax",
+      "to": "fire-fund",
+      "amount": 680,
+      "citation": "SAMPLE, to verify: Miami-Dade County FY 2026-27 Adopted Budget and Multi-Year Capital Plan, Vol. 1, Revenue by Fund (page to confirm)",
+      "verified": false
+    },
+    {
+      "type": "source-fund",
+      "from": "library-district-tax",
+      "to": "library-fund",
+      "amount": 110,
+      "citation": "SAMPLE, to verify: Miami-Dade County FY 2026-27 Adopted Budget and Multi-Year Capital Plan, Vol. 1, Revenue by Fund (page to confirm)",
+      "verified": false
+    },
+    {
+      "type": "source-fund",
+      "from": "half-cent-sales-tax",
+      "to": "countywide-gf",
+      "amount": 120,
+      "citation": "SAMPLE, to verify: Miami-Dade County FY 2026-27 Adopted Budget and Multi-Year Capital Plan, Vol. 1, Revenue by Fund (page to confirm)",
+      "verified": false
+    },
+    {
+      "type": "source-fund",
+      "from": "half-cent-sales-tax",
+      "to": "umsa-gf",
+      "amount": 140,
+      "citation": "SAMPLE, to verify: Miami-Dade County FY 2026-27 Adopted Budget and Multi-Year Capital Plan, Vol. 1, Revenue by Fund (page to confirm)",
+      "verified": false
+    },
+    {
+      "type": "source-fund",
+      "from": "transit-surtax",
+      "to": "ptp-fund",
+      "amount": 420,
+      "citation": "SAMPLE, to verify: Miami-Dade County FY 2026-27 Adopted Budget and Multi-Year Capital Plan, Vol. 1, Revenue by Fund (page to confirm)",
+      "verified": false
+    },
+    {
+      "type": "source-fund",
+      "from": "water-sewer-charges",
+      "to": "wasd-fund",
+      "amount": 1000,
+      "citation": "SAMPLE, to verify: Miami-Dade County FY 2026-27 Adopted Budget and Multi-Year Capital Plan, Vol. 1, Revenue by Fund (page to confirm)",
+      "verified": false
+    },
+    {
+      "type": "source-fund",
+      "from": "waste-fees",
+      "to": "solid-waste-fund",
+      "amount": 400,
+      "citation": "SAMPLE, to verify: Miami-Dade County FY 2026-27 Adopted Budget and Multi-Year Capital Plan, Vol. 1, Revenue by Fund (page to confirm)",
+      "verified": false
+    },
+    {
+      "type": "source-fund",
+      "from": "airport-fees",
+      "to": "aviation-fund",
+      "amount": 1300,
+      "citation": "SAMPLE, to verify: Miami-Dade County FY 2026-27 Adopted Budget and Multi-Year Capital Plan, Vol. 1, Revenue by Fund (page to confirm)",
+      "verified": false
+    },
+    {
+      "type": "source-fund",
+      "from": "seaport-fees",
+      "to": "seaport-fund",
+      "amount": 280,
+      "citation": "SAMPLE, to verify: Miami-Dade County FY 2026-27 Adopted Budget and Multi-Year Capital Plan, Vol. 1, Revenue by Fund (page to confirm)",
+      "verified": false
+    },
+    {
+      "type": "source-fund",
+      "from": "tourist-taxes",
+      "to": "tourism-fund",
+      "amount": 330,
+      "citation": "SAMPLE, to verify: Miami-Dade County FY 2026-27 Adopted Budget and Multi-Year Capital Plan, Vol. 1, Revenue by Fund (page to confirm)",
+      "verified": false
+    },
+    {
+      "type": "fund-department",
+      "from": "countywide-gf",
+      "to": "sheriff",
+      "amount": 520,
+      "citation": "SAMPLE, to verify: Miami-Dade County FY 2026-27 Adopted Budget and Multi-Year Capital Plan, Vol. 1, Expenditures by Fund and Department (page to confirm)",
+      "verified": false
+    },
+    {
+      "type": "fund-department",
+      "from": "countywide-gf",
+      "to": "corrections",
+      "amount": 450,
+      "citation": "SAMPLE, to verify: Miami-Dade County FY 2026-27 Adopted Budget and Multi-Year Capital Plan, Vol. 1, Expenditures by Fund and Department (page to confirm)",
+      "verified": false
+    },
+    {
+      "type": "fund-department",
+      "from": "countywide-gf",
+      "to": "jackson-health",
+      "amount": 340,
+      "citation": "SAMPLE, to verify: Miami-Dade County FY 2026-27 Adopted Budget and Multi-Year Capital Plan, Vol. 1, Expenditures by Fund and Department (page to confirm)",
+      "verified": false
+    },
+    {
+      "type": "fund-department",
+      "from": "countywide-gf",
+      "to": "transportation",
+      "amount": 250,
+      "citation": "SAMPLE, to verify: Miami-Dade County FY 2026-27 Adopted Budget and Multi-Year Capital Plan, Vol. 1, Expenditures by Fund and Department (page to confirm)",
+      "verified": false
+    },
+    {
+      "type": "fund-department",
+      "from": "countywide-gf",
+      "to": "community-services",
+      "amount": 95,
+      "citation": "SAMPLE, to verify: Miami-Dade County FY 2026-27 Adopted Budget and Multi-Year Capital Plan, Vol. 1, Expenditures by Fund and Department (page to confirm)",
+      "verified": false
+    },
+    {
+      "type": "fund-department",
+      "from": "countywide-gf",
+      "to": "parks",
+      "amount": 90,
+      "citation": "SAMPLE, to verify: Miami-Dade County FY 2026-27 Adopted Budget and Multi-Year Capital Plan, Vol. 1, Expenditures by Fund and Department (page to confirm)",
+      "verified": false
+    },
+    {
+      "type": "fund-department",
+      "from": "countywide-gf",
+      "to": "elections",
+      "amount": 45,
+      "citation": "SAMPLE, to verify: Miami-Dade County FY 2026-27 Adopted Budget and Multi-Year Capital Plan, Vol. 1, Expenditures by Fund and Department (page to confirm)",
+      "verified": false
+    },
+    {
+      "type": "fund-department",
+      "from": "countywide-gf",
+      "to": "fire-rescue",
+      "amount": 40,
+      "citation": "SAMPLE, to verify: Miami-Dade County FY 2026-27 Adopted Budget and Multi-Year Capital Plan, Vol. 1, Expenditures by Fund and Department (page to confirm)",
+      "verified": false
+    },
+    {
+      "type": "fund-department",
+      "from": "countywide-gf",
+      "to": "juvenile-services",
+      "amount": 40,
+      "citation": "SAMPLE, to verify: Miami-Dade County FY 2026-27 Adopted Budget and Multi-Year Capital Plan, Vol. 1, Expenditures by Fund and Department (page to confirm)",
+      "verified": false
+    },
+    {
+      "type": "fund-department",
+      "from": "countywide-gf",
+      "to": "housing",
+      "amount": 30,
+      "citation": "SAMPLE, to verify: Miami-Dade County FY 2026-27 Adopted Budget and Multi-Year Capital Plan, Vol. 1, Expenditures by Fund and Department (page to confirm)",
+      "verified": false
+    },
+    {
+      "type": "fund-department",
+      "from": "countywide-gf",
+      "to": "cultural-affairs",
+      "amount": 25,
+      "citation": "SAMPLE, to verify: Miami-Dade County FY 2026-27 Adopted Budget and Multi-Year Capital Plan, Vol. 1, Expenditures by Fund and Department (page to confirm)",
+      "verified": false
+    },
+    {
+      "type": "fund-department",
+      "from": "countywide-gf",
+      "to": "regulatory",
+      "amount": 20,
+      "citation": "SAMPLE, to verify: Miami-Dade County FY 2026-27 Adopted Budget and Multi-Year Capital Plan, Vol. 1, Expenditures by Fund and Department (page to confirm)",
+      "verified": false
+    },
+    {
+      "type": "fund-department",
+      "from": "countywide-gf",
+      "to": "animal-services",
+      "amount": 15,
+      "citation": "SAMPLE, to verify: Miami-Dade County FY 2026-27 Adopted Budget and Multi-Year Capital Plan, Vol. 1, Expenditures by Fund and Department (page to confirm)",
+      "verified": false
+    },
+    {
+      "type": "fund-department",
+      "from": "countywide-gf",
+      "to": "emergency-management",
+      "amount": 10,
+      "citation": "SAMPLE, to verify: Miami-Dade County FY 2026-27 Adopted Budget and Multi-Year Capital Plan, Vol. 1, Expenditures by Fund and Department (page to confirm)",
+      "verified": false
+    },
+    {
+      "type": "fund-department",
+      "from": "countywide-gf",
+      "to": "homeless-trust",
+      "amount": 10,
+      "citation": "SAMPLE, to verify: Miami-Dade County FY 2026-27 Adopted Budget and Multi-Year Capital Plan, Vol. 1, Expenditures by Fund and Department (page to confirm)",
+      "verified": false
+    },
+    {
+      "type": "fund-department",
+      "from": "umsa-gf",
+      "to": "sheriff",
+      "amount": 380,
+      "citation": "SAMPLE, to verify: Miami-Dade County FY 2026-27 Adopted Budget and Multi-Year Capital Plan, Vol. 1, Expenditures by Fund and Department (page to confirm)",
+      "verified": false
+    },
+    {
+      "type": "fund-department",
+      "from": "umsa-gf",
+      "to": "parks",
+      "amount": 60,
+      "citation": "SAMPLE, to verify: Miami-Dade County FY 2026-27 Adopted Budget and Multi-Year Capital Plan, Vol. 1, Expenditures by Fund and Department (page to confirm)",
+      "verified": false
+    },
+    {
+      "type": "fund-department",
+      "from": "umsa-gf",
+      "to": "transportation",
+      "amount": 30,
+      "citation": "SAMPLE, to verify: Miami-Dade County FY 2026-27 Adopted Budget and Multi-Year Capital Plan, Vol. 1, Expenditures by Fund and Department (page to confirm)",
+      "verified": false
+    },
+    {
+      "type": "fund-department",
+      "from": "umsa-gf",
+      "to": "regulatory",
+      "amount": 25,
+      "citation": "SAMPLE, to verify: Miami-Dade County FY 2026-27 Adopted Budget and Multi-Year Capital Plan, Vol. 1, Expenditures by Fund and Department (page to confirm)",
+      "verified": false
+    },
+    {
+      "type": "fund-department",
+      "from": "umsa-gf",
+      "to": "animal-services",
+      "amount": 20,
+      "citation": "SAMPLE, to verify: Miami-Dade County FY 2026-27 Adopted Budget and Multi-Year Capital Plan, Vol. 1, Expenditures by Fund and Department (page to confirm)",
+      "verified": false
+    },
+    {
+      "type": "fund-department",
+      "from": "fire-fund",
+      "to": "fire-rescue",
+      "amount": 680,
+      "citation": "SAMPLE, to verify: Miami-Dade County FY 2026-27 Adopted Budget and Multi-Year Capital Plan, Vol. 1, Expenditures by Fund and Department (page to confirm)",
+      "verified": false
+    },
+    {
+      "type": "fund-department",
+      "from": "library-fund",
+      "to": "library",
+      "amount": 110,
+      "citation": "SAMPLE, to verify: Miami-Dade County FY 2026-27 Adopted Budget and Multi-Year Capital Plan, Vol. 1, Expenditures by Fund and Department (page to confirm)",
+      "verified": false
+    },
+    {
+      "type": "fund-department",
+      "from": "ptp-fund",
+      "to": "transportation",
+      "amount": 420,
+      "citation": "SAMPLE, to verify: Miami-Dade County FY 2026-27 Adopted Budget and Multi-Year Capital Plan, Vol. 1, Expenditures by Fund and Department (page to confirm)",
+      "verified": false
+    },
+    {
+      "type": "fund-department",
+      "from": "wasd-fund",
+      "to": "water-sewer",
+      "amount": 1000,
+      "citation": "SAMPLE, to verify: Miami-Dade County FY 2026-27 Adopted Budget and Multi-Year Capital Plan, Vol. 1, Expenditures by Fund and Department (page to confirm)",
+      "verified": false
+    },
+    {
+      "type": "fund-department",
+      "from": "solid-waste-fund",
+      "to": "solid-waste",
+      "amount": 400,
+      "citation": "SAMPLE, to verify: Miami-Dade County FY 2026-27 Adopted Budget and Multi-Year Capital Plan, Vol. 1, Expenditures by Fund and Department (page to confirm)",
+      "verified": false
+    },
+    {
+      "type": "fund-department",
+      "from": "aviation-fund",
+      "to": "aviation",
+      "amount": 1300,
+      "citation": "SAMPLE, to verify: Miami-Dade County FY 2026-27 Adopted Budget and Multi-Year Capital Plan, Vol. 1, Expenditures by Fund and Department (page to confirm)",
+      "verified": false
+    },
+    {
+      "type": "fund-department",
+      "from": "seaport-fund",
+      "to": "seaport",
+      "amount": 280,
+      "citation": "SAMPLE, to verify: Miami-Dade County FY 2026-27 Adopted Budget and Multi-Year Capital Plan, Vol. 1, Expenditures by Fund and Department (page to confirm)",
+      "verified": false
+    },
+    {
+      "type": "fund-department",
+      "from": "tourism-fund",
+      "to": "cultural-affairs",
+      "amount": 60,
+      "citation": "SAMPLE, to verify: Miami-Dade County FY 2026-27 Adopted Budget and Multi-Year Capital Plan, Vol. 1, Expenditures by Fund and Department (page to confirm)",
+      "verified": false
+    },
+    {
+      "type": "fund-department",
+      "from": "tourism-fund",
+      "to": "homeless-trust",
+      "amount": 50,
+      "citation": "SAMPLE, to verify: Miami-Dade County FY 2026-27 Adopted Budget and Multi-Year Capital Plan, Vol. 1, Expenditures by Fund and Department (page to confirm)",
+      "verified": false
+    },
+    {
+      "type": "fund-department",
+      "from": "tourism-fund",
+      "to": "community-services",
+      "amount": 10,
+      "citation": "SAMPLE, to verify: Miami-Dade County FY 2026-27 Adopted Budget and Multi-Year Capital Plan, Vol. 1, Expenditures by Fund and Department (page to confirm)",
+      "verified": false
+    }
+  ],
+  "destinations": [
+    {
+      "id": "fire-rescue-1",
+      "label": "a new fire engine for a station in unincorporated Kendall",
+      "department": "fire-rescue",
+      "citation": "SAMPLE, to verify: Miami-Dade County FY 2026-27 Adopted Budget and Multi-Year Capital Plan, Fire Rescue section (page to confirm)",
+      "verified": false
+    },
+    {
+      "id": "fire-rescue-2",
+      "label": "a lifeguard at a county beach",
+      "department": "fire-rescue",
+      "citation": "SAMPLE, to verify: Miami-Dade County FY 2026-27 Adopted Budget and Multi-Year Capital Plan, Fire Rescue section (page to confirm)",
+      "verified": false
+    },
+    {
+      "id": "fire-rescue-3",
+      "label": "an air rescue helicopter crew",
+      "department": "fire-rescue",
+      "citation": "SAMPLE, to verify: Miami-Dade County FY 2026-27 Adopted Budget and Multi-Year Capital Plan, Fire Rescue section (page to confirm)",
+      "verified": false
+    },
+    {
+      "id": "sheriff-1",
+      "label": "a deputy patrolling an unincorporated neighborhood",
+      "department": "sheriff",
+      "citation": "SAMPLE, to verify: Miami-Dade County FY 2026-27 Adopted Budget and Multi-Year Capital Plan, Sheriff's Office section (page to confirm)",
+      "verified": false
+    },
+    {
+      "id": "sheriff-2",
+      "label": "a crime scene investigator",
+      "department": "sheriff",
+      "citation": "SAMPLE, to verify: Miami-Dade County FY 2026-27 Adopted Budget and Multi-Year Capital Plan, Sheriff's Office section (page to confirm)",
+      "verified": false
+    },
+    {
+      "id": "corrections-1",
+      "label": "meals at a county jail",
+      "department": "corrections",
+      "citation": "SAMPLE, to verify: Miami-Dade County FY 2026-27 Adopted Budget and Multi-Year Capital Plan, Corrections and Rehabilitation section (page to confirm)",
+      "verified": false
+    },
+    {
+      "id": "corrections-2",
+      "label": "a GED class inside a county jail",
+      "department": "corrections",
+      "citation": "SAMPLE, to verify: Miami-Dade County FY 2026-27 Adopted Budget and Multi-Year Capital Plan, Corrections and Rehabilitation section (page to confirm)",
+      "verified": false
+    },
+    {
+      "id": "library-1",
+      "label": "a new children's book at a county library branch",
+      "department": "library",
+      "citation": "SAMPLE, to verify: Miami-Dade County FY 2026-27 Adopted Budget and Multi-Year Capital Plan, Library section (page to confirm)",
+      "verified": false
+    },
+    {
+      "id": "library-2",
+      "label": "a library branch staying open on Sunday",
+      "department": "library",
+      "citation": "SAMPLE, to verify: Miami-Dade County FY 2026-27 Adopted Budget and Multi-Year Capital Plan, Library section (page to confirm)",
+      "verified": false
+    },
+    {
+      "id": "parks-1",
+      "label": "a lifeguard at a county park pool",
+      "department": "parks",
+      "citation": "SAMPLE, to verify: Miami-Dade County FY 2026-27 Adopted Budget and Multi-Year Capital Plan, Parks, Recreation and Open Spaces section (page to confirm)",
+      "verified": false
+    },
+    {
+      "id": "parks-2",
+      "label": "mowing a soccer field at a county park",
+      "department": "parks",
+      "citation": "SAMPLE, to verify: Miami-Dade County FY 2026-27 Adopted Budget and Multi-Year Capital Plan, Parks, Recreation and Open Spaces section (page to confirm)",
+      "verified": false
+    },
+    {
+      "id": "parks-3",
+      "label": "a summer camp counselor at a county park",
+      "department": "parks",
+      "citation": "SAMPLE, to verify: Miami-Dade County FY 2026-27 Adopted Budget and Multi-Year Capital Plan, Parks, Recreation and Open Spaces section (page to confirm)",
+      "verified": false
+    },
+    {
+      "id": "transportation-1",
+      "label": "a new county bus",
+      "department": "transportation",
+      "citation": "SAMPLE, to verify: Miami-Dade County FY 2026-27 Adopted Budget and Multi-Year Capital Plan, Transportation and Public Works section (page to confirm)",
+      "verified": false
+    },
+    {
+      "id": "transportation-2",
+      "label": "repairs to a Metrorail car",
+      "department": "transportation",
+      "citation": "SAMPLE, to verify: Miami-Dade County FY 2026-27 Adopted Budget and Multi-Year Capital Plan, Transportation and Public Works section (page to confirm)",
+      "verified": false
+    },
+    {
+      "id": "transportation-3",
+      "label": "a new traffic signal on a county road",
+      "department": "transportation",
+      "citation": "SAMPLE, to verify: Miami-Dade County FY 2026-27 Adopted Budget and Multi-Year Capital Plan, Transportation and Public Works section (page to confirm)",
+      "verified": false
+    },
+    {
+      "id": "water-sewer-1",
+      "label": "a replacement water main",
+      "department": "water-sewer",
+      "citation": "SAMPLE, to verify: Miami-Dade County FY 2026-27 Adopted Budget and Multi-Year Capital Plan, Water and Sewer section (page to confirm)",
+      "verified": false
+    },
+    {
+      "id": "water-sewer-2",
+      "label": "an upgrade to a sewer pump station",
+      "department": "water-sewer",
+      "citation": "SAMPLE, to verify: Miami-Dade County FY 2026-27 Adopted Budget and Multi-Year Capital Plan, Water and Sewer section (page to confirm)",
+      "verified": false
+    },
+    {
+      "id": "solid-waste-1",
+      "label": "a garbage truck route",
+      "department": "solid-waste",
+      "citation": "SAMPLE, to verify: Miami-Dade County FY 2026-27 Adopted Budget and Multi-Year Capital Plan, Solid Waste Management section (page to confirm)",
+      "verified": false
+    },
+    {
+      "id": "solid-waste-2",
+      "label": "longer hours at a trash and recycling center",
+      "department": "solid-waste",
+      "citation": "SAMPLE, to verify: Miami-Dade County FY 2026-27 Adopted Budget and Multi-Year Capital Plan, Solid Waste Management section (page to confirm)",
+      "verified": false
+    },
+    {
+      "id": "aviation-1",
+      "label": "a new jet bridge at Miami International Airport",
+      "department": "aviation",
+      "citation": "SAMPLE, to verify: Miami-Dade County FY 2026-27 Adopted Budget and Multi-Year Capital Plan, Aviation section (page to confirm)",
+      "verified": false
+    },
+    {
+      "id": "aviation-2",
+      "label": "a terminal restroom renovation at MIA",
+      "department": "aviation",
+      "citation": "SAMPLE, to verify: Miami-Dade County FY 2026-27 Adopted Budget and Multi-Year Capital Plan, Aviation section (page to confirm)",
+      "verified": false
+    },
+    {
+      "id": "seaport-1",
+      "label": "a new cruise ship berth at PortMiami",
+      "department": "seaport",
+      "citation": "SAMPLE, to verify: Miami-Dade County FY 2026-27 Adopted Budget and Multi-Year Capital Plan, Seaport section (page to confirm)",
+      "verified": false
+    },
+    {
+      "id": "seaport-2",
+      "label": "a cargo crane at PortMiami",
+      "department": "seaport",
+      "citation": "SAMPLE, to verify: Miami-Dade County FY 2026-27 Adopted Budget and Multi-Year Capital Plan, Seaport section (page to confirm)",
+      "verified": false
+    },
+    {
+      "id": "cultural-affairs-1",
+      "label": "a grant to a local theater group",
+      "department": "cultural-affairs",
+      "citation": "SAMPLE, to verify: Miami-Dade County FY 2026-27 Adopted Budget and Multi-Year Capital Plan, Cultural Affairs section (page to confirm)",
+      "verified": false
+    },
+    {
+      "id": "cultural-affairs-2",
+      "label": "a new sculpture through Art in Public Places",
+      "department": "cultural-affairs",
+      "citation": "SAMPLE, to verify: Miami-Dade County FY 2026-27 Adopted Budget and Multi-Year Capital Plan, Cultural Affairs section (page to confirm)",
+      "verified": false
+    },
+    {
+      "id": "community-services-1",
+      "label": "a Head Start preschool seat",
+      "department": "community-services",
+      "citation": "SAMPLE, to verify: Miami-Dade County FY 2026-27 Adopted Budget and Multi-Year Capital Plan, Community Action and Human Services section (page to confirm)",
+      "verified": false
+    },
+    {
+      "id": "community-services-2",
+      "label": "a hot meal delivered to a senior at home",
+      "department": "community-services",
+      "citation": "SAMPLE, to verify: Miami-Dade County FY 2026-27 Adopted Budget and Multi-Year Capital Plan, Community Action and Human Services section (page to confirm)",
+      "verified": false
+    },
+    {
+      "id": "community-services-3",
+      "label": "a bed at a domestic violence shelter",
+      "department": "community-services",
+      "citation": "SAMPLE, to verify: Miami-Dade County FY 2026-27 Adopted Budget and Multi-Year Capital Plan, Community Action and Human Services section (page to confirm)",
+      "verified": false
+    },
+    {
+      "id": "housing-1",
+      "label": "a roof repair at a county public housing building",
+      "department": "housing",
+      "citation": "SAMPLE, to verify: Miami-Dade County FY 2026-27 Adopted Budget and Multi-Year Capital Plan, Housing and Community Development section (page to confirm)",
+      "verified": false
+    },
+    {
+      "id": "housing-2",
+      "label": "rental assistance for a family",
+      "department": "housing",
+      "citation": "SAMPLE, to verify: Miami-Dade County FY 2026-27 Adopted Budget and Multi-Year Capital Plan, Housing and Community Development section (page to confirm)",
+      "verified": false
+    },
+    {
+      "id": "juvenile-services-1",
+      "label": "a youth counselor in a diversion program",
+      "department": "juvenile-services",
+      "citation": "SAMPLE, to verify: Miami-Dade County FY 2026-27 Adopted Budget and Multi-Year Capital Plan, Juvenile Services section (page to confirm)",
+      "verified": false
+    },
+    {
+      "id": "juvenile-services-2",
+      "label": "staffing the Juvenile Assessment Center overnight",
+      "department": "juvenile-services",
+      "citation": "SAMPLE, to verify: Miami-Dade County FY 2026-27 Adopted Budget and Multi-Year Capital Plan, Juvenile Services section (page to confirm)",
+      "verified": false
+    },
+    {
+      "id": "animal-services-1",
+      "label": "a dog adoption at the county animal shelter",
+      "department": "animal-services",
+      "citation": "SAMPLE, to verify: Miami-Dade County FY 2026-27 Adopted Budget and Multi-Year Capital Plan, Animal Services section (page to confirm)",
+      "verified": false
+    },
+    {
+      "id": "animal-services-2",
+      "label": "a low-cost spay or neuter for a pet",
+      "department": "animal-services",
+      "citation": "SAMPLE, to verify: Miami-Dade County FY 2026-27 Adopted Budget and Multi-Year Capital Plan, Animal Services section (page to confirm)",
+      "verified": false
+    },
+    {
+      "id": "regulatory-1",
+      "label": "a code enforcement inspection",
+      "department": "regulatory",
+      "citation": "SAMPLE, to verify: Miami-Dade County FY 2026-27 Adopted Budget and Multi-Year Capital Plan, Regulatory and Economic Resources section (page to confirm)",
+      "verified": false
+    },
+    {
+      "id": "regulatory-2",
+      "label": "a building permit review",
+      "department": "regulatory",
+      "citation": "SAMPLE, to verify: Miami-Dade County FY 2026-27 Adopted Budget and Multi-Year Capital Plan, Regulatory and Economic Resources section (page to confirm)",
+      "verified": false
+    },
+    {
+      "id": "emergency-management-1",
+      "label": "supplies for a hurricane evacuation center",
+      "department": "emergency-management",
+      "citation": "SAMPLE, to verify: Miami-Dade County FY 2026-27 Adopted Budget and Multi-Year Capital Plan, Emergency Management section (page to confirm)",
+      "verified": false
+    },
+    {
+      "id": "emergency-management-2",
+      "label": "running the Emergency Operations Center during a storm",
+      "department": "emergency-management",
+      "citation": "SAMPLE, to verify: Miami-Dade County FY 2026-27 Adopted Budget and Multi-Year Capital Plan, Emergency Management section (page to confirm)",
+      "verified": false
+    },
+    {
+      "id": "elections-1",
+      "label": "ballots for an early voting site",
+      "department": "elections",
+      "citation": "SAMPLE, to verify: Miami-Dade County FY 2026-27 Adopted Budget and Multi-Year Capital Plan, Elections section (page to confirm)",
+      "verified": false
+    },
+    {
+      "id": "elections-2",
+      "label": "training for poll workers",
+      "department": "elections",
+      "citation": "SAMPLE, to verify: Miami-Dade County FY 2026-27 Adopted Budget and Multi-Year Capital Plan, Elections section (page to confirm)",
+      "verified": false
+    },
+    {
+      "id": "homeless-trust-1",
+      "label": "a night at an emergency homeless shelter",
+      "department": "homeless-trust",
+      "citation": "SAMPLE, to verify: Miami-Dade County FY 2026-27 Adopted Budget and Multi-Year Capital Plan, Homeless Trust section (page to confirm)",
+      "verified": false
+    },
+    {
+      "id": "homeless-trust-2",
+      "label": "an outreach worker helping someone off the street",
+      "department": "homeless-trust",
+      "citation": "SAMPLE, to verify: Miami-Dade County FY 2026-27 Adopted Budget and Multi-Year Capital Plan, Homeless Trust section (page to confirm)",
+      "verified": false
+    },
+    {
+      "id": "jackson-health-1",
+      "label": "a hospital bed at Jackson Memorial for an uninsured patient",
+      "department": "jackson-health",
+      "citation": "SAMPLE, to verify: Miami-Dade County FY 2026-27 Adopted Budget and Multi-Year Capital Plan, Jackson Health System section (page to confirm)",
+      "verified": false
+    },
+    {
+      "id": "jackson-health-2",
+      "label": "a nurse at a Jackson primary care clinic",
+      "department": "jackson-health",
+      "citation": "SAMPLE, to verify: Miami-Dade County FY 2026-27 Adopted Budget and Multi-Year Capital Plan, Jackson Health System section (page to confirm)",
+      "verified": false
+    }
+  ]
+}
