@@ -1,0 +1,38 @@
+/* Homepage card announcing the Games section. Shown by js/home-promo.js. */
+.game-promo {
+  position: fixed;
+  z-index: 60;
+  left: 12px; right: 12px; bottom: 12px;
+  display: flex; align-items: center; gap: 12px;
+  background: var(--paper-raised);
+  border: 1px solid var(--doc-line);
+  border-top: 4px solid var(--doc-navy);
+  border-radius: var(--radius);
+  box-shadow: 0 12px 32px rgba(20, 24, 32, 0.18);
+  padding: 12px 40px 12px 12px;
+  transform: translateY(calc(100% + 24px));
+  opacity: 0;
+  transition: transform .35s ease-out, opacity .35s ease-out;
+}
+.game-promo[hidden] { display: none; }
+.game-promo.is-open { transform: none; opacity: 1; }
+@media (min-width: 640px) {
+  .game-promo { left: auto; right: 20px; bottom: 20px; width: 360px; }
+}
+.game-promo-sunny { width: 64px; height: auto; flex: none; }
+.game-promo-copy { min-width: 0; }
+.game-promo-eyebrow {
+  font: 600 11px/16px var(--doc-sans);
+  letter-spacing: .1em; text-transform: uppercase;
+  color: var(--doc-dgold);
+}
+.game-promo-title { font: 600 19px/1.2 var(--doc-serif); color: var(--doc-navy); margin: 0 0 2px; }
+.game-promo-text { font-size: 14px; line-height: 1.4; color: var(--ink-600); margin: 0 0 8px; }
+.game-promo-close {
+  position: absolute; top: 4px; right: 4px;
+  width: 36px; height: 36px;
+  border: 0; background: none; border-radius: 50%;
+  font-size: 24px; line-height: 1; color: var(--doc-muted); cursor: pointer;
+}
+.game-promo-close:hover { background: var(--doc-cream); color: var(--doc-navy); }
+@media (prefers-reduced-motion: reduce) { .game-promo { transition: none; } }
