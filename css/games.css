@@ -228,3 +228,4 @@ a.game-card:hover { box-shadow: var(--shadow); color: inherit; }
   .ftd-seg.is-flowing .ftd-fill, .ftd-seg.is-blocked .ftd-valve, .ftd-seg.is-blocked .ftd-valve::after { transition: none; }
   .ftd-seg.is-flowing .ftd-coin { animation: none; }
 }
+.ftd-bar.is-other { background: repeating-linear-gradient(-45deg, var(--doc-muted) 0 3px, var(--doc-line) 3px 6px); }

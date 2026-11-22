@@ -8,7 +8,7 @@
 (function () {
   'use strict';
 
-  var DATA_URL = '/games/follow-the-dollar/data.json?v=20261122';
+  var DATA_URL = '/games/follow-the-dollar/data.json?v=20261122b';
   var GAME_URL = 'https://www.miamidadecommissionwatch.com/games/follow-the-dollar';
   var ROUNDS = 5;
   var MAX_BONUS = 30;
@@ -51,6 +51,7 @@
     return new Date(+p[0], +p[1] - 1, +p[2]).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
   }
   function money(millions) {
+    if (millions < 1) return '$' + (millions * 1000).toFixed(0) + ' thousand';
     if (millions >= 1000) return '$' + (millions / 1000).toFixed(millions % 1000 === 0 ? 0 : 2).replace(/0$/, '') + ' billion';
     return '$' + Math.round(millions).toLocaleString('en-US') + ' million';
   }
@@ -88,35 +89,49 @@
   function hasEdge(from, to) { return !!edgeSet[from + '>' + to]; }
   function check(route, dest) {
     if (!hasEdge(route.source, route.fund)) return { ok: false, at: 1, msg: byId[route.source].restriction };
-    if (!hasEdge(route.fund, route.department)) return { ok: false, at: 2, msg: byId[route.fund].restriction };
+    if (!hasEdge(route.fund, route.department)) {
+      return { ok: false, at: 2, msg: byId[route.fund].restriction.replace('{dept}', byId[route.department].name) };
+    }
     if (route.department !== dest.department) {
       return { ok: false, at: 3, msg: byId[route.department].name + ' does not handle ' + dest.label + '.' };
     }
+    // Some destinations are paid for by one particular fund even though the
+    // department gets money from several (e.g. garbage routes run on fees).
+    if (dest.onlyFunds && dest.onlyFunds.indexOf(route.fund) < 0) return { ok: false, at: 2, msg: dest.fundNote };
     return { ok: true };
   }
   function legalRoute(dest) {
-    var fe = data.edges.filter(function (e) { return e.type === 'fund-department' && e.to === dest.department; })
-      .sort(function (a, b) { return b.amount - a.amount; })[0];
+    var fe = data.edges.filter(function (e) {
+      return e.type === 'fund-department' && e.to === dest.department && (!dest.onlyFunds || dest.onlyFunds.indexOf(e.from) >= 0);
+    }).sort(function (a, b) { return b.amount - a.amount; })[0];
     var se = data.edges.filter(function (e) { return e.type === 'source-fund' && e.to === fe.from; })
       .sort(function (a, b) { return b.amount - a.amount; })[0];
     return { source: se.from, fund: fe.from, department: dest.department };
   }
 
   // How each source's money ends up split across departments, assuming the
-  // source is spent in the same mix as everything its fund spends.
+  // source pays for the same share of everything its fund spends. Whatever
+  // the fund spends outside the departments in this game (debt service,
+  // reserves, other departments) shows as one "other uses" row.
+  var OTHER = '__other';
   function sourceSplit(sourceId) {
     var out = {}, total = 0;
     data.edges.forEach(function (sf) {
       if (sf.type !== 'source-fund' || sf.from !== sourceId) return;
       total += sf.amount;
+      var fund = byId[sf.to];
       var outs = data.edges.filter(function (e) { return e.type === 'fund-department' && e.from === sf.to; });
-      var fundTotal = outs.reduce(function (s, e) { return s + e.amount; }, 0) || 1;
+      var spent = outs.reduce(function (s, e) { return s + e.amount; }, 0);
+      var fundTotal = Math.max(fund.total || 0, spent) || 1;
       outs.forEach(function (fd) { out[fd.to] = (out[fd.to] || 0) + sf.amount * fd.amount / fundTotal; });
+      var rest = sf.amount * (fundTotal - spent) / fundTotal;
+      if (rest > 0.05) out[OTHER] = (out[OTHER] || 0) + rest;
     });
     var rows = Object.keys(out).map(function (d) { return { id: d, amount: out[d] }; })
-      .sort(function (a, b) { return b.amount - a.amount; });
+      .sort(function (a, b) { return (a.id === OTHER) - (b.id === OTHER) || b.amount - a.amount; });
     return { total: total, rows: rows };
   }
+  function splitLabel(id) { return id === OTHER ? 'Other uses (debt, reserves, other departments)' : byId[id].name; }
 
   // ---------- screens ----------
   function sunny(cls) {
@@ -132,7 +147,7 @@
 
   function showIntro() {
     var key = todayKey();
-    var saved = store('ftd-daily-' + key);
+    var saved = store('ftd2-daily-' + key);
     root.innerHTML = '';
     root.appendChild(h('div', { class: 'ftd-card ftd-intro' }, [
       sunny('ftd-sunny-lg'),
@@ -355,7 +370,7 @@
 
   function endGame() {
     var record = { mode: state.mode, key: state.key, results: state.results };
-    if (state.mode === 'daily') store('ftd-daily-' + state.key, record);
+    if (state.mode === 'daily') store('ftd2-daily-' + state.key, record);
     showEnd(record);
   }
 
@@ -433,17 +448,17 @@
     var wrap = h('section', { class: 'ftd-card ftd-splits' }, [
       h('span', { class: 'eyebrow', text: 'How the budget splits each source' }),
       h('h2', { class: 'ftd-h', text: 'Where these revenue sources go, ' + data.fiscalYear }),
-      h('p', { class: 'ftd-small', text: 'Estimated split based on how much each fund gives each department. Sample figures while we verify them against the adopted budget.' })
+      h('p', { class: 'ftd-small', text: 'Estimated split: each source is counted as paying the same share of everything its fund spends. Department amounts are operating budgets from the ' + (data.basisLabel || data.fiscalYear + ' budget') + '.' })
     ]);
     used.forEach(function (sid) {
       var split = sourceSplit(sid);
-      var max = split.rows.length ? split.rows[0].amount : 1;
+      var max = split.rows.reduce(function (m, r) { return Math.max(m, r.amount); }, 0) || 1;
       var rows = split.rows.map(function (row) {
         var pct = Math.round(row.amount / split.total * 100);
         return h('li', { class: 'ftd-bar-row' }, [
-          h('span', { class: 'ftd-bar-label', text: byId[row.id].name }),
-          h('span', { class: 'ftd-bar-track' }, [h('span', { class: 'ftd-bar', style: 'width:' + Math.max(2, row.amount / max * 100).toFixed(1) + '%' })]),
-          h('span', { class: 'ftd-bar-val', text: money(row.amount) + (split.rows.length > 1 ? ' (' + pct + '%)' : '') })
+          h('span', { class: 'ftd-bar-label', text: splitLabel(row.id) }),
+          h('span', { class: 'ftd-bar-track' }, [h('span', { class: 'ftd-bar' + (row.id === OTHER ? ' is-other' : ''), style: 'width:' + Math.max(2, row.amount / max * 100).toFixed(1) + '%' })]),
+          h('span', { class: 'ftd-bar-val', text: money(row.amount) + (split.rows.length > 1 ? ' (' + (pct < 1 ? '<1' : pct) + '%)' : '') })
         ]);
       });
       wrap.appendChild(h('div', { class: 'ftd-split' }, [
@@ -469,8 +484,15 @@
     data = d;
     ['sources', 'funds', 'departments'].forEach(function (k) { d[k].forEach(function (x) { byId[x.id] = x; }); });
     d.edges.forEach(function (e) { edgeSet[e.from + '>' + e.to] = e; });
+    // The banner stays up while any item is unverified, and while the figures
+    // come from the proposed rather than the adopted budget.
     var banner = document.getElementById('ftd-beta');
-    if (banner) banner.hidden = !unverified(d);
+    if (banner) {
+      var pending = unverified(d);
+      banner.hidden = !pending && d.basis !== 'proposed';
+      var strong = banner.querySelector('strong'), span = banner.querySelector('span');
+      if (!pending && strong && span) { strong.textContent = 'Beta.'; span.textContent = d.bannerText || ''; }
+    }
     showIntro();
   }).catch(function () {
     root.innerHTML = '';
