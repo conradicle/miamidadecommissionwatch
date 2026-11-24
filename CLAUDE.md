@@ -74,6 +74,15 @@ school, or grade appears in public output.** Public bylines are first name + las
 ("Ana R."). This applies to rendered pages, generated files, commit metadata, and anything
 else a visitor or crawler can reach.
 
+**One exception: executive team profiles.** The `profiles` list in
+`assets/data/contributors.json` may publish a full name, role, school, grade, photo, bio and
+quote on the About page, for a person who agreed to it on the MDCW Executive Team Profile
+form. `consent` holds the date of that response, and the build fails without it. Never invent
+a date, never publish the form's career answer, and remove a profile promptly when the person
+or a parent asks. The exception covers those cards and that data file only: everyone in
+`teams`, all bylines, city pages and commit and PR text still follow the rule above. Any
+change to what profiles show has to match `privacy.html`.
+
 Nothing private goes in a publicly-readable Supabase table. Contact details and real names
 live in staff-readable tables only.
 
