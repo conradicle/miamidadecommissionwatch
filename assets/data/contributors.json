@@ -1,17 +1,83 @@
 {
-  "_comment": "The team roster rendered into about.html by scripts/build.mjs. Names are run through js/public-byline.js at render time, so a full name here still reaches the page as 'First L.'. Photo is optional: leave it null and the card falls back to an initials monogram. Appearing here is opt-in, so 'size' is the team's real headcount and 'members' is only those cleared to be named.",
+  "_comment": "The team shown on about.html, rendered by scripts/build.mjs. 'profiles' are the full carousel cards: full name, school and grade appear ONLY here, and only for someone who agreed to it on the MDCW Executive Team Profile form; 'consent' is the date of that form response and the build fails without it. To add a person, add an object to 'profiles' and a 600x600 photo in assets/img/team. 'teams' is everyone else: those names go through js/public-byline.js, so a full name still reaches the page as 'First L.'. A person belongs in one list, never both. Photo is optional in 'teams' (initials monogram). 'size' is a team's real headcount and 'members' is only those cleared to be named.",
+  "profiles": [
+    {
+      "name": "Julian Portes",
+      "role": "Outreach Specialist & Head of Whatnot",
+      "school": "Miami Beach Senior High School",
+      "grade": "12th",
+      "photo": "assets/img/team/julian-portes.webp",
+      "bio": "Julian is a senior at Miami Beach Senior High School with strong interests in international relations, economic policy, and mechanical engineering. Through his leadership in Miami Beach Commission Watch and involvement in Miami-Dade Commission Watch, he seeks to bridge his interests in political institutions and governance with meaningful civic engagement and youth participation.",
+      "quote": "I'm interested in county government because its decisions directly affect the communities we live in, yet many people don't realize how much influence local government has on their daily lives. I want to better understand how these decisions are made and help encourage more people, especially young people, to get involved.",
+      "consent": "2026-10-24"
+    },
+    {
+      "name": "Stefano Sanchez",
+      "role": "Youth Commission & School Board Outreach Specialist",
+      "school": "Miami Beach Senior High School",
+      "grade": "12th",
+      "photo": "assets/img/team/stefano-sanchez.webp",
+      "bio": "Stefano Sanchez is an IB senior at Miami Beach Senior High School with a strong interest in political science, public policy, law, journalism, and civic leadership. His work centers on public speaking, youth advocacy, community engagement, and helping students become more involved in the institutions that shape their lives.",
+      "quote": "Local government is absolutely essential to democracy and to the people. It is the closest institution that everyone can voice their opinion in.",
+      "consent": "2026-10-24"
+    },
+    {
+      "name": "Aliza Aksoy",
+      "role": "Head of Speaker Development",
+      "school": "School for Advanced Studies, Wolfson",
+      "grade": "11th",
+      "photo": "assets/img/team/aliza-aksoy.webp",
+      "bio": "Aliza Aksoy is a junior at School for Advanced Studies pursuing law and business. Born in the Netherlands and raised in Japan, she brings an international perspective to advocacy and public speaking through Model UN and Mock Trial. Aliza is driven to grow into an effective leader and successful future lawyer.",
+      "quote": "I am a huge advocate for speaking your mind and sharing your voice. I think there is nothing more valuable than making a change and advocating for what you believe in.",
+      "consent": "2026-10-25"
+    },
+    {
+      "name": "Veronika Vassilev",
+      "role": "Director of Social Media",
+      "school": "Miami Beach Senior High School",
+      "grade": "12th",
+      "photo": "assets/img/team/veronika-vassilev.webp",
+      "bio": "Veronika Vassilev is a senior at Miami Beach Senior High School who manages MDCW's social media team. She uses her marketing skills to make sure policy briefings, local government updates, and MDCW's own news reach a wide audience.",
+      "quote": "Government transparency means nothing if the people stay uninformed. A public document nobody can read is still a secret.",
+      "consent": "2026-10-25"
+    },
+    {
+      "name": "Murilo Ribeiro",
+      "role": "Head Policy Analyst",
+      "school": "iPrep Academy North",
+      "grade": "11th",
+      "photo": "assets/img/team/murilo-ribeiro.webp",
+      "bio": "Murilo is a junior at iPrep Academy North aspiring to become a data scientist. He is deeply interested in finance and technology and hopes to find a future in fintech, where machine learning is combined with financial data. As a secondary interest, he studies, reads, and writes about philosophy.",
+      "quote": "Behind every local headline is a web of policies passing beneath public radar. I'm committed to bridging that data gap so our neighborhood stays informed, empowered, and ahead of the curve.",
+      "consent": "2026-10-25"
+    },
+    {
+      "name": "Gabriela Raso",
+      "role": "Chief of Staff",
+      "school": "iPrep Academy",
+      "grade": "11th",
+      "photo": "assets/img/team/gabriela-raso.webp",
+      "bio": "Gabriela is a junior at iPrep Academy, focusing her studies on STEM, psychology, and health. As a part of MDCW, Gabriela hopes to become more knowledgeable about local policies and make an impact in her community.",
+      "quote": "I am interested in county government as it is something that affects me and my peers personally. Every bill and choice made in the government will affect us, and I believe as the new generation of students and citizens of Miami the youth should be involved and knowledgeable of county decisions.",
+      "consent": "2026-10-25"
+    },
+    {
+      "name": "Sebastian Gil",
+      "role": "Technical Advisor",
+      "school": "School for Advanced Studies, Wolfson",
+      "grade": "11th",
+      "photo": "assets/img/team/sebastian-gil.webp",
+      "bio": "Sebastian Gil is a junior at the School for Advanced Studies' Wolfson Campus, dual-enrolled at Miami Dade College, and serves as Technical Advisor for Miami-Dade Commission Watch. He works to increase the website's visibility and develops projects to improve the overall experience for visitors, drawing on his interests in technology and software development. Outside of academics and technical projects, he enjoys playing soccer.",
+      "quote": "I'm interested in county government because its decisions shape everyday life in the community I call home. Through my interest in technology, I want to help make those decisions easier to follow so more people can have a voice in Miami-Dade's future.",
+      "consent": "2026-10-26"
+    }
+  ],
   "teams": [
     {
       "id": "executive",
       "name": "Executive",
       "blurb": null,
       "members": [
-        {
-          "name": "Gabriela R.",
-          "role": "Chief of Staff",
-          "photo": "assets/img/team/gabriela-r.jpg",
-          "bio": null
-        },
         {
           "name": "Hope U.",
           "role": "Deputy Chief of Staff",
@@ -30,45 +96,6 @@
           "role": "Head of Outreach",
           "photo": "assets/img/team/sebastian-c.jpg?v=2",
           "bio": null
-        },
-        {
-          "name": "Julian P.",
-          "role": "Outreach",
-          "photo": "assets/img/team/julian-p.jpg",
-          "bio": null
-        },
-        {
-          "name": "Stefano S.",
-          "role": "Outreach",
-          "photo": "assets/img/team/stefano-s.jpg",
-          "bio": null
-        }
-      ],
-      "size": 3
-    },
-    {
-      "id": "social-media",
-      "name": "Social Media",
-      "blurb": null,
-      "members": [
-        {
-          "name": "Veronika V.",
-          "role": "Head of Social Media",
-          "photo": "assets/img/team/veronika-v.jpg",
-          "bio": null
-        }
-      ]
-    },
-    {
-      "id": "speaker-development",
-      "name": "Speaker Development",
-      "blurb": null,
-      "members": [
-        {
-          "name": "Aliza A.",
-          "role": "Head of Speaker Development",
-          "photo": null,
-          "bio": null
         }
       ]
     },
@@ -77,12 +104,6 @@
       "name": "Other",
       "blurb": null,
       "members": [
-        {
-          "name": "Sebastian G.",
-          "role": "Technical Advisor",
-          "photo": "assets/img/team/sebastian-g.jpg",
-          "bio": null
-        },
         {
           "name": "Haniel D.",
           "role": "Lead Recruitment Officer",

@@ -38,13 +38,13 @@ import { execFileSync } from 'node:child_process';
 
 import {
   ROOT, fetchMeetings, fetchEditorials, fetchCities, fetchDocuments, fetchSchedule, fetchPhotos,
-  loadPublicByline, loadContributors, loadDocumentView
+  loadPublicByline, loadContributors, loadTeamProfiles, loadDocumentView
 } from './lib/data.mjs';
 import { renderGallery, renderStrip, renderHeroMedia, renderHomePhoto, renderAttendPhotos } from './lib/photos.mjs';
 import { SITE_ORIGIN, formatDate, formatDateShort, isoDay, clip, escapeHtml } from './lib/fmt.mjs';
 import {
   assignMeetingPaths, meetingTouchedAt, renderMeetingList, renderItems,
-  renderEditorials, renderMunicipalities, renderTeam, makeCounter
+  renderEditorials, renderMunicipalities, renderTeam, renderTeamProfiles, makeCounter
 } from './lib/render.mjs';
 import { setHead, setJsonLd, upsertRegion, rewriteToRootRelative, splitShell } from './lib/page.mjs';
 import * as schema from './lib/schema.mjs';
@@ -482,6 +482,7 @@ async function main() {
   const today = todayInMiami();
   const publicByline = loadPublicByline();
   const teams = loadContributors();
+  const teamProfiles = loadTeamProfiles();
   const docView = loadDocumentView();
 
   // The tracker is an archive now. The freeze lives here and in the
@@ -650,7 +651,7 @@ async function main() {
   // --- about.html ----------------------------------------------------------
   {
     let html = read('about.html');
-    html = upsertRegion(html, 'team', renderTeam(teams, publicByline), '</main>');
+    html = upsertRegion(html, 'team', renderTeamProfiles(teamProfiles) + renderTeam(teams, publicByline), '</main>');
     html = setJsonLd(html, 'jsonld', [schema.organization(), schema.website()]);
     write('about.html', html);
   }

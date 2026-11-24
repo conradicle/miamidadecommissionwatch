@@ -8,7 +8,7 @@
 // cannot get is cloaking, and borrowing the service role here would make that
 // easy to do by accident.
 
-import { readFileSync } from 'node:fs';
+import { existsSync, readFileSync } from 'node:fs';
 import { fileURLToPath } from 'node:url';
 import { dirname, join } from 'node:path';
 
@@ -245,6 +245,25 @@ export function loadDocumentView() {
 // year, and every change wants a human look before it is public. Git already
 // gives that review, the history and the rollback, so a table plus an admin
 // screen plus an upload path would be machinery bought for nothing.
+// Full carousel profiles. These are the one place a student's full name, school
+// and grade are published, so each needs the date that student agreed to it.
+export function loadTeamProfiles() {
+  const raw = JSON.parse(readFileSync(join(ROOT, 'assets', 'data', 'contributors.json'), 'utf8'));
+  const profiles = Array.isArray(raw.profiles) ? raw.profiles : [];
+  for (const person of profiles) {
+    for (const field of ['name', 'role', 'school', 'grade', 'photo', 'bio', 'quote']) {
+      if (!person[field]) throw new Error(`contributors.json: profile ${person.name || '(unnamed)'} is missing ${field}`);
+    }
+    if (!/^\d{4}-\d{2}-\d{2}$/.test(person.consent || '')) {
+      throw new Error(`contributors.json: profile ${person.name} has no consent date (YYYY-MM-DD)`);
+    }
+    if (!existsSync(join(ROOT, person.photo.split('?')[0]))) {
+      throw new Error(`contributors.json: profile ${person.name} points at a missing photo, ${person.photo}`);
+    }
+  }
+  return profiles;
+}
+
 export function loadContributors() {
   const raw = JSON.parse(readFileSync(join(ROOT, 'assets', 'data', 'contributors.json'), 'utf8'));
   const teams = Array.isArray(raw.teams) ? raw.teams : [];
