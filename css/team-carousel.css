@@ -1,0 +1,38 @@
+/* Executive team carousel on about.html. Palette from style.css. */
+.exec-carousel { margin: 24px 0 40px; }
+.exec-bar { display: flex; align-items: center; justify-content: space-between; gap: 16px; margin-bottom: 14px; }
+.exec-bar[hidden] { display: none; }
+.exec-status { margin: 0; font: 500 14px/1.5 var(--doc-sans); color: var(--doc-muted); }
+.exec-arrows { display: flex; gap: 8px; }
+.exec-arrow {
+  width: 46px; height: 46px; border-radius: 50%; cursor: pointer;
+  border: 1px solid var(--doc-navy); background: var(--doc-navy); color: #fff;
+  font: 600 20px/1 var(--doc-sans);
+}
+.exec-arrow:hover { background: var(--accent-strong); }
+/* aria-disabled keeps keyboard focus on the button at either end. */
+.exec-arrow[aria-disabled="true"] { background: transparent; color: var(--doc-muted); border: 1px dashed var(--doc-muted); cursor: default; }
+
+.exec-scroll { position: relative; overflow-x: auto; scroll-snap-type: x mandatory; padding: 4px 4px 14px; scroll-padding: 4px; }
+.exec-list { display: flex; gap: 20px; list-style: none; margin: 0; padding: 0; }
+.exec-card {
+  box-sizing: border-box; flex: 0 0 calc((100% - 40px) / 3); min-width: 0; scroll-snap-align: start;
+  display: flex; flex-direction: column; margin: 0; padding: 24px;
+  background: var(--doc-card); border: 1px solid var(--doc-line);
+  border-top: 3px solid var(--doc-gold); border-radius: var(--radius);
+  overflow-wrap: break-word;
+}
+.exec-head { display: flex; align-items: center; gap: 16px; margin-bottom: 16px; }
+.exec-photo { width: 120px; height: 120px; flex: 0 0 120px; object-fit: cover; border-radius: var(--radius); background: var(--accent-tint); }
+.exec-identity { min-width: 0; }
+.exec-name { margin: 0 0 6px; font: 600 22px/1.2 var(--doc-serif); color: var(--doc-navy); }
+.exec-role { margin: 0; font: 600 13px/1.4 var(--doc-sans); color: var(--doc-dgold); }
+.exec-school { margin: 0 0 12px; font: 600 14px/1.5 var(--doc-sans); color: var(--doc-navy); }
+.exec-grade { display: block; font-weight: 400; color: var(--doc-muted); }
+.exec-bio { margin: 0 0 20px; font-size: 15px; line-height: 1.6; color: var(--doc-ink); }
+.exec-why { margin-top: auto; padding-top: 16px; border-top: 1px solid var(--doc-line); }
+.exec-why .eyebrow { margin: 0 0 8px; }
+.exec-quote { margin: 0; padding: 0; border: 0; background: none; font: italic 400 15px/1.6 var(--doc-serif); color: var(--doc-navy); }
+@media (max-width: 1020px) { .exec-card { flex-basis: calc((100% - 20px) / 2); } }
+@media (max-width: 700px) { .exec-list { gap: 12px; } .exec-card { flex-basis: 90%; padding: 20px; } }
+@media (max-width: 400px) { .exec-photo { width: 96px; height: 96px; flex-basis: 96px; } .exec-name { font-size: 20px; } }

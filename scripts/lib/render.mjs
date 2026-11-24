@@ -377,6 +377,40 @@ function initials(displayName) {
   return (first + last).toUpperCase().replace(/[^A-Z\u00C0-\u024F]/g, '');
 }
 
+// The carousel is a plain scrolling list, so it swipes and works without JS.
+// js/team-carousel.js reveals the arrows and keeps the count line current.
+export function renderTeamProfiles(profiles) {
+  if (!profiles.length) return '';
+  const cards = profiles.map((p) =>
+    '<li class="exec-card">' +
+      '<div class="exec-head">' +
+        '<img class="exec-photo" src="' + esc(p.photo) + '" alt="Portrait of ' + esc(p.name) + '" width="600" height="600" loading="lazy">' +
+        '<div class="exec-identity">' +
+          '<h3 class="exec-name">' + esc(p.name) + '</h3>' +
+          '<p class="exec-role">' + esc(p.role) + '</p>' +
+        '</div>' +
+      '</div>' +
+      '<p class="exec-school">' + esc(p.school) + '<span class="exec-grade">' + esc(p.grade) + ' grade</span></p>' +
+      '<p class="exec-bio">' + esc(p.bio) + '</p>' +
+      '<div class="exec-why">' +
+        '<h4 class="eyebrow">Why county government</h4>' +
+        '<blockquote class="exec-quote">\u201c' + esc(p.quote) + '\u201d</blockquote>' +
+      '</div>' +
+    '</li>').join('');
+  return '<div class="exec-carousel" data-exec-carousel>' +
+    '<div class="exec-bar" hidden>' +
+      '<p class="exec-status" aria-live="polite"></p>' +
+      '<div class="exec-arrows">' +
+        '<button type="button" class="exec-arrow" data-dir="-1" aria-controls="exec-track" aria-label="Previous team members"><span aria-hidden="true">&#8592;</span></button>' +
+        '<button type="button" class="exec-arrow" data-dir="1" aria-controls="exec-track" aria-label="Next team members"><span aria-hidden="true">&#8594;</span></button>' +
+      '</div>' +
+    '</div>' +
+    '<div class="exec-scroll" id="exec-track" role="region" aria-label="Executive team profiles" tabindex="0">' +
+      '<ul class="exec-list">' + cards + '</ul>' +
+    '</div>' +
+  '</div>';
+}
+
 // `byline` is js/public-byline.js, the one copy of how a minor's name may
 // appear publicly. Running every roster name through it means a full name
 // pasted into contributors.json still reaches the page as "First L." -- the
